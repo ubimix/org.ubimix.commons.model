@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ClassPath: .
+Bundle-SymbolicName: org.ubimix.model
+Bundle-Name: org.ubimix.model
+Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-Version: 1.1.5
+Bundle-ManifestVersion: 2
+Bundle-Description: JSON Library
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0
+Export-Package: org.ubimix.model;version="1.1.5"
