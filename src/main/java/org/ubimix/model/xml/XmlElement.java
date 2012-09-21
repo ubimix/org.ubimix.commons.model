@@ -33,6 +33,7 @@ public class XmlElement extends XmlNode
      * java value.
      */
     public static final IJsonValueFactory<XmlElement> FACTORY = new IJsonValueFactory<XmlElement>() {
+        @Override
         public XmlElement newValue(Object object) {
             ValueFactory f = ValueFactory.get();
             if (!f.isMap(object)) {
@@ -47,9 +48,9 @@ public class XmlElement extends XmlNode
 
     private static final String NAME_PREFIX = "!";
 
-    private static final String NS = "xmlns";
+    public static final String NS = "xmlns";
 
-    private static final String NS_PREFIX = "xmlns:";
+    public static final String NS_PREFIX = "xmlns:";
 
     protected static void addDeclaredNamespaces(
         Map<String, String> namespaces,
@@ -315,6 +316,7 @@ public class XmlElement extends XmlNode
         return object;
     }
 
+    @Override
     public IValueMap getValueMap() {
         return getObject();
     }
@@ -323,6 +325,7 @@ public class XmlElement extends XmlNode
         return container == null || "".equals(container);
     }
 
+    @Override
     public Iterator<XmlNode> iterator() {
         List<XmlNode> list = getChildren();
         return list.iterator();
