@@ -10,14 +10,14 @@ import java.util.Iterator;
  */
 public interface INodeSelector {
 
-    public static enum Accept {
+    public static enum SelectionResult {
 
         MAYBE, NO, YES;
 
         /**
-         * Using this method the {@link #AND(Accept, Accept)} operation could be
+         * Using this method the {@link #AND(SelectionResult, SelectionResult)} operation could be
          * represented as the <code>_DO(NOT, a, b)</code> call. The
-         * {@link #OR(Accept, Accept)} operation corresponds to the
+         * {@link #OR(SelectionResult, SelectionResult)} operation corresponds to the
          * <code>_DO(AND, a, b)</code> method call.
          * 
          * @param r
@@ -25,7 +25,7 @@ public interface INodeSelector {
          * @param b
          * @return
          */
-        public static Accept _DO(Accept r, Accept a, Accept b) {
+        public static SelectionResult _DO(SelectionResult r, SelectionResult a, SelectionResult b) {
             if (a == r || b == r)
                 return r;
             r = r.not();
@@ -34,7 +34,7 @@ public interface INodeSelector {
             return MAYBE;
         }
 
-        public static Accept AND(Accept a, Accept b) {
+        public static SelectionResult AND(SelectionResult a, SelectionResult b) {
             if (a == NO || b == NO)
                 return NO;
             if (a == YES && b == YES)
@@ -42,7 +42,7 @@ public interface INodeSelector {
             return MAYBE;
         }
 
-        public static Accept NOT(Accept a) {
+        public static SelectionResult NOT(SelectionResult a) {
             if (a == NO)
                 return YES;
             if (a == YES)
@@ -50,7 +50,7 @@ public interface INodeSelector {
             return MAYBE;
         }
 
-        public static Accept OR(Accept a, Accept b) {
+        public static SelectionResult OR(SelectionResult a, SelectionResult b) {
             if (a == YES || b == YES)
                 return YES;
             if (a == NO && b == NO)
@@ -58,7 +58,7 @@ public interface INodeSelector {
             return MAYBE;
         }
 
-        public static Accept XOR(Accept a, Accept b) {
+        public static SelectionResult XOR(SelectionResult a, SelectionResult b) {
             if (a == b) {
                 if (a == MAYBE) {
                     return MAYBE;
@@ -71,18 +71,18 @@ public interface INodeSelector {
             return MAYBE;
         }
 
-        public Accept and(Accept... values) {
-            Accept result = this;
+        public SelectionResult and(SelectionResult... values) {
+            SelectionResult result = this;
             for (int i = 0; result != NO && i < values.length; i++) {
                 result = AND(result, values[i]);
             }
             return result;
         }
 
-        public Accept and(Iterable<Accept> values) {
-            Accept result = this;
+        public SelectionResult and(Iterable<SelectionResult> values) {
+            SelectionResult result = this;
             if (result != NO) {
-                Iterator<Accept> iterator = values.iterator();
+                Iterator<SelectionResult> iterator = values.iterator();
                 while (result != NO && iterator.hasNext()) {
                     result = AND(result, iterator.next());
                 }
@@ -90,22 +90,22 @@ public interface INodeSelector {
             return result;
         }
 
-        public Accept not() {
+        public SelectionResult not() {
             return NOT(this);
         }
 
-        public Accept or(Accept... values) {
-            Accept result = this;
+        public SelectionResult or(SelectionResult... values) {
+            SelectionResult result = this;
             for (int i = 0; result != YES && i < values.length; i++) {
                 result = OR(result, values[i]);
             }
             return result;
         }
 
-        public Accept or(Iterable<Accept> values) {
-            Accept result = this;
+        public SelectionResult or(Iterable<SelectionResult> values) {
+            SelectionResult result = this;
             if (result != YES) {
-                Iterator<Accept> iterator = values.iterator();
+                Iterator<SelectionResult> iterator = values.iterator();
                 while (result != YES && iterator.hasNext()) {
                     result = OR(result, iterator.next());
                 }
@@ -114,5 +114,5 @@ public interface INodeSelector {
         }
     }
 
-    Accept accept(Object node);
+    SelectionResult accept(Object node);
 }

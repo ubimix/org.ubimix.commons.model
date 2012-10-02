@@ -17,9 +17,9 @@ public class SkipSelector implements INodeSelector {
         fSelector = selector;
     }
 
-    public INodeSelector.Accept accept(Object node) {
-        Accept result = fSelector.accept(node);
-        return (result == Accept.YES) ? Accept.YES : Accept.MAYBE;
+    public INodeSelector.SelectionResult accept(Object node) {
+        SelectionResult result = fSelector.accept(node);
+        return (result == SelectionResult.YES) ? SelectionResult.YES : SelectionResult.MAYBE;
     }
 
     @Override

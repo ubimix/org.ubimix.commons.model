@@ -4,8 +4,8 @@
 package org.ubimix.model.path;
 
 public class ThisSelector implements INodeSelector {
-    public INodeSelector.Accept accept(Object node) {
-        return INodeSelector.Accept.YES;
+    public INodeSelector.SelectionResult accept(Object node) {
+        return INodeSelector.SelectionResult.YES;
     }
 
     @Override

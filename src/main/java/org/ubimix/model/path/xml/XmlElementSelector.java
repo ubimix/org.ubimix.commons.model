@@ -3,6 +3,7 @@
  */
 package org.ubimix.model.path.xml;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.ubimix.model.path.INodeSelector;
@@ -13,19 +14,44 @@ import org.ubimix.model.xml.XmlElement;
  */
 public class XmlElementSelector implements INodeSelector {
 
+    public static Map<String, INodeSelector> toAttributeSelectors(
+        String... attributes) {
+        if (attributes == null || attributes.length == 0) {
+            return null;
+        }
+        Map<String, INodeSelector> result = new LinkedHashMap<String, INodeSelector>();
+        for (int i = 0; i < attributes.length; i++) {
+            String name = attributes[i];
+            i++;
+            String value = i < attributes.length ? attributes[i] : "";
+            INodeSelector selector = value != null
+                ? new TextSelector(value)
+                : null;
+            result.put(name, selector);
+        }
+        return result;
+    }
+
     private Map<String, INodeSelector> fAttributeSelectors;
 
-    private INodeSelector.Accept fDefaultSelectResult;
+    private INodeSelector.SelectionResult fDefaultSelectResult;
 
     private String fName;
 
     public XmlElementSelector(
         String name,
-        INodeSelector.Accept defaultSelectResult,
+        INodeSelector.SelectionResult defaultSelectResult,
         Map<String, INodeSelector> attributeSelectors) {
         fName = name;
         fDefaultSelectResult = defaultSelectResult;
         fAttributeSelectors = attributeSelectors;
+    }
+
+    public XmlElementSelector(
+        String name,
+        INodeSelector.SelectionResult defaultSelectResult,
+        String... attributes) {
+        this(name, defaultSelectResult, toAttributeSelectors(attributes));
     }
 
     /**
@@ -40,21 +66,21 @@ public class XmlElementSelector implements INodeSelector {
         fName = filter != null ? filter.fName : null;
         fDefaultSelectResult = filter != null
             ? filter.fDefaultSelectResult
-            : INodeSelector.Accept.NO;
+            : INodeSelector.SelectionResult.NO;
         fAttributeSelectors = attributeSelectors;
     }
 
     @Override
-    public INodeSelector.Accept accept(Object node) {
-        INodeSelector.Accept result = INodeSelector.Accept.NO;
+    public INodeSelector.SelectionResult accept(Object node) {
+        INodeSelector.SelectionResult result = INodeSelector.SelectionResult.NO;
         if (node instanceof XmlElement) {
             XmlElement e = (XmlElement) node;
             if (fName != null) {
                 if (fName.equals(e.getName())) {
                     result = checkAttributes(
                         e,
-                        INodeSelector.Accept.YES,
-                        INodeSelector.Accept.NO);
+                        INodeSelector.SelectionResult.YES,
+                        INodeSelector.SelectionResult.NO);
                 } else {
                     result = fDefaultSelectResult;
                 }
@@ -68,13 +94,13 @@ public class XmlElementSelector implements INodeSelector {
         return result;
     }
 
-    private INodeSelector.Accept checkAttributes(
+    private INodeSelector.SelectionResult checkAttributes(
         XmlElement e,
-        INodeSelector.Accept defaultResult,
-        INodeSelector.Accept negativeResult) {
-        INodeSelector.Accept result = defaultResult;
+        INodeSelector.SelectionResult defaultResult,
+        INodeSelector.SelectionResult negativeResult) {
+        INodeSelector.SelectionResult result = defaultResult;
         if (fAttributeSelectors != null) {
-            result = INodeSelector.Accept.YES;
+            result = INodeSelector.SelectionResult.YES;
             for (Map.Entry<String, INodeSelector> entry : fAttributeSelectors
                 .entrySet()) {
                 String attrName = entry.getKey();
@@ -87,9 +113,9 @@ public class XmlElementSelector implements INodeSelector {
 
                 INodeSelector selector = entry.getValue();
                 if (selector != null) {
-                    Accept attrResult = selector.accept(value);
+                    SelectionResult attrResult = selector.accept(value);
                     result = sum(result, attrResult);
-                    if (result == INodeSelector.Accept.NO) {
+                    if (result == INodeSelector.SelectionResult.NO) {
                         result = negativeResult;
                         break;
                     }
@@ -125,7 +151,7 @@ public class XmlElementSelector implements INodeSelector {
         return a ^ b;
     }
 
-    protected Accept sum(Accept first, Accept second) {
+    protected SelectionResult sum(SelectionResult first, SelectionResult second) {
         return first.and(second);
     }
 

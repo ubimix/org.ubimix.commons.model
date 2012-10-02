@@ -3,9 +3,9 @@
  */
 package org.ubimix.model;
 
+import org.ubimix.commons.json.AbstractObjectBuilder;
 import org.ubimix.model.ValueFactory.IValueList;
 import org.ubimix.model.ValueFactory.IValueMap;
-import org.webreformatter.commons.json.AbstractObjectBuilder;
 
 /**
  * This class is used to convert JSON to Java objects and vice versa.

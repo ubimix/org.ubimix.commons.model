@@ -10,13 +10,13 @@ import java.util.Iterator;
  */
 public class PathProcessor {
 
-    private IPathSelector fFilters;
-
     private INodeProvider fNodeProvider;
+
+    private IPathSelector fSelectors;
 
     public PathProcessor(INodeProvider nodeProvider, IPathSelector filters) {
         fNodeProvider = nodeProvider;
-        fFilters = filters;
+        fSelectors = filters;
     }
 
     public void select(Object node, IPathNodeCollector collector) {
@@ -27,17 +27,19 @@ public class PathProcessor {
         Object node,
         IPathNodeCollector collector,
         int selectorPos) {
-        int filterNumber = fFilters.getSelectorNumber();
-        if (selectorPos >= filterNumber)
+        int selectorNumber = fSelectors.getSelectorNumber();
+        if (selectorPos >= selectorNumber) {
             return true;
+        }
         boolean result = true;
-        INodeSelector filter = fFilters.getNodeSelector(selectorPos);
-        INodeSelector.Accept accept = filter.accept(node);
+        INodeSelector selector = fSelectors.getNodeSelector(selectorPos);
+        INodeSelector.SelectionResult selectionResult = selector.accept(node);
         int childSelectorPos = -1;
-        switch (accept) {
+        switch (selectionResult) {
             case YES:
-                if (selectorPos + 1 >= filterNumber) {
+                if (selectorPos + 1 >= selectorNumber) {
                     result = collector.setResult(node);
+                    childSelectorPos = selectorPos;
                 } else {
                     childSelectorPos = selectorPos + 1;
                 }
@@ -51,7 +53,7 @@ public class PathProcessor {
                 childSelectorPos = selectorPos;
                 break;
         }
-        if (childSelectorPos >= 0 && childSelectorPos < filterNumber) {
+        if (childSelectorPos >= 0 && childSelectorPos < selectorNumber) {
             Iterator<?> children = fNodeProvider.getChildren(node);
             if (children != null) {
                 while (children.hasNext()) {

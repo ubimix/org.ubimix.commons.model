@@ -82,13 +82,12 @@ public class XmlSelectorBuilder extends PathSelectorBuilder {
 
     private XmlSelectorBuilder element(String name, boolean deep) {
         name = getName(name);
-        INodeSelector.Accept defaultSelectResult = deep
-            ? INodeSelector.Accept.MAYBE
-            : INodeSelector.Accept.NO;
+        INodeSelector.SelectionResult defaultSelectResult = deep
+            ? INodeSelector.SelectionResult.MAYBE
+            : INodeSelector.SelectionResult.NO;
         XmlElementSelector selector = new XmlElementSelector(
             name,
-            defaultSelectResult,
-            null);
+            defaultSelectResult);
         return add(selector);
     }
 

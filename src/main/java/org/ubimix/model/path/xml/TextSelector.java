@@ -16,14 +16,14 @@ public class TextSelector implements INodeSelector {
         fMask = mask;
     }
 
-    public Accept accept(Object node) {
-        INodeSelector.Accept result = INodeSelector.Accept.MAYBE;
+    public SelectionResult accept(Object node) {
+        INodeSelector.SelectionResult result = INodeSelector.SelectionResult.MAYBE;
         String value = getTextValue(node);
         if (value != null) {
-            result = INodeSelector.Accept.YES;
+            result = INodeSelector.SelectionResult.YES;
             if (fMask != null) {
                 if (value.indexOf(fMask) < 0) {
-                    result = INodeSelector.Accept.NO;
+                    result = INodeSelector.SelectionResult.NO;
                 }
             }
         }

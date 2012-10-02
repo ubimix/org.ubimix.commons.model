@@ -10,9 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.webreformatter.commons.json.JsonObjectBuilder;
-import org.webreformatter.commons.json.JsonParser;
-import org.webreformatter.commons.json.JsonSerializer;
+import org.ubimix.commons.json.JsonObject;
+import org.ubimix.commons.json.JsonObjectBuilder;
+import org.ubimix.commons.json.JsonParser;
+import org.ubimix.commons.json.JsonSerializer;
 
 /**
  * @author kotelnikov

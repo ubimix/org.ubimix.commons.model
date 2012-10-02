@@ -11,11 +11,8 @@ import java.util.Map;
  * This is a non-validating ("irregular") parser for XML documents. This parser
  * does not try to check if each opening tag has the corresponding closing tag.
  * It just reports separately all found tags, words, spaces and special symbols.
- * To notify about found structural elements this class calls the following
- * abstract methods: {@link #onBeginTag(String, List)},
- * {@link #onEndTag(String)}, {@link #onEntity(String)},
- * {@link #onSpaces(String)}, {@link #onSpecialSymbols(String)} and
- * {@link #onWord(String)}. These methods should be defined in subclasses.
+ * To notify about found structural elements this class calls
+ * {@link IXmlListener listener methods}.
  * 
  * @author kotelnikov
  */
@@ -221,6 +218,7 @@ public class XmlParser implements IXmlParser {
      * 
      * @param str the string to parse
      */
+    @Override
     public void parse(String str, IXmlListener listener) {
         try {
             fListener = listener;
