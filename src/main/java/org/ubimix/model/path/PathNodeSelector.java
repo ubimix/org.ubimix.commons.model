@@ -3,6 +3,7 @@
  */
 package org.ubimix.model.path;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,14 +12,14 @@ import java.util.List;
  */
 public class PathNodeSelector implements IPathSelector {
 
-    private List<INodeSelector> fList;
+    private List<INodeSelector> fList = new ArrayList<INodeSelector>();
 
     public PathNodeSelector(INodeSelector... list) {
-        this(Arrays.<INodeSelector> asList(list));
+        setNodeSelectors(list);
     }
 
     public PathNodeSelector(List<INodeSelector> list) {
-        fList = list;
+        setNodeSelectors(list);
     }
 
     @Override
@@ -46,6 +47,15 @@ public class PathNodeSelector implements IPathSelector {
     @Override
     public int hashCode() {
         return fList.hashCode();
+    }
+
+    public void setNodeSelectors(INodeSelector... list) {
+        setNodeSelectors(Arrays.<INodeSelector> asList(list));
+    }
+
+    public void setNodeSelectors(List<INodeSelector> list) {
+        fList.clear();
+        fList.addAll(list);
     }
 
     @Override

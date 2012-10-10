@@ -1,5 +1,0 @@
-<module>
-    <source path="json">
-        <exclude name="**/ext/DateFormatter.*" />
-    </source>
-</module>

@@ -6,18 +6,13 @@ package org.ubimix.model.path;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.TestCase;
-
 import org.ubimix.model.path.INodeSelector.SelectionResult;
 import org.ubimix.model.path.xml.XmlElementSelector;
-import org.ubimix.model.path.xml.XmlNodeProvider;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
 
 /**
  * @author kotelnikov
  */
-public class PathProcessorTest extends TestCase {
+public class PathProcessorTest extends AbstractPathProcessorTest {
 
     /**
      * @param name
@@ -35,7 +30,109 @@ public class PathProcessorTest extends TestCase {
         return pathSelector;
     }
 
-    public void test() throws Exception {
+    public void testEmbeddedNodeSelection() {
+        String xml = ""
+            + "<html>"
+            + "<head><title /></head>"
+            + "<body>"
+            + "<div class='xxx'>"
+            + "<span class='nn'>A <span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span> G</span>"
+            + "</div>"
+            + "<div>"
+            + "<span class='nn'>N <span class='nn'>M <span>P</span> P <span class='nn'>Q</span> R</span> S</span>"
+            + "</div>"
+            + "</body>"
+            + "</html>";
+
+        List<INodeSelector> list = new ArrayList<INodeSelector>();
+        list.add(new SkipSelector(new XmlElementSelector(
+            "div",
+            SelectionResult.NO,
+            "class",
+            "xxx")));
+        list.add(new SkipSelector(new XmlElementSelector(
+            "span",
+            SelectionResult.NO,
+            "class",
+            "nn")));
+        IPathSelector pathSelector = new PathNodeSelector(list);
+        test(
+            xml,
+            true,
+            pathSelector,
+            "<span class='nn'>A <span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span> G</span>",
+            "<span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span>",
+            "<span class='nn'>E</span>");
+        test(
+            xml,
+            false,
+            pathSelector,
+            "<span class='nn'>A <span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span> G</span>");
+
+        //
+        list = new ArrayList<INodeSelector>();
+        list.add(new SkipSelector(new XmlElementSelector(
+            "div",
+            SelectionResult.NO)));
+        list.add(new SkipSelector(new XmlElementSelector(
+            "span",
+            SelectionResult.NO,
+            "class",
+            "nn")));
+        pathSelector = new PathNodeSelector(list);
+        test(
+            xml,
+            true,
+            pathSelector,
+            "<span class='nn'>A <span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span> G</span>",
+            "<span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span>",
+            "<span class='nn'>E</span>",
+            "<span class='nn'>N <span class='nn'>M <span>P</span> P <span class='nn'>Q</span> R</span> S</span>",
+            "<span class='nn'>M <span>P</span> P <span class='nn'>Q</span> R</span>",
+            "<span class='nn'>Q</span>");
+        test(
+            xml,
+            false,
+            pathSelector,
+            "<span class='nn'>A <span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span> G</span>");
+
+    }
+
+    public void testResultCollectingMode() {
+        // Collecting embedded nodes
+        String xml = ""
+            + "<html>"
+            + "<head><title /></head>"
+            + "<body>"
+            + "<div>before</div>"
+            + "<div class='xxx'>A <div class='xxx'>B</div> C</div>"
+            + "<div>after</div>"
+            + "</body>"
+            + "</html>";
+        test(
+            xml,
+            true,
+            getPathSelector("div"),
+            "<div>before</div>",
+            "<div class='xxx'>A <div class='xxx'>B</div> C</div>",
+            "<div class='xxx'>B</div>",
+            "<div>after</div>");
+        test(xml, false, getPathSelector("div"), "<div>before</div>");
+        test(
+            xml,
+            true,
+            getPathSelector("div", "class", "xxx"),
+            "<div class='xxx'>A <div class='xxx'>B</div> C</div>",
+            "<div class='xxx'>B</div>");
+        test(
+            xml,
+            false,
+            getPathSelector("div", "class", "xxx"),
+            "<div class='xxx'>A <div class='xxx'>B</div> C</div>");
+
+    }
+
+    public void testSimplePathSelectors() throws Exception {
         String xml = ""
             + "<html>"
             + "<title />"
@@ -90,26 +187,5 @@ public class PathProcessorTest extends TestCase {
             "<p class='yyy'>blah-blah <a class='xxx'>ref</a> blah-blah</p>",
             "<a class='xxx'>ref</a>",
             "<p class='xxx'>third</p>");
-    }
-
-    private void test(String xml, IPathSelector selector, String... controls) {
-        INodeProvider provider = new XmlNodeProvider();
-        PathProcessor processor = new PathProcessor(provider, selector);
-        XmlNode node = XmlElement.parse(xml);
-        final List<XmlElement> results = new ArrayList<XmlElement>();
-        processor.select(node, new IPathNodeCollector() {
-            @Override
-            public boolean setResult(Object node) {
-                results.add((XmlElement) node);
-                return true;
-            }
-        });
-        assertEquals(controls.length, results.size());
-        int i = 0;
-        for (String str : controls) {
-            XmlElement testNode = results.get(i++);
-            assertNotNull(testNode);
-            assertEquals(str, testNode.toString());
-        }
     }
 }

@@ -31,14 +31,14 @@ public class PathProcessor {
         if (selectorPos >= selectorNumber) {
             return true;
         }
-        boolean result = true;
+        boolean shouldContinue = true;
         INodeSelector selector = fSelectors.getNodeSelector(selectorPos);
         INodeSelector.SelectionResult selectionResult = selector.accept(node);
         int childSelectorPos = -1;
         switch (selectionResult) {
             case YES:
                 if (selectorPos + 1 >= selectorNumber) {
-                    result = collector.setResult(node);
+                    shouldContinue = collector.setResult(node);
                     childSelectorPos = selectorPos;
                 } else {
                     childSelectorPos = selectorPos + 1;
@@ -53,19 +53,21 @@ public class PathProcessor {
                 childSelectorPos = selectorPos;
                 break;
         }
-        if (childSelectorPos >= 0 && childSelectorPos < selectorNumber) {
+        if (shouldContinue
+            && childSelectorPos >= 0
+            && childSelectorPos < selectorNumber) {
             Iterator<?> children = fNodeProvider.getChildren(node);
             if (children != null) {
                 while (children.hasNext()) {
                     Object child = children.next();
                     if (!selectNode(child, collector, childSelectorPos)) {
-                        result = false;
+                        shouldContinue = false;
                         break;
                     }
                 }
             }
         }
-        return result;
+        return shouldContinue;
     }
 
 }

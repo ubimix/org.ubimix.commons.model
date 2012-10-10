@@ -10,10 +10,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.ubimix.commons.json.JsonObject;
-import org.ubimix.commons.json.JsonObjectBuilder;
 import org.ubimix.commons.json.JsonParser;
 import org.ubimix.commons.json.JsonSerializer;
+import org.ubimix.commons.json.JsonObjectBuilder;
 
 /**
  * @author kotelnikov
@@ -76,22 +75,27 @@ public abstract class ValueFactory {
             IValueList {
             private static final long serialVersionUID = 5517666313440347482L;
 
+            @Override
             public void addValue(int pos, Object value) {
                 add(pos, value);
             }
 
+            @Override
             public int getSize() {
                 return size();
             }
 
+            @Override
             public Object getValue(int pos) {
                 return get(pos);
             }
 
+            @Override
             public void removeValue(int pos) {
                 remove(pos);
             }
 
+            @Override
             public void setValue(int pos, Object v) {
                 if (pos == size()) {
                     add(v);
@@ -107,18 +111,22 @@ public abstract class ValueFactory {
             IValueMap {
             private static final long serialVersionUID = -2415154452289492331L;
 
+            @Override
             public Set<String> getKeys() {
                 return super.keySet();
             }
 
+            @Override
             public Object getValue(String name) {
                 return super.get(name);
             }
 
+            @Override
             public void putValue(String name, Object value) {
                 put(name, value);
             }
 
+            @Override
             public void removeValue(String name) {
                 remove(name);
             }
@@ -178,6 +186,7 @@ public abstract class ValueFactory {
      * returns it.
      */
     public static IJsonValueFactory<Object> NULL_FACTORY = new IJsonValueFactory<Object>() {
+        @Override
         public Object newValue(Object object) {
             return ValueFactory.get().toModelValue(object);
         }

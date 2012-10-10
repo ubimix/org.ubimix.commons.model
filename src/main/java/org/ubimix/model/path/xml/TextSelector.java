@@ -16,13 +16,14 @@ public class TextSelector implements INodeSelector {
         fMask = mask;
     }
 
+    @Override
     public SelectionResult accept(Object node) {
         INodeSelector.SelectionResult result = INodeSelector.SelectionResult.MAYBE;
         String value = getTextValue(node);
         if (value != null) {
             result = INodeSelector.SelectionResult.YES;
             if (fMask != null) {
-                if (value.indexOf(fMask) < 0) {
+                if (!match(value, fMask)) {
                     result = INodeSelector.SelectionResult.NO;
                 }
             }
@@ -32,8 +33,9 @@ public class TextSelector implements INodeSelector {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
+        }
         if (!(obj instanceof TextSelector)) {
             return false;
         }
@@ -49,6 +51,10 @@ public class TextSelector implements INodeSelector {
     @Override
     public int hashCode() {
         return fMask != null ? fMask.hashCode() : 0;
+    }
+
+    protected boolean match(String value, String mask) {
+        return value.indexOf(mask) >= 0;
     }
 
     @Override
