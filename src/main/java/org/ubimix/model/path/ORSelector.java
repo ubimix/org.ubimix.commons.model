@@ -3,8 +3,6 @@
  */
 package org.ubimix.model.path;
 
-import org.ubimix.model.path.INodeSelector.SelectionResult;
-
 /**
  * @author kotelnikov
  */

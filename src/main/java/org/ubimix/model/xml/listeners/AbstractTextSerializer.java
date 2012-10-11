@@ -5,12 +5,13 @@ package org.ubimix.model.xml.listeners;
 
 import java.util.Map;
 
-import org.ubimix.model.xml.IXmlListener;
+import org.ubimix.commons.parser.xml.Entity;
+import org.ubimix.commons.parser.xml.XmlListener;
 
 /**
  * @author kotelnikov
  */
-public abstract class AbstractTextSerializer implements IXmlListener {
+public abstract class AbstractTextSerializer extends XmlListener {
 
     private boolean fNormalizeSpaces;
 
@@ -24,12 +25,14 @@ public abstract class AbstractTextSerializer implements IXmlListener {
         fNormalizeSpaces = normalizeSpaces;
     }
 
+    @Override
     public void beginElement(
         String name,
         Map<String, String> attributes,
         Map<String, String> namespaces) {
     }
 
+    @Override
     public void endElement(
         String name,
         Map<String, String> attributes,
@@ -60,11 +63,19 @@ public abstract class AbstractTextSerializer implements IXmlListener {
         return buf.toString();
     }
 
+    @Override
     public void onCDATA(String content) {
         String str = normalizeSpaces(content);
         print(str);
     }
 
+    @Override
+    public void onEntity(Entity entity) {
+        char[] ch = Character.toChars(entity.getCode());
+        print(new String(ch));
+    }
+
+    @Override
     public void onText(String text) {
         String str = normalizeSpaces(text);
         print(str);

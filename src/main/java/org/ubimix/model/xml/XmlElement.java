@@ -6,18 +6,17 @@ package org.ubimix.model.xml;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.ubimix.model.ValueFactory;
-import org.ubimix.model.ValueFactory.IHasValueMap;
-import org.ubimix.model.ValueFactory.IJsonValueFactory;
-import org.ubimix.model.ValueFactory.IValueList;
-import org.ubimix.model.ValueFactory.IValueMap;
+import org.ubimix.commons.parser.xml.IXmlParser;
+import org.ubimix.commons.parser.xml.XmlParser;
+import org.ubimix.model.IHasValueMap;
+import org.ubimix.model.IValueFactory;
 import org.ubimix.model.xml.listeners.XmlBuilder;
 
 /**
@@ -32,21 +31,22 @@ public class XmlElement extends XmlNode
      * Creates and returns {@link XmlElement} instance wrapping the specified
      * java value.
      */
-    public static final IJsonValueFactory<XmlElement> FACTORY = new IJsonValueFactory<XmlElement>() {
+    public static final IValueFactory<XmlElement> FACTORY = new IValueFactory<XmlElement>() {
         @Override
         public XmlElement newValue(Object object) {
-            ValueFactory f = ValueFactory.get();
-            if (!f.isMap(object)) {
-                return null;
+            Map<Object, Object> map = null;
+            if (object instanceof Map<?, ?>) {
+                map = cast(object);
             }
-            IValueMap map = f.toMap(object);
-            return new XmlElement(null, map);
+            return map != null ? new XmlElement(null, map) : null;
         }
     };
 
     private static IXmlParser fParser;
 
-    private static final String NAME_PREFIX = "!";
+    private static final String KEY_CHILDREN = "~";
+
+    private static final String KEY_NAME = "!";
 
     public static final String NS = "xmlns";
 
@@ -65,31 +65,16 @@ public class XmlElement extends XmlNode
         }
     }
 
-    private static String getName(IValueMap object) {
-        String name = getNameKey(object);
-        if (name != null && name.startsWith(NAME_PREFIX)) {
-            name = name.substring(NAME_PREFIX.length());
-        }
-        return name;
+    @SuppressWarnings("unchecked")
+    protected static <T> T cast(Object value) {
+        return (T) value;
     }
 
-    private static String getNameKey(IValueMap object) {
-        Set<String> attrs = object.getKeys();
-        String result = null;
-        for (String attr : attrs) {
-            if (result == null) {
-                result = attr;
-            }
-            if (attr.startsWith(NAME_PREFIX)) {
-                result = attr;
-                break;
-            }
+    public static XmlElement from(IHasValueMap object) {
+        if (object instanceof XmlElement) {
+            return cast(object);
         }
-        return result;
-    }
-
-    private static String getNameKey(String tagName) {
-        return NAME_PREFIX + tagName;
+        return new XmlElement(object);
     }
 
     public static IXmlParser getParser() {
@@ -111,7 +96,7 @@ public class XmlElement extends XmlNode
     }
 
     public XmlElement(IHasValueMap object) {
-        this(null, object.getValueMap());
+        this(null, object.getMap());
     }
 
     public XmlElement(String name) {
@@ -119,8 +104,8 @@ public class XmlElement extends XmlNode
         setName(name);
     }
 
-    public XmlElement(XmlElement parent, IValueMap object) {
-        super(parent, object);
+    public XmlElement(XmlElement parent, Map<Object, Object> map) {
+        super(parent, map);
     }
 
     @Override
@@ -138,12 +123,29 @@ public class XmlElement extends XmlNode
         if (pos < 0) {
             return result;
         }
-        IValueList container = getChildContainer(true);
-        int len = container.getSize();
-        if (pos >= 0 && pos <= len) {
-            Object nodeObject = node.getObject();
-            container.addValue(pos, nodeObject);
+        Object innerObject = node.getObject();
+        Map<Object, Object> map = getMap();
+        Object value = map.get(KEY_CHILDREN);
+        if (value == null) {
+            map.put(KEY_CHILDREN, innerObject);
             result = true;
+        } else {
+            if (value instanceof List<?>) {
+                @SuppressWarnings("unchecked")
+                List<Object> list = (List<Object>) value;
+                if (pos >= 0 && pos <= list.size()) {
+                    list.add(pos, innerObject);
+                    result = true;
+                }
+            } else {
+                if (pos == 0 || pos == 1) {
+                    List<Object> list = new ArrayList<Object>();
+                    map.put(KEY_CHILDREN, list);
+                    list.add(value);
+                    list.add(pos, innerObject);
+                    result = true;
+                }
+            }
         }
         if (result) {
             node.setParent(this);
@@ -152,32 +154,23 @@ public class XmlElement extends XmlNode
     }
 
     public String getAttribute(String key) {
-        IValueMap object = getObject();
-        Object value = object.getValue(key);
-        return ValueFactory.get().toString(value);
+        Map<Object, Object> map = getMap();
+        Object value = map.get(key);
+        return toString(value);
     }
 
     public Set<String> getAttributeNames() {
-        IValueMap obj = getObject();
-        Set<String> set = obj.getKeys();
-        Set<String> result = new HashSet<String>(set);
-        boolean hasExplicitName = false;
-        String firstAttr = null;
-        for (String attr : set) {
-            if (firstAttr == null) {
-                firstAttr = attr;
+        Map<Object, Object> map = getMap();
+        Set<Object> set = map.keySet();
+        Set<String> result = new LinkedHashSet<String>();
+        for (Object attr : set) {
+            String key = toString(attr);
+            boolean exclude = (KEY_NAME.equals(key)
+                || KEY_CHILDREN.equals(key)
+                || key.startsWith(NS_PREFIX) || NS.equals(key));
+            if (!exclude) {
+                result.add(key);
             }
-            if (attr.startsWith(NAME_PREFIX)) {
-                hasExplicitName = true;
-                result.remove(attr);
-            } else if (attr.startsWith(NS_PREFIX)) {
-                result.remove(attr);
-            } else if (attr.equals(NS)) {
-                result.remove(attr);
-            }
-        }
-        if (!hasExplicitName && firstAttr != null) {
-            result.remove(firstAttr);
         }
         return result;
     }
@@ -201,57 +194,69 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    private IValueList getChildContainer(boolean create) {
-        IValueMap object = getObject();
-        String nameKey = getNameKey(object);
-        Object container = nameKey != null ? object.getValue(nameKey) : null;
-        ValueFactory f = ValueFactory.get();
-        IValueList list = f.isArray(container) ? f.toArray(container) : null;
-        if (list == null && create) {
-            list = f.newList();
-            object.putValue(nameKey, list);
-        }
-        return list;
-    }
-
     public int getChildCount() {
-        IValueList container = getChildContainer(false);
-        int result = container != null ? container.getSize() : 0;
+        Object value = getMap().get(KEY_CHILDREN);
+        int result = 0;
+        if (value != null) {
+            if (value instanceof List<?>) {
+                result = ((List<?>) value).size();
+            } else {
+                result = 1;
+            }
+        }
         return result;
     }
 
     protected Object getChildObject(int pos) {
-        IValueList container = getChildContainer(false);
-        int size = container != null ? container.getSize() : 0;
-        return pos >= 0 && pos < size ? container.getValue(pos) : null;
+        Object value = getMap().get(KEY_CHILDREN);
+        Object result = null;
+        if (value != null) {
+            if (value instanceof List<?>) {
+                List<?> list = ((List<?>) value);
+                result = pos >= 0 && pos < list.size() ? list.get(pos) : null;
+            } else {
+                result = pos == 0 ? value : null;
+            }
+        }
+        return result;
     }
 
     protected int getChildPosition(XmlNode node) {
         Object nodeObject = node.getObject();
-        IValueList container = getChildContainer(false);
         int result = -1;
-        int len = container != null ? container.getSize() : 0;
-        for (int i = 0; result < 0 && i < len; i++) {
-            Object childObject = container.getValue(i);
-            if (equals(childObject, nodeObject)) {
-                result = i;
+        Object value = getMap().get(KEY_CHILDREN);
+        if (value != null) {
+            if (value instanceof List<?>) {
+                List<?> list = (List<?>) value;
+                result = list.indexOf(nodeObject);
+            } else if (nodeObject.equals(value)) {
+                result = 0;
             }
         }
         return result;
     }
 
     public List<XmlNode> getChildren() {
-        List<XmlNode> list = new ArrayList<XmlNode>();
-        IValueList container = getChildContainer(false);
-        int len = container != null ? container.getSize() : 0;
-        for (int i = 0; i < len; i++) {
-            Object c = container.getValue(i);
-            XmlNode node = newChild(c);
-            if (node != null) {
-                list.add(node);
+        List<XmlNode> result = new ArrayList<XmlNode>();
+        Map<Object, Object> map = getMap();
+        Object value = map.get(KEY_CHILDREN);
+        if (value != null) {
+            if (value instanceof List<?>) {
+                List<?> list = (List<?>) value;
+                for (Object c : list) {
+                    XmlNode node = newChild(c);
+                    if (node != null) {
+                        result.add(node);
+                    }
+                }
+            } else {
+                XmlNode node = newChild(value);
+                if (node != null) {
+                    result.add(node);
+                }
             }
         }
-        return list;
+        return result;
     }
 
     /**
@@ -263,23 +268,23 @@ public class XmlElement extends XmlNode
      */
     public Map<String, String> getDeclaredNamespaces() {
         Map<String, String> result = null;
-        IValueMap object = getObject();
-        Set<String> attrs = object.getKeys();
-        ValueFactory f = ValueFactory.get();
-        for (String attr : attrs) {
+        Map<Object, Object> map = getMap();
+        Set<Object> attrs = map.keySet();
+        for (Object attr : attrs) {
+            String str = toString(attr);
             String prefix = null;
-            if (attr.startsWith(NS_PREFIX)) {
-                prefix = attr.substring(NS_PREFIX.length());
-            } else if (attr.equals(NS)) {
+            if (str.startsWith(NS_PREFIX)) {
+                prefix = str.substring(NS_PREFIX.length());
+            } else if (str.equals(NS)) {
                 prefix = "";
             }
             if (prefix != null) {
-                Object value = object.getValue(attr);
-                String str = f.toString(value);
                 if (result == null) {
                     result = new LinkedHashMap<String, String>();
                 }
-                result.put(prefix, str);
+                Object value = map.get(attr);
+                String ns = toString(value);
+                result.put(prefix, ns);
             }
         }
         if (result == null) {
@@ -288,9 +293,15 @@ public class XmlElement extends XmlNode
         return result;
     }
 
+    @Override
+    public Map<Object, Object> getMap() {
+        return cast(getObject());
+    }
+
     public String getName() {
-        IValueMap object = getObject();
-        return getName(object);
+        Map<Object, Object> map = getMap();
+        Object value = map.get(KEY_NAME);
+        return toString(value);
     }
 
     /**
@@ -308,17 +319,6 @@ public class XmlElement extends XmlNode
             e = e.getParent();
         }
         return result;
-    }
-
-    @Override
-    public IValueMap getObject() {
-        IValueMap object = (IValueMap) super.getObject();
-        return object;
-    }
-
-    @Override
-    public IValueMap getValueMap() {
-        return getObject();
     }
 
     private boolean isEmpty(Object container) {
@@ -372,14 +372,13 @@ public class XmlElement extends XmlNode
 
     private XmlNode newChild(Object o) {
         XmlNode result = null;
-        ValueFactory f = ValueFactory.get();
-        if (f.isArray(o)) {
+        if (o instanceof List<?>) {
             // FIXME: ???
-        } else if (f.isMap(o)) {
-            IValueMap map = f.toMap(o);
+        } else if (o instanceof Map<?, ?>) {
+            Map<Object, Object> map = cast(o);
             result = newElement(map);
         } else if (!isEmpty(o)) {
-            String str = f.toString(o);
+            String str = toString(o);
             if (str.startsWith(XmlCDATA.CDATA_PREFIX)) {
                 result = newCDATA(str);
             } else {
@@ -389,13 +388,13 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    private XmlElement newElement(IValueMap obj) {
+    private XmlElement newElement(Map<Object, Object> obj) {
         return new XmlElement(this, obj);
     }
 
     @Override
-    protected Object newObject() {
-        return ValueFactory.get().newMap();
+    protected Map<Object, Object> newObject() {
+        return new LinkedHashMap<Object, Object>();
     }
 
     public XmlText newText(String content) {
@@ -408,27 +407,37 @@ public class XmlElement extends XmlNode
         if (pos < 0) {
             return result;
         }
-        IValueList container = getChildContainer(false);
-        int len = container != null ? container.getSize() : 0;
-        if (pos >= 0 && pos < len) {
-            container.removeValue(pos);
-            result = true;
+        Map<Object, Object> map = getMap();
+        Object value = map.get(KEY_CHILDREN);
+        if (value != null) {
+            if (value instanceof List<?>) {
+                List<?> list = (List<?>) value;
+                result = pos >= 0
+                    && pos < list.size()
+                    && list.remove(pos) != null;
+                if (list.isEmpty()) {
+                    map.remove(KEY_CHILDREN);
+                } else if (list.size() == 1) {
+                    map.put(KEY_CHILDREN, list.get(0));
+                }
+            } else if (pos == 0) {
+                result = map.remove(KEY_CHILDREN) != null;
+            }
         }
         return result;
     }
 
     public void removeChildren() {
-        IValueMap object = getObject();
-        String nameKey = getNameKey(object);
-        object.removeValue(nameKey);
+        Map<Object, Object> map = getMap();
+        map.remove(KEY_CHILDREN);
     }
 
     public void setAttribute(String key, String value) {
-        if (key.startsWith(NAME_PREFIX)) {
-            throw new IllegalArgumentException("Invalid attribute name.");
+        if (KEY_NAME.equals(key) || KEY_CHILDREN.equals(key)) {
+            throw new IllegalArgumentException();
         }
-        IValueMap object = getObject();
-        object.putValue(key, value);
+        Map<Object, Object> map = getMap();
+        map.put(key, value);
     }
 
     public void setAttributes(Map<String, String> attributes) {
@@ -436,15 +445,12 @@ public class XmlElement extends XmlNode
     }
 
     public void setName(String tagName) {
-        IValueMap object = getObject();
-        String nameKey = getNameKey(object);
-        Object value = "";
-        if (nameKey != null && nameKey.startsWith(NAME_PREFIX)) {
-            value = object.getValue(nameKey);
-            object.removeValue(nameKey);
+        Map<Object, Object> map = getMap();
+        if (tagName != null) {
+            map.put(KEY_NAME, tagName);
+        } else {
+            map.remove(KEY_NAME);
         }
-        nameKey = getNameKey(tagName);
-        object.putValue(nameKey, value);
     }
 
     public void setNamespaces(Map<String, String> attributes) {
@@ -452,7 +458,7 @@ public class XmlElement extends XmlNode
     }
 
     private void setValues(Map<String, String> attributes, String prefix) {
-        IValueMap object = getObject();
+        Map<Object, Object> map = getMap();
         for (Map.Entry<String, String> attr : attributes.entrySet()) {
             String key = attr.getKey();
             if (prefix != null
@@ -465,8 +471,12 @@ public class XmlElement extends XmlNode
                 }
             }
             String value = attr.getValue();
-            object.putValue(key, value);
+            map.put(key, value);
         }
+    }
+
+    protected String toString(Object value) {
+        return value != null ? value.toString() : null;
     }
 
 }

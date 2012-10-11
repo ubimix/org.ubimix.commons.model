@@ -7,13 +7,14 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-import org.ubimix.model.xml.IXmlListener;
+import org.ubimix.commons.parser.xml.Entity;
+import org.ubimix.commons.parser.xml.XmlListener;
 import org.ubimix.model.xml.XmlText;
 
 /**
  * @author kotelnikov
  */
-public abstract class AbstractXmlSerializer implements IXmlListener {
+public abstract class AbstractXmlSerializer extends XmlListener {
 
     /**
      * 
@@ -25,6 +26,7 @@ public abstract class AbstractXmlSerializer implements IXmlListener {
      * @see org.ubimix.model.xml.IXmlListener#beginElement(java.lang.String,
      *      java.util.Map, java.util.Map)
      */
+    @Override
     public void beginElement(
         String name,
         Map<String, String> attributes,
@@ -64,6 +66,7 @@ public abstract class AbstractXmlSerializer implements IXmlListener {
      * @see org.ubimix.model.xml.IXmlListener#endElement(java.lang.String,
      *      java.util.Map, java.util.Map)
      */
+    @Override
     public void endElement(
         String name,
         Map<String, String> attributes,
@@ -111,15 +114,29 @@ public abstract class AbstractXmlSerializer implements IXmlListener {
     /**
      * @see org.ubimix.model.xml.IXmlListener#onCDATA(java.lang.String)
      */
+    @Override
     public void onCDATA(String content) {
         print("<![CDATA[");
         print(content);
         print("]]>");
     }
 
+    @Override
+    public void onComment(String commentContent) {
+        print("<!--");
+        print(commentContent);
+        print("-->");
+    }
+
+    @Override
+    public void onEntity(Entity entity) {
+        print(entity.toString());
+    }
+
     /**
      * @see org.ubimix.model.xml.IXmlListener#onText(java.lang.String)
      */
+    @Override
     public void onText(String text) {
         String str = escapeXmlString(text, false);
         print(str);
