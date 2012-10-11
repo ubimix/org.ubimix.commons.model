@@ -9,7 +9,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.xml.IXmlParser;
-import org.ubimix.model.xml.listeners.XmlSerializer;
+import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 import org.ubimix.model.xml.server.SaxXmlParser;
 
 /**

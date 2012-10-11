@@ -6,8 +6,9 @@ package org.ubimix.model.path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ubimix.model.path.INodeSelector.SelectionResult;
-import org.ubimix.model.path.xml.XmlElementSelector;
+import org.ubimix.model.path.utils.MapNodeSelector;
+import org.ubimix.model.path.utils.PathSelector;
+import org.ubimix.model.path.utils.SkipSelector;
 
 /**
  * @author kotelnikov
@@ -21,12 +22,9 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
         super(name);
     }
 
-    private IPathSelector getPathSelector(String tagName, String... attrs) {
-        SkipSelector selector = new SkipSelector(new XmlElementSelector(
-            tagName,
-            SelectionResult.NO,
-            attrs));
-        IPathSelector pathSelector = new PathNodeSelector(selector);
+    public IPathSelector getPathSelector(String tagName, String... attrs) {
+        SkipSelector selector = MapNodeSelector.getDefaultTagSelector(tagName, attrs);
+        IPathSelector pathSelector = new PathSelector(selector);
         return pathSelector;
     }
 
@@ -45,25 +43,17 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             + "</html>";
 
         List<INodeSelector> list = new ArrayList<INodeSelector>();
-        list.add(new SkipSelector(new XmlElementSelector(
-            "div",
-            SelectionResult.NO,
-            "class",
-            "xxx")));
-        list.add(new SkipSelector(new XmlElementSelector(
-            "span",
-            SelectionResult.NO,
-            "class",
-            "nn")));
-        IPathSelector pathSelector = new PathNodeSelector(list);
-        test(
+        list.add(MapNodeSelector.getDefaultTagSelector("div", "class", "xxx"));
+        list.add(MapNodeSelector.getDefaultTagSelector("span", "class", "nn"));
+        IPathSelector pathSelector = new PathSelector(list);
+        testXml(
             xml,
             true,
             pathSelector,
             "<span class='nn'>A <span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span> G</span>",
             "<span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span>",
             "<span class='nn'>E</span>");
-        test(
+        testXml(
             xml,
             false,
             pathSelector,
@@ -71,16 +61,10 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
 
         //
         list = new ArrayList<INodeSelector>();
-        list.add(new SkipSelector(new XmlElementSelector(
-            "div",
-            SelectionResult.NO)));
-        list.add(new SkipSelector(new XmlElementSelector(
-            "span",
-            SelectionResult.NO,
-            "class",
-            "nn")));
-        pathSelector = new PathNodeSelector(list);
-        test(
+        list.add(MapNodeSelector.getDefaultTagSelector("div"));
+        list.add(MapNodeSelector.getDefaultTagSelector("span", "class", "nn"));
+        pathSelector = new PathSelector(list);
+        testXml(
             xml,
             true,
             pathSelector,
@@ -90,7 +74,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             "<span class='nn'>N <span class='nn'>M <span>P</span> P <span class='nn'>Q</span> R</span> S</span>",
             "<span class='nn'>M <span>P</span> P <span class='nn'>Q</span> R</span>",
             "<span class='nn'>Q</span>");
-        test(
+        testXml(
             xml,
             false,
             pathSelector,
@@ -109,7 +93,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             + "<div>after</div>"
             + "</body>"
             + "</html>";
-        test(
+        testXml(
             xml,
             true,
             getPathSelector("div"),
@@ -117,14 +101,14 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             "<div class='xxx'>A <div class='xxx'>B</div> C</div>",
             "<div class='xxx'>B</div>",
             "<div>after</div>");
-        test(xml, false, getPathSelector("div"), "<div>before</div>");
-        test(
+        testXml(xml, false, getPathSelector("div"), "<div>before</div>");
+        testXml(
             xml,
             true,
             getPathSelector("div", "class", "xxx"),
             "<div class='xxx'>A <div class='xxx'>B</div> C</div>",
             "<div class='xxx'>B</div>");
-        test(
+        testXml(
             xml,
             false,
             getPathSelector("div", "class", "xxx"),
@@ -145,7 +129,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             + "</body>"
             + "</html>";
 
-        test(
+        testXml(
             xml,
             getPathSelector("p"),
             "<p>before</p>",
@@ -153,17 +137,17 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             "<p class='yyy'>second</p>",
             "<p class='xxx'>third</p>",
             "<p>after</p>");
-        test(
+        testXml(
             xml,
             getPathSelector("p", "class"),
             "<p class='xxx'>first</p>",
             "<p class='yyy'>second</p>",
             "<p class='xxx'>third</p>");
-        test(
+        testXml(
             xml,
             getPathSelector("p", "class", "yyy"),
             "<p class='yyy'>second</p>");
-        test(
+        testXml(
             xml,
             getPathSelector("p", "class", "xxx"),
             "<p class='xxx'>first</p>",
@@ -180,7 +164,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             + "<p>after</p>"
             + "</body>"
             + "</html>";
-        test(
+        testXml(
             xml,
             getPathSelector(null, "class"),
             "<p class='xxx'>first</p>",

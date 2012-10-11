@@ -3,12 +3,10 @@
  */
 package org.ubimix.model.xml;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,6 +15,7 @@ import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
+import org.ubimix.model.TreePresenter;
 import org.ubimix.model.xml.listeners.XmlBuilder;
 
 /**
@@ -44,13 +43,17 @@ public class XmlElement extends XmlNode
 
     private static IXmlParser fParser;
 
-    private static final String KEY_CHILDREN = "~";
+    private static final String KEY_CHILDREN1 = "~";
 
     private static final String KEY_NAME = "!";
 
     public static final String NS = "xmlns";
 
     public static final String NS_PREFIX = "xmlns:";
+
+    public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN1)
+        .setExcludedAttributePrefixes(NS_PREFIX)
+        .setExcludedAttributes(KEY_NAME, KEY_CHILDREN1, NS);
 
     protected static void addDeclaredNamespaces(
         Map<String, String> namespaces,
@@ -119,34 +122,8 @@ public class XmlElement extends XmlNode
     }
 
     public boolean addChild(XmlNode node, int pos) {
-        boolean result = false;
-        if (pos < 0) {
-            return result;
-        }
-        Object innerObject = node.getObject();
-        Map<Object, Object> map = getMap();
-        Object value = map.get(KEY_CHILDREN);
-        if (value == null) {
-            map.put(KEY_CHILDREN, innerObject);
-            result = true;
-        } else {
-            if (value instanceof List<?>) {
-                @SuppressWarnings("unchecked")
-                List<Object> list = (List<Object>) value;
-                if (pos >= 0 && pos <= list.size()) {
-                    list.add(pos, innerObject);
-                    result = true;
-                }
-            } else {
-                if (pos == 0 || pos == 1) {
-                    List<Object> list = new ArrayList<Object>();
-                    map.put(KEY_CHILDREN, list);
-                    list.add(value);
-                    list.add(pos, innerObject);
-                    result = true;
-                }
-            }
-        }
+        boolean result = TREE_ACCESSOR
+            .addChild(getMap(), pos, node.getObject());
         if (result) {
             node.setParent(this);
         }
@@ -156,23 +133,11 @@ public class XmlElement extends XmlNode
     public String getAttribute(String key) {
         Map<Object, Object> map = getMap();
         Object value = map.get(key);
-        return toString(value);
+        return TreePresenter.toString(value);
     }
 
     public Set<String> getAttributeNames() {
-        Map<Object, Object> map = getMap();
-        Set<Object> set = map.keySet();
-        Set<String> result = new LinkedHashSet<String>();
-        for (Object attr : set) {
-            String key = toString(attr);
-            boolean exclude = (KEY_NAME.equals(key)
-                || KEY_CHILDREN.equals(key)
-                || key.startsWith(NS_PREFIX) || NS.equals(key));
-            if (!exclude) {
-                result.add(key);
-            }
-        }
-        return result;
+        return TREE_ACCESSOR.getAttributeNames(getMap());
     }
 
     public Map<String, String> getAttributes() {
@@ -195,68 +160,19 @@ public class XmlElement extends XmlNode
     }
 
     public int getChildCount() {
-        Object value = getMap().get(KEY_CHILDREN);
-        int result = 0;
-        if (value != null) {
-            if (value instanceof List<?>) {
-                result = ((List<?>) value).size();
-            } else {
-                result = 1;
-            }
-        }
-        return result;
+        return TREE_ACCESSOR.getChildCount(getMap());
     }
 
     protected Object getChildObject(int pos) {
-        Object value = getMap().get(KEY_CHILDREN);
-        Object result = null;
-        if (value != null) {
-            if (value instanceof List<?>) {
-                List<?> list = ((List<?>) value);
-                result = pos >= 0 && pos < list.size() ? list.get(pos) : null;
-            } else {
-                result = pos == 0 ? value : null;
-            }
-        }
-        return result;
+        return TREE_ACCESSOR.getChildObject(getMap(), pos);
     }
 
     protected int getChildPosition(XmlNode node) {
-        Object nodeObject = node.getObject();
-        int result = -1;
-        Object value = getMap().get(KEY_CHILDREN);
-        if (value != null) {
-            if (value instanceof List<?>) {
-                List<?> list = (List<?>) value;
-                result = list.indexOf(nodeObject);
-            } else if (nodeObject.equals(value)) {
-                result = 0;
-            }
-        }
-        return result;
+        return TREE_ACCESSOR.getChildPosition(getMap(), node.getObject());
     }
 
     public List<XmlNode> getChildren() {
-        List<XmlNode> result = new ArrayList<XmlNode>();
-        Map<Object, Object> map = getMap();
-        Object value = map.get(KEY_CHILDREN);
-        if (value != null) {
-            if (value instanceof List<?>) {
-                List<?> list = (List<?>) value;
-                for (Object c : list) {
-                    XmlNode node = newChild(c);
-                    if (node != null) {
-                        result.add(node);
-                    }
-                }
-            } else {
-                XmlNode node = newChild(value);
-                if (node != null) {
-                    result.add(node);
-                }
-            }
-        }
-        return result;
+        return TREE_ACCESSOR.getChildren(getMap(), getNodeFactory());
     }
 
     /**
@@ -271,7 +187,7 @@ public class XmlElement extends XmlNode
         Map<Object, Object> map = getMap();
         Set<Object> attrs = map.keySet();
         for (Object attr : attrs) {
-            String str = toString(attr);
+            String str = TreePresenter.toString(attr);
             String prefix = null;
             if (str.startsWith(NS_PREFIX)) {
                 prefix = str.substring(NS_PREFIX.length());
@@ -283,7 +199,7 @@ public class XmlElement extends XmlNode
                     result = new LinkedHashMap<String, String>();
                 }
                 Object value = map.get(attr);
-                String ns = toString(value);
+                String ns = TreePresenter.toString(value);
                 result.put(prefix, ns);
             }
         }
@@ -301,7 +217,7 @@ public class XmlElement extends XmlNode
     public String getName() {
         Map<Object, Object> map = getMap();
         Object value = map.get(KEY_NAME);
-        return toString(value);
+        return TreePresenter.toString(value);
     }
 
     /**
@@ -319,6 +235,15 @@ public class XmlElement extends XmlNode
             e = e.getParent();
         }
         return result;
+    }
+
+    public IValueFactory<XmlNode> getNodeFactory() {
+        return new IValueFactory<XmlNode>() {
+            @Override
+            public XmlNode newValue(Object object) {
+                return newChild(object);
+            }
+        };
     }
 
     private boolean isEmpty(Object container) {
@@ -378,7 +303,7 @@ public class XmlElement extends XmlNode
             Map<Object, Object> map = cast(o);
             result = newElement(map);
         } else if (!isEmpty(o)) {
-            String str = toString(o);
+            String str = TreePresenter.toString(o);
             if (str.startsWith(XmlCDATA.CDATA_PREFIX)) {
                 result = newCDATA(str);
             } else {
@@ -403,41 +328,15 @@ public class XmlElement extends XmlNode
     }
 
     public boolean removeChild(int pos) {
-        boolean result = false;
-        if (pos < 0) {
-            return result;
-        }
-        Map<Object, Object> map = getMap();
-        Object value = map.get(KEY_CHILDREN);
-        if (value != null) {
-            if (value instanceof List<?>) {
-                List<?> list = (List<?>) value;
-                result = pos >= 0
-                    && pos < list.size()
-                    && list.remove(pos) != null;
-                if (list.isEmpty()) {
-                    map.remove(KEY_CHILDREN);
-                } else if (list.size() == 1) {
-                    map.put(KEY_CHILDREN, list.get(0));
-                }
-            } else if (pos == 0) {
-                result = map.remove(KEY_CHILDREN) != null;
-            }
-        }
-        return result;
+        return TREE_ACCESSOR.removeChild(getMap(), pos);
     }
 
     public void removeChildren() {
-        Map<Object, Object> map = getMap();
-        map.remove(KEY_CHILDREN);
+        TREE_ACCESSOR.removeChildren(getMap());
     }
 
     public void setAttribute(String key, String value) {
-        if (KEY_NAME.equals(key) || KEY_CHILDREN.equals(key)) {
-            throw new IllegalArgumentException();
-        }
-        Map<Object, Object> map = getMap();
-        map.put(key, value);
+        TREE_ACCESSOR.setAttribute(getMap(), key, value);
     }
 
     public void setAttributes(Map<String, String> attributes) {
@@ -473,10 +372,6 @@ public class XmlElement extends XmlNode
             String value = attr.getValue();
             map.put(key, value);
         }
-    }
-
-    protected String toString(Object value) {
-        return value != null ? value.toString() : null;
     }
 
 }

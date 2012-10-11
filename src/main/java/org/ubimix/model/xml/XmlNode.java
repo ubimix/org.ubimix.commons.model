@@ -6,7 +6,7 @@ package org.ubimix.model.xml;
 import java.util.Map;
 
 import org.ubimix.commons.parser.xml.IXmlListener;
-import org.ubimix.model.xml.listeners.XmlSerializer;
+import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 
 /**
  * @author kotelnikov

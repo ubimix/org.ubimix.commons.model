@@ -1,7 +1,9 @@
 /**
  * 
  */
-package org.ubimix.model.path;
+package org.ubimix.model.path.utils;
+
+import org.ubimix.model.path.INodeSelector;
 
 public class ThisSelector implements INodeSelector {
     public INodeSelector.SelectionResult accept(Object node) {

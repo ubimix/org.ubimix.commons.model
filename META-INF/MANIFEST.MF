@@ -17,4 +17,5 @@ Import-Package: org.ubimix.commons.json;version="1.2.1",
  org.ubimix.commons.parser.css;version="1.0.0",
  org.ubimix.commons.parser.stream;version="1.0.0",
  org.ubimix.commons.parser.text;version="1.0.0",
- org.ubimix.commons.parser.xml;version="1.0.0"
+ org.ubimix.commons.parser.xml;version="1.0.0",
+ org.ubimix.commons.parser.xml.utils;version="1.0.0"

@@ -1,7 +1,9 @@
 /**
  * 
  */
-package org.ubimix.model.path;
+package org.ubimix.model.path.utils;
+
+import org.ubimix.model.path.INodeSelector;
 
 /**
  * Selectors of this type are used to skip the current node and continue to make
@@ -17,9 +19,12 @@ public class SkipSelector implements INodeSelector {
         fSelector = selector;
     }
 
+    @Override
     public INodeSelector.SelectionResult accept(Object node) {
         SelectionResult result = fSelector.accept(node);
-        return (result == SelectionResult.YES) ? SelectionResult.YES : SelectionResult.MAYBE;
+        return (result == SelectionResult.YES)
+            ? SelectionResult.YES
+            : SelectionResult.MAYBE;
     }
 
     @Override
@@ -34,6 +39,6 @@ public class SkipSelector implements INodeSelector {
 
     @Override
     public String toString() {
-        return "SkipSelector";
+        return "SkipSelector[" + fSelector + "]";
     }
 }

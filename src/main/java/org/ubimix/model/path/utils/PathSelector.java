@@ -1,24 +1,27 @@
 /**
  * 
  */
-package org.ubimix.model.path;
+package org.ubimix.model.path.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.ubimix.model.path.INodeSelector;
+import org.ubimix.model.path.IPathSelector;
+
 /**
  * @author kotelnikov
  */
-public class PathNodeSelector implements IPathSelector {
+public class PathSelector implements IPathSelector {
 
     private List<INodeSelector> fList = new ArrayList<INodeSelector>();
 
-    public PathNodeSelector(INodeSelector... list) {
+    public PathSelector(INodeSelector... list) {
         setNodeSelectors(list);
     }
 
-    public PathNodeSelector(List<INodeSelector> list) {
+    public PathSelector(List<INodeSelector> list) {
         setNodeSelectors(list);
     }
 
@@ -27,10 +30,10 @@ public class PathNodeSelector implements IPathSelector {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof PathNodeSelector)) {
+        if (!(obj instanceof PathSelector)) {
             return false;
         }
-        PathNodeSelector o = (PathNodeSelector) obj;
+        PathSelector o = (PathSelector) obj;
         return fList.equals(o.fList);
     }
 

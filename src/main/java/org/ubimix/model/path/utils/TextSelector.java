@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model.path.xml;
+package org.ubimix.model.path.utils;
 
 import org.ubimix.model.path.INodeSelector;
 
@@ -10,10 +10,42 @@ import org.ubimix.model.path.INodeSelector;
  */
 public class TextSelector implements INodeSelector {
 
+    public static TextSelector selector(char match, String matchValue) {
+        if (matchValue == null) {
+            return null;
+        }
+        if (matchValue.startsWith("\'") || matchValue.startsWith("\"")) {
+            matchValue = matchValue.substring(1);
+        }
+        if (matchValue.endsWith("\'") || matchValue.endsWith("\"")) {
+            matchValue = matchValue.substring(0, matchValue.length() - 1);
+        }
+        TextSelector selector = new TextSelector(matchValue, match);
+        return selector;
+    }
+
+    public static TextSelector selector(String matchType, String matchValue) {
+        if (matchValue == null) {
+            return null;
+        }
+        char match = '~';
+        if (matchType.length() > 0) {
+            match = matchType.charAt(0);
+        }
+        return selector(match, matchValue);
+    }
+
     private String fMask;
 
+    private char fMatch;
+
     public TextSelector(String mask) {
+        this(mask, '~');
+    }
+
+    public TextSelector(String mask, char match) {
         fMask = mask;
+        fMatch = match;
     }
 
     @Override
@@ -54,7 +86,22 @@ public class TextSelector implements INodeSelector {
     }
 
     protected boolean match(String value, String mask) {
-        return value.indexOf(mask) >= 0;
+        boolean result = false;
+        switch (fMatch) {
+            case '=':
+                result = value.equals(mask);
+                break;
+            case '~':
+                result = value.indexOf(mask) >= 0;
+                break;
+            case '^':
+                result = value.startsWith(mask);
+                break;
+            case '$':
+                result = value.endsWith(mask);
+                break;
+        }
+        return result;
     }
 
     @Override

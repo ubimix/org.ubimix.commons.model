@@ -8,9 +8,10 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.path.xml.XmlNodeProvider;
+import org.ubimix.model.ModelObject;
+import org.ubimix.model.TreePresenter;
+import org.ubimix.model.path.utils.TreeNodeProvider;
 import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
 
 /**
  * @author kotelnikov
@@ -21,32 +22,59 @@ public abstract class AbstractPathProcessorTest extends TestCase {
         super(name);
     }
 
-    protected void test(
-        String xml,
+    protected <T> void test(
+        T node,
         final boolean collect,
+        INodeProvider provider,
         IPathSelector selector,
         String... controls) {
-        INodeProvider provider = new XmlNodeProvider();
         PathProcessor processor = new PathProcessor(provider, selector);
-        XmlNode node = XmlElement.parse(xml);
-        final List<XmlElement> results = new ArrayList<XmlElement>();
+        final List<Object> results = new ArrayList<Object>();
         processor.select(node, new IPathNodeCollector() {
             @Override
             public boolean setResult(Object node) {
-                results.add((XmlElement) node);
+                results.add(node);
                 return collect;
             }
         });
         assertEquals(controls.length, results.size());
         int i = 0;
         for (String str : controls) {
-            XmlElement testNode = results.get(i++);
+            Object testNode = results.get(i++);
             assertNotNull(testNode);
             assertEquals(str, testNode.toString());
         }
     }
 
-    protected void test(String xml, IPathSelector selector, String... controls) {
-        test(xml, true, selector, controls);
+    public void testJson(
+        String json,
+        final boolean collect,
+        IPathSelector selector,
+        String... controls) {
+        TreePresenter presenter = new TreePresenter("items");
+        INodeProvider provider = new TreeNodeProvider(
+            presenter,
+            ModelObject.FACTORY);
+        ModelObject node = new ModelObject(json);
+        test(node, collect, provider, selector, controls);
+    }
+
+    protected void testXml(
+        String xml,
+        final boolean collect,
+        IPathSelector selector,
+        String... controls) {
+        XmlElement node = XmlElement.parse(xml);
+        INodeProvider provider = new TreeNodeProvider(
+            XmlElement.TREE_ACCESSOR,
+            node.getNodeFactory());
+        test(node, collect, provider, selector, controls);
+    }
+
+    protected void testXml(
+        String xml,
+        IPathSelector selector,
+        String... controls) {
+        testXml(xml, true, selector, controls);
     }
 }
