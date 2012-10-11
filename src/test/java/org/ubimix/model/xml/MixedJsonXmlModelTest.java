@@ -64,8 +64,6 @@ public class MixedJsonXmlModelTest extends TestCase {
             + "<p>first paragraph</p>"
             + "<p>second paragraph</p>"
             + "</div>");
-        XmlElement e = XmlElement.from(doc);
-        System.out.println(e);
 
         content = doc.getContent();
         assertEquals(""
