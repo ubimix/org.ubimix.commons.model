@@ -8,7 +8,9 @@ import java.util.Map;
 
 import org.ubimix.commons.parser.CharStream;
 import org.ubimix.commons.parser.ICharStream;
+import org.ubimix.commons.parser.css.CssSelectorListener;
 import org.ubimix.commons.parser.css.CssSelectorParser;
+import org.ubimix.commons.parser.css.ICssSelectorParser;
 import org.ubimix.model.path.ANDSelector;
 import org.ubimix.model.path.INodeSelector;
 import org.ubimix.model.path.INodeSelector.SelectionResult;
@@ -21,10 +23,10 @@ import org.ubimix.model.path.SkipSelector;
 public class CssPathSelector extends PathNodeSelector {
 
     public CssPathSelector(String cssSelector) {
-        CssSelectorParser parser = new CssSelectorParser();
+        ICssSelectorParser parser = new CssSelectorParser();
         ICharStream stream = new CharStream(cssSelector);
         final List<INodeSelector> list = new ArrayList<INodeSelector>();
-        parser.parse(stream, new CssSelectorParser.CssSelectorListener() {
+        parser.parse(stream, new CssSelectorListener() {
             private Map<String, List<INodeSelector>> fAttributeSelectors;
 
             private boolean fSkip = true;

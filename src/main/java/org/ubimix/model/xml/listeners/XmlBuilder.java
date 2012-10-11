@@ -6,7 +6,7 @@ package org.ubimix.model.xml.listeners;
 import java.util.Map;
 import java.util.Stack;
 
-import org.ubimix.model.xml.IXmlListener;
+import org.ubimix.commons.parser.xml.XmlListener;
 import org.ubimix.model.xml.XmlCDATA;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlText;
@@ -14,7 +14,7 @@ import org.ubimix.model.xml.XmlText;
 /**
  * @author kotelnikov
  */
-public class XmlBuilder implements IXmlListener {
+public class XmlBuilder extends XmlListener {
 
     private Stack<XmlElement> fStack = new Stack<XmlElement>();
 
@@ -26,6 +26,7 @@ public class XmlBuilder implements IXmlListener {
     public XmlBuilder() {
     }
 
+    @Override
     public void beginElement(
         String name,
         Map<String, String> attributes,
@@ -43,6 +44,7 @@ public class XmlBuilder implements IXmlListener {
         }
     }
 
+    @Override
     public void endElement(
         String name,
         Map<String, String> attributes,
@@ -59,6 +61,7 @@ public class XmlBuilder implements IXmlListener {
         return fTopElement;
     }
 
+    @Override
     public void onCDATA(String content) {
         XmlElement parent = getParent();
         if (parent != null) {
@@ -67,6 +70,7 @@ public class XmlBuilder implements IXmlListener {
         }
     }
 
+    @Override
     public void onText(String text) {
         XmlElement parent = getParent();
         if (parent != null) {

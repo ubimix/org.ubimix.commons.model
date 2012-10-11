@@ -5,7 +5,7 @@ package org.ubimix.model.xml;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.json.ModelObject;
+import org.ubimix.model.ModelObject;
 
 /**
  * @author kotelnikov
@@ -59,8 +59,19 @@ public class MixedJsonXmlModelTest extends TestCase {
         assertNotNull(content);
         assertEquals(str, content.toString());
 
-        doc.setContent("<div my:userid=\"123\"> ... </div>");
+        doc.setContent(""
+            + "<div my:userid=\"123\">"
+            + "<p>first paragraph</p>"
+            + "<p>second paragraph</p>"
+            + "</div>");
+        XmlElement e = XmlElement.from(doc);
+        System.out.println(e);
+
         content = doc.getContent();
-        assertEquals("<div my:userid='123'> ... </div>", content.toString());
+        assertEquals(""
+            + "<div my:userid='123'>"
+            + "<p>first paragraph</p>"
+            + "<p>second paragraph</p>"
+            + "</div>", content.toString());
     }
 }

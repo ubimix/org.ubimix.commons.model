@@ -1,14 +1,15 @@
 /**
  * 
  */
-package org.ubimix.model.json;
+package org.ubimix.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.ValueFactory.IJsonValueFactory;
+import org.ubimix.model.IValueFactory;
+import org.ubimix.model.ModelObject;
 
 /**
  * @author kotelnikov
@@ -49,18 +50,19 @@ public class ModelObjectTest extends TestCase {
     }
 
     public static class MyValue extends ModelObject {
-        public static IJsonValueFactory<MyValue> FACTORY = new IJsonValueFactory<ModelObjectTest.MyValue>() {
+        public static IValueFactory<MyValue> FACTORY = new IValueFactory<MyValue>() {
             @Override
             public MyValue newValue(Object object) {
-                return new MyValue().setInternalMap(object);
+                return new MyValue(object);
             }
         };
 
-        protected MyValue() {
-        }
-
         public MyValue(int id) {
             setValue("id", id);
+        }
+
+        protected MyValue(Object obj) {
+            super(obj);
         }
 
         public int getId() {
@@ -114,6 +116,51 @@ public class ModelObjectTest extends TestCase {
         MyList obj = new MyList().setTitle("This is a title").setList(list);
         assertEquals("This is a title", obj.getTitle());
         assertEquals(list, obj.getList());
+        testSerializationDeserialization(obj);
+
+        ModelObject o = new ModelObject("{"
+            + "  \"list\":[\n"
+            + "    {\n"
+            + "      \"id\":0\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":1\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":2\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":3\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":4\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}");
+        assertEquals(o.getList("list"), obj.getList());
+
+        assertEquals(new ModelObject(o.toString()).toString(), o.toString());
+        assertEquals(""
+            + "{\n"
+            + "  \"title\":\"This is a title\",\n"
+            + "  \"list\":[\n"
+            + "    {\n"
+            + "      \"id\":0\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":1\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":2\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":3\n"
+            + "    },\n"
+            + "    {\n"
+            + "      \"id\":4\n"
+            + "    }\n"
+            + "  ]\n"
+            + "}", obj.toString());
     }
 
     public void testLong() {
@@ -162,6 +209,36 @@ public class ModelObjectTest extends TestCase {
             + "}", str);
         ModelObject test = new ModelObject(str);
         assertEquals(o, test);
+    }
+
+    protected void testSerializationDeserialization(ModelObject first) {
+        String firstStr = first.toString();
+        ModelObject second = new ModelObject(firstStr);
+        assertEquals(first, second);
+        String secondStr = second.toString();
+        assertEquals(firstStr, secondStr);
+    }
+
+    public void testSerializationDeserializationList() {
+        ModelObject obj = new ModelObject(""
+            + "{"
+            + "list : [ "
+            + "{ name: 'John Smith', age: 34 }, "
+            + "{name: 'James Bond', age: 43  }"
+            + "]"
+            + "}");
+        testSerializationDeserialization(obj);
+
+        List<ModelObject> list = obj.getList("list");
+        assertNotNull(list);
+        assertEquals(2, list.size());
+        assertEquals(
+            new ModelObject("{ name: 'John Smith', age: 34 }"),
+            list.get(0));
+        assertEquals(
+            new ModelObject("{name: 'James Bond', age: 43  }"),
+            list.get(1));
+
     }
 
 }

@@ -5,6 +5,7 @@ package org.ubimix.model.xml;
 
 import java.util.Map;
 
+import org.ubimix.commons.parser.xml.IXmlListener;
 import org.ubimix.model.xml.listeners.XmlSerializer;
 
 /**
@@ -29,11 +30,13 @@ public abstract class XmlNode {
             fListener = listener;
         }
 
+        @Override
         public void visit(XmlCDATA cdata) {
             String str = cdata.getContent();
             fListener.onCDATA(str);
         }
 
+        @Override
         public void visit(XmlElement element) {
             Map<String, String> declaredNamespaces = element
                 .getDeclaredNamespaces();
@@ -46,6 +49,7 @@ public abstract class XmlNode {
             fListener.endElement(name, attributes, declaredNamespaces);
         }
 
+        @Override
         public void visit(XmlText text) {
             String str = text.getContent();
             fListener.onText(str);

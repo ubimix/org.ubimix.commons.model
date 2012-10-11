@@ -3,8 +3,8 @@
  */
 package org.ubimix.model.xml.server;
 
+import java.io.IOException;
 import java.io.Reader;
-import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -12,8 +12,10 @@ import java.util.Stack;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.ubimix.model.xml.IXmlListener;
-import org.ubimix.model.xml.IXmlParser;
+import org.ubimix.commons.parser.CharStream;
+import org.ubimix.commons.parser.ICharStream;
+import org.ubimix.commons.parser.xml.IXmlListener;
+import org.ubimix.commons.parser.xml.IXmlParser;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -135,33 +137,72 @@ public class SaxXmlParser implements IXmlParser {
 
     private Stack<ElementNode> fStack = new Stack<ElementNode>();
 
+    private ICharStream fStream;
+
     /**
      * 
      */
     public SaxXmlParser() {
     }
 
-    public void parse(Reader reader, IXmlListener listener) {
+    @Override
+    public ICharStream getStream() {
+        return fStream;
+    }
+
+    @Override
+    public void parse(final ICharStream stream, IXmlListener listener) {
+        fListener = listener;
+        fStream = stream;
         try {
-            try {
-                fListener = listener;
-                SAXParserFactory factory = SAXParserFactory.newInstance();
-                InputSource source = new InputSource(reader);
-                SAXParser saxParser = factory.newSAXParser();
-                saxParser.parse(source, fInternalHandler);
-            } finally {
-                reader.close();
-                fListener = null;
-            }
+            Reader reader = new Reader() {
+                @Override
+                public void close() throws IOException {
+                }
+
+                @Override
+                public int read() throws IOException {
+                    int ch = stream.getChar();
+                    stream.incPos();
+                    return ch;
+                }
+
+                @Override
+                public int read(char[] cbuf, int off, int len)
+                    throws IOException {
+                    if (stream.isTerminated()) {
+                        return -1;
+                    }
+                    int count;
+                    for (count = 0; count < len && !stream.isTerminated(); count++) {
+                        char ch = stream.getChar();
+                        if (ch < 0) {
+                            break;
+                        }
+                        cbuf[off + count] = ch;
+                        stream.incPos();
+                    }
+                    return count;
+                }
+            };
+            SAXParserFactory factory = SAXParserFactory.newInstance();
+            InputSource source = new InputSource(reader);
+            SAXParser saxParser = factory.newSAXParser();
+            saxParser.parse(source, fInternalHandler);
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
+        } finally {
+            fStream = null;
+            fListener = null;
         }
     }
 
+    @Override
     public void parse(String xml, IXmlListener listener) {
         if (xml != null && !"".equals(xml)) {
-            StringReader reader = new StringReader(xml);
-            parse(reader, listener);
+            parse(new CharStream(xml), listener);
         }
     }
 
