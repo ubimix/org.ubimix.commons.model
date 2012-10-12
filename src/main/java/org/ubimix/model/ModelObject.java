@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,7 +57,16 @@ public class ModelObject implements IHasValueMap {
         return fJsonParser;
     }
 
-    public static Object parse(String json) {
+    public static ModelObject parse(String json) {
+        return parse(json, ModelObject.FACTORY);
+    }
+
+    public static <T> T parse(String json, IValueFactory<T> factory) {
+        Object innerObject = parseToInnerObject(json);
+        return innerObject != null ? factory.newValue(innerObject) : null;
+    }
+
+    public static Object parseToInnerObject(String json) {
         JavaObjectBuilder builder = new JavaObjectBuilder();
         IJsonParser parser = getJsonParser();
         parser.parse(json, builder);
@@ -68,9 +78,13 @@ public class ModelObject implements IHasValueMap {
     }
 
     public static String toJSON(Object obj) {
-        JsonSerializer serializer = new JsonSerializer(2);
+        return toJSON(obj, false, 2);
+    }
+
+    public static String toJSON(Object obj, boolean sort, int indent) {
+        JsonSerializer serializer = new JsonSerializer(indent);
         JavaObjectVisitor visitor = new JavaObjectVisitor();
-        visitor.visit(obj, serializer);
+        visitor.visit(obj, sort, serializer);
         return serializer.toString();
     }
 
@@ -80,7 +94,11 @@ public class ModelObject implements IHasValueMap {
         setInnerMap(null);
     }
 
-    public ModelObject(Object obj) {
+    private ModelObject(IHasValueMap obj) {
+        setInnerMap(obj);
+    }
+
+    private ModelObject(Object obj) {
         setInnerMap(obj);
     }
 
@@ -217,8 +235,15 @@ public class ModelObject implements IHasValueMap {
      * 
      * @return a set of property names
      */
-    public Set<Object> getKeys() {
-        return fMap.keySet();
+    public Set<String> getKeys() {
+        Set<String> result = new HashSet<String>();
+        Set<Object> keys = fMap.keySet();
+        for (Object key : keys) {
+            if (key instanceof String) {
+                result.add((String) key);
+            }
+        }
+        return result;
     }
 
     public List<ModelObject> getList(String name) {
@@ -333,6 +358,10 @@ public class ModelObject implements IHasValueMap {
         return result;
     }
 
+    public String getType() {
+        return getString("!");
+    }
+
     /**
      * Returns the specified property as a wrapper of the a specific type.
      * 
@@ -407,9 +436,12 @@ public class ModelObject implements IHasValueMap {
         obj = importValue(obj);
         if (obj instanceof Map<?, ?>) {
             map = cast(obj);
+        } else if (obj instanceof List<?>) {
+            map = newMap();
+            map.put("~", obj);
         } else if (obj != null) {
             String str = obj.toString();
-            Object object = parse(str);
+            Object object = parseToInnerObject(str);
             if (object instanceof Map<?, ?>) {
                 map = cast(object);
             }
@@ -419,6 +451,10 @@ public class ModelObject implements IHasValueMap {
         }
         fMap = map;
         return cast(this);
+    }
+
+    public ModelObject setType(String type) {
+        return setValue("!", type);
     }
 
     /**
@@ -466,6 +502,10 @@ public class ModelObject implements IHasValueMap {
     @Override
     public String toString() {
         return toJSON(getMap());
+    }
+
+    public String toString(boolean sort, int indent) {
+        return toJSON(getMap(), sort, indent);
     }
 
 }

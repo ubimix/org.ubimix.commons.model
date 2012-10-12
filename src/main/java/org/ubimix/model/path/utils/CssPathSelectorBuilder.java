@@ -15,6 +15,16 @@ import org.ubimix.model.path.IPathSelector;
  */
 public class CssPathSelectorBuilder {
 
+    private String fNameProperty;
+
+    public CssPathSelectorBuilder() {
+        this("!");
+    }
+
+    public CssPathSelectorBuilder(String nameProperty) {
+        fNameProperty = nameProperty;
+    }
+
     public IPathSelector build(String cssSelector) {
         ICssSelectorParser parser = new CssSelectorParser();
         ICharStream stream = new CharStream(cssSelector);
@@ -24,7 +34,7 @@ public class CssPathSelectorBuilder {
             @Override
             public void endElement(String elementMask) {
                 if (elementMask != null) {
-                    fBuilder.addSelector("!", "=", elementMask);
+                    fBuilder.addSelector(fNameProperty, "=", elementMask);
                 }
                 fBuilder.addNode().skip(true);
             }

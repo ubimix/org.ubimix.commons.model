@@ -4,11 +4,12 @@
 package org.ubimix.model.xml.listeners;
 
 import java.util.Map;
-import java.util.Stack;
 
+import org.ubimix.commons.parser.xml.Entity;
 import org.ubimix.commons.parser.xml.XmlListener;
 import org.ubimix.model.xml.XmlCDATA;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
 
 /**
@@ -16,7 +17,87 @@ import org.ubimix.model.xml.XmlText;
  */
 public class XmlBuilder extends XmlListener {
 
-    private Stack<XmlElement> fStack = new Stack<XmlElement>();
+    private static class Context {
+
+        private Map<String, String> fAttributes;
+
+        private XmlElement fElement;
+
+        private String fName;
+
+        private Map<String, String> fNamespaces;
+
+        private Context fParent;
+
+        private String fPropertyName;
+
+        public Context(
+            Context parent,
+            String name,
+            Map<String, String> attributes,
+            Map<String, String> namespaces) {
+            fName = name;
+            fAttributes = attributes;
+            fNamespaces = namespaces;
+            fParent = parent;
+            init();
+        }
+
+        public void appendChild(XmlNode node) {
+            XmlElement containerElement = getActiveElement();
+            if (containerElement != null) {
+                String propertyName = getPropertyName();
+                if (propertyName == null) {
+                    containerElement.addChild(node);
+                } else {
+                    containerElement.addPropertyField(propertyName, node);
+                }
+            }
+        }
+
+        public XmlElement getActiveElement() {
+            XmlElement result = fElement;
+            if (result == null) {
+                result = fParent != null ? fParent.getActiveElement() : null;
+            }
+            return result;
+        }
+
+        private String getPropertyName() {
+            return fPropertyName;
+        }
+
+        protected void init() {
+            if (isPropertyContext()) {
+                fPropertyName = fAttributes.get("name");
+            } else if (!isListContext()) {
+                fElement = new XmlElement(fName)
+                    .setAttributes(fAttributes)
+                    .setNamespaces(fNamespaces);
+                if (fParent != null) {
+                    fParent.appendChild(fElement);
+                }
+            }
+            if (fPropertyName == null && fParent != null) {
+                fPropertyName = fParent.getPropertyName();
+            }
+        }
+
+        protected boolean isListContext() {
+            return "umx:list".equals(fName);
+        }
+
+        protected boolean isPropertyContext() {
+            return "umx:property".equals(fName);
+        }
+
+        public Context pop() {
+            return fParent;
+        }
+
+    }
+
+    private Context fContext;
 
     public XmlElement fTopElement;
 
@@ -31,16 +112,9 @@ public class XmlBuilder extends XmlListener {
         String name,
         Map<String, String> attributes,
         Map<String, String> namespaces) {
-        XmlElement element = new XmlElement(name);
-        element.setAttributes(attributes);
-        element.setNamespaces(namespaces);
-        XmlElement parent = getParent();
-        if (parent != null) {
-            parent.addChild(element);
-        }
-        fStack.push(element);
+        fContext = new Context(fContext, name, attributes, namespaces);
         if (fTopElement == null) {
-            fTopElement = element;
+            fTopElement = fContext.getActiveElement();
         }
     }
 
@@ -49,39 +123,43 @@ public class XmlBuilder extends XmlListener {
         String name,
         Map<String, String> attributes,
         Map<String, String> namespaces) {
-        fStack.pop();
-    }
-
-    protected XmlElement getParent() {
-        XmlElement parent = !fStack.isEmpty() ? fStack.peek() : null;
-        return parent;
+        if (fContext != null) {
+            fContext = fContext.pop();
+        }
     }
 
     public XmlElement getResult() {
         return fTopElement;
     }
 
+    protected boolean isList(String name) {
+        return "umx:list".equals(name);
+    }
+
     @Override
     public void onCDATA(String content) {
-        XmlElement parent = getParent();
-        if (parent != null) {
+        if (fContext != null) {
             XmlCDATA node = new XmlCDATA(content);
-            parent.addChild(node);
+            fContext.appendChild(node);
         }
+    }
+
+    @Override
+    public void onEntity(Entity entity) {
+        super.onEntity(entity);
     }
 
     @Override
     public void onText(String text) {
-        XmlElement parent = getParent();
-        if (parent != null) {
+        if (fContext != null) {
             XmlText node = new XmlText(text);
-            parent.addChild(node);
+            fContext.appendChild(node);
         }
     }
 
     public void reset() {
+        fContext = null;
         fTopElement = null;
-        fStack.clear();
     }
 
     @Override

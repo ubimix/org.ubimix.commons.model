@@ -1,12 +1,8 @@
 package org.ubimix.model;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author kotelnikov
@@ -16,10 +12,6 @@ public class TreePresenter {
     public static String toString(Object value) {
         return value != null ? value.toString() : null;
     }
-
-    private String[] fExcludedAttributePrefixes = {};
-
-    private Set<String> fExcludedAttributes = new HashSet<String>();
 
     private String fFieldName;
 
@@ -52,19 +44,6 @@ public class TreePresenter {
                     list.add(pos, innerObject);
                     result = true;
                 }
-            }
-        }
-        return result;
-    }
-
-    public Set<String> getAttributeNames(Map<Object, Object> map) {
-        Set<Object> set = map.keySet();
-        Set<String> result = new LinkedHashSet<String>();
-        for (Object attr : set) {
-            String key = toString(attr);
-            boolean excluded = isExcludedAttributeName(key);
-            if (!excluded) {
-                result.add(key);
             }
         }
         return result;
@@ -135,19 +114,6 @@ public class TreePresenter {
         return result;
     }
 
-    protected boolean isExcludedAttributeName(String key) {
-        boolean excluded = fExcludedAttributes.contains(key);
-        if (!excluded) {
-            for (String prefix : fExcludedAttributePrefixes) {
-                excluded = key.startsWith(prefix);
-                if (excluded) {
-                    break;
-                }
-            }
-        }
-        return excluded;
-    }
-
     public boolean removeChild(Map<Object, Object> map, int pos) {
         boolean result = false;
         if (pos < 0) {
@@ -176,22 +142,4 @@ public class TreePresenter {
         map.remove(fFieldName);
     }
 
-    public void setAttribute(Map<Object, Object> map, String key, String value) {
-        if (isExcludedAttributeName(key)) {
-            throw new IllegalArgumentException();
-        }
-        map.put(key, value);
-
-    }
-
-    public TreePresenter setExcludedAttributePrefixes(String... prefixes) {
-        fExcludedAttributePrefixes = prefixes;
-        return this;
-    }
-
-    public TreePresenter setExcludedAttributes(String... attributes) {
-        fExcludedAttributes.clear();
-        fExcludedAttributes.addAll(Arrays.asList(attributes));
-        return this;
-    }
 }

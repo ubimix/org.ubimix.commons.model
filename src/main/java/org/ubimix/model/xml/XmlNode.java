@@ -3,6 +3,7 @@
  */
 package org.ubimix.model.xml;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.ubimix.commons.parser.xml.IXmlListener;
@@ -43,6 +44,7 @@ public abstract class XmlNode {
             String name = element.getName();
             Map<String, String> attributes = element.getAttributes();
             fListener.beginElement(name, attributes, declaredNamespaces);
+            visitElementProperties(element);
             for (XmlNode child : element) {
                 child.accept(this);
             }
@@ -53,6 +55,27 @@ public abstract class XmlNode {
         public void visit(XmlText text) {
             String str = text.getContent();
             fListener.onText(str);
+        }
+
+        private void visitElementProperties(XmlElement element) {
+            Map<String, XmlNode> properties = element.getPropertyFields();
+            LinkedHashMap<String, String> propertyNamespaces = new LinkedHashMap<String, String>();
+            for (Map.Entry<String, XmlNode> entry : properties.entrySet()) {
+                LinkedHashMap<String, String> propertyAttributes = new LinkedHashMap<String, String>();
+                String propertyName = entry.getKey();
+                XmlNode propertyValue = entry.getValue();
+                propertyAttributes.put("name", propertyName);
+                fListener.beginElement(
+                    "umx:property",
+                    propertyAttributes,
+                    propertyNamespaces);
+                propertyValue.accept(this);
+                fListener.endElement(
+                    "umx:property",
+                    propertyAttributes,
+                    propertyNamespaces);
+            }
+
         }
     }
 

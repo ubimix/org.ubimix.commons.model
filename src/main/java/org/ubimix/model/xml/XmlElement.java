@@ -4,14 +4,17 @@
 package org.ubimix.model.xml;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ubimix.commons.parser.html.XHTMLEntities;
+import org.ubimix.commons.parser.xml.EntityFactory;
 import org.ubimix.commons.parser.xml.IXmlParser;
+import org.ubimix.commons.parser.xml.IXmlTokenizer;
+import org.ubimix.commons.parser.xml.XMLTokenizer;
 import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
@@ -51,9 +54,7 @@ public class XmlElement extends XmlNode
 
     public static final String NS_PREFIX = "xmlns:";
 
-    public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN1)
-        .setExcludedAttributePrefixes(NS_PREFIX)
-        .setExcludedAttributes(KEY_NAME, KEY_CHILDREN1, NS);
+    public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN1);
 
     protected static void addDeclaredNamespaces(
         Map<String, String> namespaces,
@@ -82,9 +83,27 @@ public class XmlElement extends XmlNode
 
     public static IXmlParser getParser() {
         if (fParser == null) {
-            fParser = new XmlParser();
+            EntityFactory entityFactory = new EntityFactory();
+            new XHTMLEntities(entityFactory);
+            IXmlTokenizer tokenizer = XMLTokenizer
+                .getFullXMLTokenizer(entityFactory);
+            fParser = new XmlParser(tokenizer);
         }
         return fParser;
+    }
+
+    private static boolean isExcludedAttributeName(String key) {
+        boolean excluded = KEY_NAME.equals(key)
+            || KEY_CHILDREN1.equals(key)
+            || NS.equals(key);
+        if (!excluded) {
+            excluded = key.startsWith(NS_PREFIX);
+        }
+        return excluded;
+    }
+
+    private static boolean isExcludedAttributeValue(Object value) {
+        return (value instanceof Map<?, ?>) || (value instanceof List<?>);
     }
 
     public static XmlElement parse(String xml) {
@@ -104,7 +123,9 @@ public class XmlElement extends XmlNode
 
     public XmlElement(String name) {
         this(null, null);
-        setName(name);
+        if (!"umx:object".equals(name)) {
+            setName(name);
+        }
     }
 
     public XmlElement(XmlElement parent, Map<Object, Object> map) {
@@ -122,30 +143,51 @@ public class XmlElement extends XmlNode
     }
 
     public boolean addChild(XmlNode node, int pos) {
-        boolean result = TREE_ACCESSOR
-            .addChild(getMap(), pos, node.getObject());
+        boolean result = addChildObject(node.getObject(), pos);
         if (result) {
             node.setParent(this);
         }
         return result;
     }
 
+    private boolean addChildObject(Object object, int pos) {
+        boolean result = TREE_ACCESSOR.addChild(getMap(), pos, object);
+        return result;
+    }
+
+    public void addPropertyField(String name, XmlNode value) {
+        TreePresenter p = new TreePresenter(name);
+        Map<Object, Object> map = getMap();
+        int len = p.getChildCount(map);
+        p.addChild(map, len, value.getObject());
+    }
+
     public String getAttribute(String key) {
         Map<Object, Object> map = getMap();
         Object value = map.get(key);
+        if (value instanceof Map<?, ?> || value instanceof List<?>) {
+            return null;
+        }
         return TreePresenter.toString(value);
     }
 
     public Set<String> getAttributeNames() {
-        return TREE_ACCESSOR.getAttributeNames(getMap());
+        return getAttributes().keySet();
     }
 
     public Map<String, String> getAttributes() {
-        Set<String> keys = getAttributeNames();
-        Map<String, String> result = new HashMap<String, String>();
-        for (String key : keys) {
-            String value = getAttribute(key);
-            result.put(key, value);
+        Map<String, String> result = new LinkedHashMap<String, String>();
+        Map<Object, Object> map = getMap();
+        for (Map.Entry<Object, Object> entry : map.entrySet()) {
+            Object attr = entry.getKey();
+            String key = TreePresenter.toString(attr);
+            if (!isExcludedAttributeName(key)) {
+                Object value = entry.getValue();
+                if (!isExcludedAttributeValue(value)) {
+                    String str = TreePresenter.toString(value);
+                    result.put(key, str);
+                }
+            }
         }
         return result;
     }
@@ -217,7 +259,10 @@ public class XmlElement extends XmlNode
     public String getName() {
         Map<Object, Object> map = getMap();
         Object value = map.get(KEY_NAME);
-        return TreePresenter.toString(value);
+        String name = value != null
+            ? TreePresenter.toString(value)
+            : "umx:object";
+        return name;
     }
 
     /**
@@ -246,6 +291,26 @@ public class XmlElement extends XmlNode
         };
     }
 
+    public Map<String, XmlNode> getPropertyFields() {
+        Map<String, XmlNode> result = new LinkedHashMap<String, XmlNode>();
+        Map<Object, Object> map = getMap();
+        for (Map.Entry<Object, Object> entry : map.entrySet()) {
+            Object attr = entry.getKey();
+            String key = TreePresenter.toString(attr);
+            if (!isExcludedAttributeName(key)) {
+                Object value = entry.getValue();
+                if (isExcludedAttributeValue(value)) {
+                    XmlNode node = newChild(value);
+                    if (node instanceof XmlElement) {
+                        ((XmlElement) node).setParent(this);
+                    }
+                    result.put(key, node);
+                }
+            }
+        }
+        return result;
+    }
+
     private boolean isEmpty(Object container) {
         return container == null || "".equals(container);
     }
@@ -271,15 +336,15 @@ public class XmlElement extends XmlNode
         XmlElement e = this;
         String result = null;
         while (e != null && result == null) {
-            Set<String> attrs = e.getAttributeNames();
-            for (String attr : attrs) {
+            Map<String, String> attrs = e.getAttributes();
+            for (Map.Entry<String, String> entry : attrs.entrySet()) {
+                String attr = entry.getKey();
+                String value = entry.getValue();
                 if (attr.startsWith(NS_PREFIX)) {
-                    String value = e.getAttribute(attr);
                     if (namespace.equals(value)) {
                         result = attr.substring(NS_PREFIX.length());
                     }
                 } else if (attr.equals(NS)) {
-                    String value = e.getAttribute(attr);
                     if (namespace.equals(value)) {
                         result = value;
                     }
@@ -298,7 +363,10 @@ public class XmlElement extends XmlNode
     private XmlNode newChild(Object o) {
         XmlNode result = null;
         if (o instanceof List<?>) {
-            // FIXME: ???
+            XmlElement e = newElement(null);
+            e.setName("umx:list");
+            e.addChildObject(o, 0);
+            result = e;
         } else if (o instanceof Map<?, ?>) {
             Map<Object, Object> map = cast(o);
             result = newElement(map);
@@ -314,6 +382,9 @@ public class XmlElement extends XmlNode
     }
 
     private XmlElement newElement(Map<Object, Object> obj) {
+        if (obj == null) {
+            obj = newObject();
+        }
         return new XmlElement(this, obj);
     }
 
@@ -335,25 +406,33 @@ public class XmlElement extends XmlNode
         TREE_ACCESSOR.removeChildren(getMap());
     }
 
-    public void setAttribute(String key, String value) {
-        TREE_ACCESSOR.setAttribute(getMap(), key, value);
+    public XmlElement setAttribute(String key, String value) {
+        if (isExcludedAttributeName(key)) {
+            throw new IllegalArgumentException();
+        }
+        Map<Object, Object> map = getMap();
+        map.put(key, value);
+        return this;
     }
 
-    public void setAttributes(Map<String, String> attributes) {
+    public XmlElement setAttributes(Map<String, String> attributes) {
         setValues(attributes, null);
+        return this;
     }
 
-    public void setName(String tagName) {
+    public XmlElement setName(String tagName) {
         Map<Object, Object> map = getMap();
         if (tagName != null) {
             map.put(KEY_NAME, tagName);
         } else {
             map.remove(KEY_NAME);
         }
+        return this;
     }
 
-    public void setNamespaces(Map<String, String> attributes) {
+    public XmlElement setNamespaces(Map<String, String> attributes) {
         setValues(attributes, "xmlns");
+        return this;
     }
 
     private void setValues(Map<String, String> attributes, String prefix) {

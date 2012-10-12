@@ -1,11 +1,14 @@
 package org.ubimix.model.path;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.ubimix.model.ModelObject;
+import org.ubimix.model.ModelTestFeed;
 import org.ubimix.model.path.utils.CssPathSelectorBuilder;
-import org.ubimix.model.path.utils.MapNodeSelector;
-import org.ubimix.model.path.utils.PathSelector;
+import org.ubimix.model.xml.XmlElement;
 
 public class CssSelectProcessorTest extends AbstractPathProcessorTest {
 
@@ -14,57 +17,158 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
     }
 
     protected IPathSelector getPathSelector(String str) {
-        CssPathSelectorBuilder builder = new CssPathSelectorBuilder();
+        return getPathSelector("!", str);
+    }
+
+    protected IPathSelector getPathSelector(String nameProperty, String str) {
+        CssPathSelectorBuilder builder = new CssPathSelectorBuilder(
+            nameProperty);
         return builder.build(str);
     }
 
     private String json(String json) {
-        return new ModelObject(json).toString();
+        return ModelObject.parse(json).toString();
+    }
+
+    public void testSelectMixedStructure() {
+
+        INodeProvider provider = new INodeProvider() {
+            @Override
+            public Iterator<?> getChildren(Object parent) {
+                List<Object> list = new ArrayList<Object>();
+                ModelObject o = (ModelObject) parent;
+                Set<String> keys = o.getKeys();
+                for (String key : keys) {
+                    ModelObject child = o.getObject(key);
+                    if (child != null) {
+                        list.add(child);
+                    } else {
+                        // Try to expand list properties
+                        List<ModelObject> children = o.getList(key);
+                        list.addAll(children);
+                    }
+                }
+                return list.iterator();
+            }
+        };
+        ModelTestFeed f = new ModelTestFeed();
+        ModelObject obj = f.getFeed();
+        ModelObject firstPost = f.getFirstPost();
+        ModelObject secondPost = f.getSecondPost();
+        ModelObject author = f.getAuthor();
+        ModelObject postWithSubentreis = f.getPostWithSubentreis();
+        ModelObject subEntry1 = f.getSubEntry1();
+        ModelObject subEntry2 = f.getSubEntry2();
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[title~=Post]"),
+            firstPost.toString(),
+            secondPost.toString());
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[entries] [content~=Just]"),
+            firstPost.toString());
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[entries] [content~=long]"),
+            secondPost.toString());
+        test(obj, true, provider, getPathSelector("[author]"), obj.toString());
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[author] [firstName]"),
+            author.toString());
+
+        // Selection using the string-serialized value of a property
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[entries~='very long post']"),
+            obj.toString());
+        test(obj, true, provider, getPathSelector("[entries~=post1]"));
+
+        // Sub-entries selection
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[entries] [entries~=tempor]"),
+            postWithSubentreis.toString());
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[entries] [entries] [title]"),
+            subEntry1.toString(),
+            subEntry2.toString());
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[entries] [entries] [title~='aliquam commodo']"),
+            subEntry2.toString());
+
+        test(
+            obj,
+            true,
+            provider,
+            getPathSelector("[entries] [entries~=temporXX]"));
+
+        XmlElement xml = new XmlElement(obj);
+        XmlElement test = XmlElement.parse(xml.toString());
+        String first = ModelObject.from(xml).toString(true, 2);
+        String second = ModelObject.from(test).toString(true, 2);
+        assertEquals(first, second);
+        System.out.println(xml);
     }
 
     public void testSelectModel() {
         String json = "{"
-            + " title: 'Top Level',"
+            + " name: 'TopLevel',"
             + " items: ["
             + "  {"
-            + "    title: 'Subitem A',"
-            + "    items: [{title:'Sub-sub item X1'}, {title:'Sub-sub item X2'}]"
+            + "    name: 'SubitemA',"
+            + "    items: [{name:'Sub-sub-item-X1'}, {name:'Sub-sub-item-X2'}]"
             + "  },"
             + "  {"
-            + "    title: 'Subitem B',"
-            + "    items: [{title:'X'}, {title:'Y'}]"
+            + "    name: 'SubitemB',"
+            + "    items: [{name:'X'}, {name:'Y'}]"
             + "  }"
             + " ]"
             + "}";
 
-        {
-            ArrayList<INodeSelector> list = new ArrayList<INodeSelector>();
-            list.add(MapNodeSelector.getTagSelector("title", "~", "Top Level"));
-            // list.add(MapNodeSelector.getTagSelector("title", "$", "X"));
-            PathSelector selector = new PathSelector(list);
-            ModelObject control = new ModelObject(json);
-            testJson(json, true, selector, control.toString());
-        }
-        {
-            ArrayList<INodeSelector> list = new ArrayList<INodeSelector>();
-            list.add(MapNodeSelector.getTagSelector("title", "~", "Top Level"));
-            list.add(MapNodeSelector.getTagSelector("title", "$", "X"));
-            PathSelector selector = new PathSelector(list);
-            testJson(json, true, selector, json("{title:'X'}"));
-        }
-        {
-            ArrayList<INodeSelector> list = new ArrayList<INodeSelector>();
-            list.add(MapNodeSelector.getTagSelector("title", "~", "Top Level"));
-            list.add(MapNodeSelector.getTagSelector("title", "~", "X"));
-            PathSelector selector = new PathSelector(list);
-            testJson(
-                json,
-                true,
-                selector,
-                json("{title:'Sub-sub item X1'}"),
-                json("{title:'Sub-sub item X2'}"),
-                json("{title:'X'}"));
-        }
+        ModelObject control = ModelObject.parse(json);
+        IPathSelector selector = getPathSelector("name", "TopLevel");
+        testJson(json, true, selector, control.toString());
+
+        // The "name" field is used as a tag name as well as a property
+        testJson(
+            json,
+            true,
+            getPathSelector("name", "TopLevel [name=X]"),
+            json("{name:'X'}"));
+        testJson(json, true, getPathSelector("name", "X"), json("{name:'X'}"));
+        testJson(
+            json,
+            true,
+            getPathSelector("name", "TopLevel [name~=X]"),
+            json("{name:'Sub-sub-item-X1'}"),
+            json("{name:'Sub-sub-item-X2'}"),
+            json("{name:'X'}"));
+        testJson(
+            json,
+            true,
+            getPathSelector("name", "TopLevel SubitemA [name~=X]"),
+            json("{name:'Sub-sub-item-X1'}"),
+            json("{name:'Sub-sub-item-X2'}"));
 
     }
 

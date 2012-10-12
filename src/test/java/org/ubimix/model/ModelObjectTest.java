@@ -50,16 +50,16 @@ public class ModelObjectTest extends TestCase {
         public static IValueFactory<MyValue> FACTORY = new IValueFactory<MyValue>() {
             @Override
             public MyValue newValue(Object object) {
-                return new MyValue(object);
+                return new MyValue().setInnerMap(object);
             }
         };
 
-        public MyValue(int id) {
-            setValue("id", id);
+        protected MyValue() {
+            super();
         }
 
-        protected MyValue(Object obj) {
-            super(obj);
+        public MyValue(int id) {
+            setValue("id", id);
         }
 
         public int getId() {
@@ -115,7 +115,7 @@ public class ModelObjectTest extends TestCase {
         assertEquals(list, obj.getList());
         testSerializationDeserialization(obj);
 
-        ModelObject o = new ModelObject("{"
+        ModelObject o = ModelObject.parse("{"
             + "  \"list\":[\n"
             + "    {\n"
             + "      \"id\":0\n"
@@ -136,7 +136,7 @@ public class ModelObjectTest extends TestCase {
             + "}");
         assertEquals(o.getList("list"), obj.getList());
 
-        assertEquals(new ModelObject(o.toString()).toString(), o.toString());
+        assertEquals(ModelObject.parse(o.toString()).toString(), o.toString());
         assertEquals(""
             + "{\n"
             + "  \"title\":\"This is a title\",\n"
@@ -171,7 +171,7 @@ public class ModelObjectTest extends TestCase {
     }
 
     public void testParseSerialize() {
-        ModelObject o = new ModelObject("{"
+        ModelObject o = ModelObject.parse("{"
             + "id: '98979879', "
             + "firstName: 'John', "
             + "lastName: 'Smith', "
@@ -204,20 +204,20 @@ public class ModelObjectTest extends TestCase {
             + "    \"building\":123\n"
             + "  }\n"
             + "}", str);
-        ModelObject test = new ModelObject(str);
+        ModelObject test = ModelObject.parse(str);
         assertEquals(o, test);
     }
 
     protected void testSerializationDeserialization(ModelObject first) {
         String firstStr = first.toString();
-        ModelObject second = new ModelObject(firstStr);
+        ModelObject second = ModelObject.parse(firstStr);
         assertEquals(first, second);
         String secondStr = second.toString();
         assertEquals(firstStr, secondStr);
     }
 
     public void testSerializationDeserializationList() {
-        ModelObject obj = new ModelObject(""
+        ModelObject obj = ModelObject.parse(""
             + "{"
             + "list : [ "
             + "{ name: 'John Smith', age: 34 }, "
@@ -230,10 +230,10 @@ public class ModelObjectTest extends TestCase {
         assertNotNull(list);
         assertEquals(2, list.size());
         assertEquals(
-            new ModelObject("{ name: 'John Smith', age: 34 }"),
+            ModelObject.parse("{ name: 'John Smith', age: 34 }"),
             list.get(0));
         assertEquals(
-            new ModelObject("{name: 'James Bond', age: 43  }"),
+            ModelObject.parse("{name: 'James Bond', age: 43  }"),
             list.get(1));
 
     }

@@ -10,6 +10,7 @@ import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.utils.XmlSerializer;
+import org.ubimix.model.ModelObject;
 import org.ubimix.model.xml.server.SaxXmlParser;
 
 /**
@@ -30,8 +31,16 @@ public class XmlTest extends TestCase {
     }
 
     public void testElement() throws Exception {
-        XmlElement e = new XmlElement("div");
+        XmlElement e;
+
+        e = new XmlElement("div");
         assertEquals("div", e.getName());
+        assertEquals("<div></div>", e.toString());
+
+        e = new XmlElement((String) null);
+        assertEquals("umx:object", e.getName());
+        assertEquals("<umx:object></umx:object>", e.toString());
+        System.out.println(new ModelObject().setInnerMap(e));
     }
 
     public void testElementAttributes() {

@@ -55,7 +55,7 @@ public abstract class AbstractPathProcessorTest extends TestCase {
         INodeProvider provider = new TreeNodeProvider(
             presenter,
             ModelObject.FACTORY);
-        ModelObject node = new ModelObject(json);
+        ModelObject node = ModelObject.parse(json);
         test(node, collect, provider, selector, controls);
     }
 
