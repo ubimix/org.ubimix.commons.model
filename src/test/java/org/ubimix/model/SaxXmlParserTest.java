@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model.xml;
+package org.ubimix.model;
 
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.model.xml.server.SaxXmlParser;

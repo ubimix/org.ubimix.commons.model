@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model.xml;
+package org.ubimix.model;
 
 import java.util.Iterator;
 import java.util.List;
@@ -10,7 +10,9 @@ import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.utils.XmlSerializer;
-import org.ubimix.model.ModelObject;
+import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.XmlText;
 import org.ubimix.model.xml.server.SaxXmlParser;
 
 /**
@@ -40,7 +42,6 @@ public class XmlTest extends TestCase {
         e = new XmlElement((String) null);
         assertEquals("umx:object", e.getName());
         assertEquals("<umx:object></umx:object>", e.toString());
-        System.out.println(new ModelObject().setInnerMap(e));
     }
 
     public void testElementAttributes() {

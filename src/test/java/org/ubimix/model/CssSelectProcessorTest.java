@@ -1,14 +1,13 @@
-package org.ubimix.model.path;
+package org.ubimix.model;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.ubimix.model.ModelObject;
-import org.ubimix.model.ModelTestFeed;
+import org.ubimix.model.path.INodeProvider;
+import org.ubimix.model.path.IPathSelector;
 import org.ubimix.model.path.utils.CssPathSelectorBuilder;
-import org.ubimix.model.xml.XmlElement;
 
 public class CssSelectProcessorTest extends AbstractPathProcessorTest {
 
@@ -121,13 +120,6 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
             true,
             provider,
             getPathSelector("[entries] [entries~=temporXX]"));
-
-        XmlElement xml = new XmlElement(obj);
-        XmlElement test = XmlElement.parse(xml.toString());
-        String first = ModelObject.from(xml).toString(true, 2);
-        String second = ModelObject.from(test).toString(true, 2);
-        assertEquals(first, second);
-        System.out.println(xml);
     }
 
     public void testSelectModel() {

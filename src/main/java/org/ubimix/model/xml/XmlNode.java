@@ -170,7 +170,12 @@ public abstract class XmlNode {
 
     @Override
     public String toString() {
-        IXmlListener listener = new XmlSerializer();
+        return toString(false);
+    }
+
+    public String toString(boolean sortAttributes) {
+        XmlSerializer listener = new XmlSerializer();
+        listener.setSortAttributes(sortAttributes);
         accept(listener);
         return listener.toString();
     }

@@ -10,16 +10,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ubimix.commons.parser.ITokenizer;
 import org.ubimix.commons.parser.html.XHTMLEntities;
 import org.ubimix.commons.parser.xml.EntityFactory;
 import org.ubimix.commons.parser.xml.IXmlParser;
-import org.ubimix.commons.parser.xml.IXmlTokenizer;
 import org.ubimix.commons.parser.xml.XMLTokenizer;
 import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
-import org.ubimix.model.xml.listeners.XmlBuilder;
 
 /**
  * @author kotelnikov
@@ -85,7 +84,7 @@ public class XmlElement extends XmlNode
         if (fParser == null) {
             EntityFactory entityFactory = new EntityFactory();
             new XHTMLEntities(entityFactory);
-            IXmlTokenizer tokenizer = XMLTokenizer
+            ITokenizer tokenizer = XMLTokenizer
                 .getFullXMLTokenizer(entityFactory);
             fParser = new XmlParser(tokenizer);
         }

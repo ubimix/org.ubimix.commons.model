@@ -1,13 +1,14 @@
 /**
  * 
  */
-package org.ubimix.model.xml;
+package org.ubimix.model;
 
 import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XmlParser;
-import org.ubimix.model.xml.listeners.XmlBuilder;
+import org.ubimix.model.xml.XmlBuilder;
+import org.ubimix.model.xml.XmlElement;
 
 /**
  * @author kotelnikov
@@ -25,28 +26,10 @@ public class InternalXmlParserTest extends TestCase {
         return new XmlParser();
     }
 
-    public void testParser() {
-        testParser("", "");
-        testParser("<a/>", "<a></a>");
-        testParser("    <div />   ", "<div></div>");
-        testParser("<root>"
-            + "<a xmlns='foo'><x></x><y></y></a>"
-            + "<a xmlns:n='bar'><n:x></n:x><n:y></n:y></a>"
-            + "</root>");
+    public void test() {
         testParser(
-            "<feed xmlns='http://www.w3.org/2005/Atom' />",
-            "<feed xmlns='http://www.w3.org/2005/Atom'></feed>");
-        testParser("<a><b><c><d><e><f>Text</f></e></d></c></b></a>");
-        testParser("<a><b>Text</b><c>Text</c><d>Text</d><e>Text</e><f>Text</f></a>");
-        testParser(""
-            + "<html>"
-            + "<head>"
-            + "<title>Hello, world</title>"
-            + "</head>"
-            + "<body>"
-            + "<p class='first'>A new paragraph</p>"
-            + "</body>"
-            + "</html>");
+            "<div m='n' a='b' x='z'></div>",
+            "<div a='b' m='n' x='z'></div>");
         testParser(
             ""
                 + "<feed xmlns='http://www.w3.org/2005/Atom'>\n"
@@ -106,6 +89,30 @@ public class InternalXmlParserTest extends TestCase {
                 + "</feed>");
     }
 
+    public void testParser() {
+        testParser("", "");
+        testParser("<a/>", "<a></a>");
+        testParser("    <div />   ", "<div></div>");
+        testParser("<root>"
+            + "<a xmlns='foo'><x></x><y></y></a>"
+            + "<a xmlns:n='bar'><n:x></n:x><n:y></n:y></a>"
+            + "</root>");
+        testParser(
+            "<feed xmlns='http://www.w3.org/2005/Atom' />",
+            "<feed xmlns='http://www.w3.org/2005/Atom'></feed>");
+        testParser("<a><b><c><d><e><f>Text</f></e></d></c></b></a>");
+        testParser("<a><b>Text</b><c>Text</c><d>Text</d><e>Text</e><f>Text</f></a>");
+        testParser(""
+            + "<html>"
+            + "<head>"
+            + "<title>Hello, world</title>"
+            + "</head>"
+            + "<body>"
+            + "<p class='first'>A new paragraph</p>"
+            + "</body>"
+            + "</html>");
+    }
+
     private void testParser(String xml) {
         testParser(xml, xml);
     }
@@ -119,13 +126,13 @@ public class InternalXmlParserTest extends TestCase {
             assertNull(element);
         } else {
             assertNotNull(element);
-            String str = element.toString();
+            String str = element.toString(true);
             assertEquals(control, str);
 
             builder.reset();
             parser.parse(str, builder);
             XmlElement newElement = builder.getResult();
-            assertEquals(control, newElement.toString());
+            assertEquals(control, newElement.toString(true));
         }
     }
 
