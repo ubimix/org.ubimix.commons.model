@@ -154,7 +154,7 @@ public class ModelObject implements IHasValueMap {
         boolean result = defaultValue;
         Object value = fMap.get(name);
         if (value instanceof Boolean) {
-            result = cast(value);
+            result = (Boolean) cast(value);
         } else if (value != null) {
             String str = value + "";
             result = "1".equals(str) || "true".equals(str);

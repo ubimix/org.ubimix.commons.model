@@ -5,7 +5,6 @@ package org.ubimix.model;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.ModelObject;
 import org.ubimix.model.xml.XmlElement;
 
 /**
