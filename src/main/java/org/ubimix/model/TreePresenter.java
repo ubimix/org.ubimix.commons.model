@@ -138,6 +138,25 @@ public class TreePresenter {
         return result;
     }
 
+    public boolean removeChild(Map<Object, Object> map, Object object) {
+        Object value = map.get(fFieldName);
+        boolean result = false;
+        if (value != null) {
+            if (value instanceof List<?>) {
+                List<?> list = (List<?>) value;
+                list.remove(object);
+                if (list.isEmpty()) {
+                    map.remove(fFieldName);
+                } else if (list.size() == 1) {
+                    map.put(fFieldName, list.get(0));
+                }
+            } else if (value.equals(object)) {
+                result = map.remove(fFieldName) != null;
+            }
+        }
+        return result;
+    }
+
     public void removeChildren(Map<Object, Object> map) {
         map.remove(fFieldName);
     }

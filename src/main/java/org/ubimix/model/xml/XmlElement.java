@@ -362,7 +362,7 @@ public class XmlElement extends XmlNode
     private XmlNode newChild(Object o) {
         XmlNode result = null;
         if (o instanceof List<?>) {
-            XmlElement e = newElement(null);
+            XmlElement e = newElement(newObject());
             e.setName("umx:list");
             e.addChildObject(o, 0);
             result = e;
@@ -387,6 +387,10 @@ public class XmlElement extends XmlNode
         return new XmlElement(this, obj);
     }
 
+    public XmlElement newElement(String name) {
+        return newElement(newObject()).setName(name);
+    }
+
     @Override
     protected Map<Object, Object> newObject() {
         return new LinkedHashMap<Object, Object>();
@@ -397,8 +401,21 @@ public class XmlElement extends XmlNode
         return text;
     }
 
+    public XmlElement removeAttribute(String key) {
+        if (isExcludedAttributeName(key)) {
+            throw new IllegalArgumentException();
+        }
+        Map<Object, Object> map = getMap();
+        map.remove(key);
+        return this;
+    }
+
     public boolean removeChild(int pos) {
         return TREE_ACCESSOR.removeChild(getMap(), pos);
+    }
+
+    public boolean removeChild(XmlNode child) {
+        return TREE_ACCESSOR.removeChild(getMap(), child.getObject());
     }
 
     public void removeChildren() {
