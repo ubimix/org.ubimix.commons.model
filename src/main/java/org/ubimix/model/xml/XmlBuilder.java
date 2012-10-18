@@ -142,7 +142,11 @@ public class XmlBuilder extends XmlListener {
 
     @Override
     public void onEntity(Entity entity) {
-        super.onEntity(entity);
+        if (fContext != null) {
+            String text = entity.getChars();
+            XmlText node = new XmlText(text);
+            fContext.appendChild(node);
+        }
     }
 
     @Override
