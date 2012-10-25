@@ -20,11 +20,9 @@ public class SkipSelector implements INodeSelector {
     }
 
     @Override
-    public INodeSelector.SelectionResult accept(Object node) {
-        SelectionResult result = fSelector.accept(node);
-        return (result == SelectionResult.YES)
-            ? SelectionResult.YES
-            : SelectionResult.MAYBE;
+    public Boolean accept(Object node) {
+        Boolean result = fSelector.accept(node);
+        return (result == Boolean.TRUE) ? Boolean.TRUE : null;
     }
 
     @Override

@@ -30,6 +30,11 @@
         </dependency>
         <dependency>
             <groupId>org.ubimix.commons</groupId>
+            <artifactId>org.ubimix.commons.parser.html</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ubimix.commons</groupId>
             <artifactId>org.ubimix.commons.parser.css</artifactId>
             <version>1.0.0</version>
         </dependency>

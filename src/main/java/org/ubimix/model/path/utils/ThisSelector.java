@@ -5,9 +5,13 @@ package org.ubimix.model.path.utils;
 
 import org.ubimix.model.path.INodeSelector;
 
+/**
+ * @author kotelnikov
+ */
 public class ThisSelector implements INodeSelector {
-    public INodeSelector.SelectionResult accept(Object node) {
-        return INodeSelector.SelectionResult.YES;
+    @Override
+    public Boolean accept(Object node) {
+        return Boolean.TRUE;
     }
 
     @Override

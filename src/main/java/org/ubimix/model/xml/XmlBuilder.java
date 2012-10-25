@@ -13,7 +13,7 @@ import org.ubimix.commons.parser.xml.XmlListener;
  */
 public class XmlBuilder extends XmlListener {
 
-    private static class Context {
+    private class Context {
 
         private Map<String, String> fAttributes;
 
@@ -67,7 +67,7 @@ public class XmlBuilder extends XmlListener {
             if (isPropertyContext()) {
                 fPropertyName = fAttributes.get("name");
             } else if (!isListContext()) {
-                fElement = new XmlElement(fName)
+                fElement = newXmlElement(fName)
                     .setAttributes(fAttributes)
                     .setNamespaces(fNamespaces);
                 if (fParent != null) {
@@ -120,7 +120,11 @@ public class XmlBuilder extends XmlListener {
         Map<String, String> attributes,
         Map<String, String> namespaces) {
         if (fContext != null) {
-            fContext = fContext.pop();
+            Context parentContext = fContext.pop();
+            if (parentContext == null) {
+                fTopElement = fContext.getActiveElement();
+            }
+            fContext = parentContext;
         }
     }
 
@@ -130,6 +134,10 @@ public class XmlBuilder extends XmlListener {
 
     protected boolean isList(String name) {
         return "umx:list".equals(name);
+    }
+
+    protected XmlElement newXmlElement(String name) {
+        return new XmlElement(name);
     }
 
     @Override

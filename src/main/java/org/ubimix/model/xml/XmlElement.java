@@ -16,6 +16,7 @@ import org.ubimix.commons.parser.xml.EntityFactory;
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XMLTokenizer;
 import org.ubimix.commons.parser.xml.XmlParser;
+import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
@@ -45,7 +46,7 @@ public class XmlElement extends XmlNode
 
     private static IXmlParser fParser;
 
-    private static final String KEY_CHILDREN1 = "~";
+    private static final String KEY_CHILDREN = "~";
 
     private static final String KEY_NAME = "!";
 
@@ -53,7 +54,7 @@ public class XmlElement extends XmlNode
 
     public static final String NS_PREFIX = "xmlns:";
 
-    public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN1);
+    public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN);
 
     protected static void addDeclaredNamespaces(
         Map<String, String> namespaces,
@@ -93,7 +94,7 @@ public class XmlElement extends XmlNode
 
     private static boolean isExcludedAttributeName(String key) {
         boolean excluded = KEY_NAME.equals(key)
-            || KEY_CHILDREN1.equals(key)
+            || KEY_CHILDREN.equals(key)
             || NS.equals(key);
         if (!excluded) {
             excluded = key.startsWith(NS_PREFIX);
@@ -371,7 +372,7 @@ public class XmlElement extends XmlNode
             result = newElement(map);
         } else if (!isEmpty(o)) {
             String str = TreePresenter.toString(o);
-            if (str.startsWith(XmlCDATA.CDATA_PREFIX)) {
+            if (XmlCDATA.isCDATA(str)) {
                 result = newCDATA(str);
             } else {
                 result = newText(str);
@@ -399,6 +400,13 @@ public class XmlElement extends XmlNode
     public XmlText newText(String content) {
         XmlText text = new XmlText(this, content);
         return text;
+    }
+
+    public void remove() {
+        XmlElement parent = getParent();
+        if (parent != null) {
+            parent.removeChild(this);
+        }
     }
 
     public XmlElement removeAttribute(String key) {
@@ -466,6 +474,19 @@ public class XmlElement extends XmlNode
             }
             String value = attr.getValue();
             map.put(key, value);
+        }
+    }
+
+    public String toString(boolean sortAttributes, boolean includeElement) {
+        if (includeElement) {
+            return super.toString(sortAttributes);
+        } else {
+            XmlSerializer listener = new XmlSerializer();
+            listener.setSortAttributes(sortAttributes);
+            for (XmlNode node : this) {
+                node.accept(listener);
+            }
+            return listener.toString();
         }
     }
 

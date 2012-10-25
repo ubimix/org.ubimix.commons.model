@@ -35,13 +35,13 @@ public abstract class CompositeSelector implements INodeSelector {
      * @see org.ubimix.model.path.INodeSelector#accept(java.lang.Object)
      */
     @Override
-    public SelectionResult accept(Object node) {
-        SelectionResult result = null;
+    public Boolean accept(Object node) {
+        Boolean result = null;
         int size = fSelectors.size();
         if (size > 0) {
             for (int i = 0; i < size; i++) {
                 INodeSelector selector = fSelectors.get(i);
-                SelectionResult selectionResult = selector.accept(node);
+                Boolean selectionResult = selector.accept(node);
                 if (result == null) {
                     result = selectionResult;
                 } else {
@@ -58,13 +58,13 @@ public abstract class CompositeSelector implements INodeSelector {
         return result;
     }
 
-    protected SelectionResult getDefaultValue() {
-        return SelectionResult.NO;
+    protected Boolean getDefaultValue() {
+        return Boolean.FALSE;
     }
 
-    protected abstract SelectionResult getStopResult();
+    protected abstract Boolean getStopResult();
 
-    protected abstract SelectionResult process(
-        SelectionResult previousResult,
-        SelectionResult currentResult);
+    protected abstract Boolean process(
+        Boolean previousResult,
+        Boolean currentResult);
 }

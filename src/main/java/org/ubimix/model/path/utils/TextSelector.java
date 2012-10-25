@@ -28,7 +28,7 @@ public class TextSelector implements INodeSelector {
         if (matchValue == null) {
             return null;
         }
-        char match = '~';
+        char match = '*';
         if (matchType.length() > 0) {
             match = matchType.charAt(0);
         }
@@ -40,7 +40,7 @@ public class TextSelector implements INodeSelector {
     private char fMatch;
 
     public TextSelector(String mask) {
-        this(mask, '~');
+        this(mask, '*');
     }
 
     public TextSelector(String mask, char match) {
@@ -49,14 +49,14 @@ public class TextSelector implements INodeSelector {
     }
 
     @Override
-    public SelectionResult accept(Object node) {
-        INodeSelector.SelectionResult result = INodeSelector.SelectionResult.MAYBE;
+    public Boolean accept(Object node) {
+        Boolean result = null;
         String value = getTextValue(node);
         if (value != null) {
-            result = INodeSelector.SelectionResult.YES;
+            result = Boolean.TRUE;
             if (fMask != null) {
                 if (!match(value, fMask)) {
-                    result = INodeSelector.SelectionResult.NO;
+                    result = Boolean.FALSE;
                 }
             }
         }
@@ -91,8 +91,25 @@ public class TextSelector implements INodeSelector {
             case '=':
                 result = value.equals(mask);
                 break;
+            case '*':
+                result = (mask.length() == 0);
+                int idx = 0;
+                while (!result) {
+                    idx = value.indexOf(mask, idx);
+                    if (idx < 0) {
+                        break;
+                    }
+                    result = true;
+                    if (idx > 0) {
+                        result = Character.isSpaceChar(value.charAt(idx - 1));
+                    }
+                    idx += mask.length();
+                    result = idx == value.length()
+                        || Character.isSpaceChar(value.charAt(idx));
+                }
+                break;
             case '~':
-                result = value.indexOf(mask) >= 0;
+                result = value.matches(mask);
                 break;
             case '^':
                 result = value.startsWith(mask);

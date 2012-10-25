@@ -37,7 +37,7 @@ public class MapNodeSelector implements INodeSelector {
                 new SkipSelector(TextSelector.selector(tagNameMatch, tagName)));
         }
         SkipSelector selector = new SkipSelector(new MapNodeSelector(
-            SelectionResult.NO,
+            Boolean.FALSE,
             map));
         return selector;
     }
@@ -60,33 +60,33 @@ public class MapNodeSelector implements INodeSelector {
         return result;
     }
 
-    private INodeSelector.SelectionResult fDefaultSelectResult;
+    private Boolean fDefaultSelectResult;
 
     private Map<String, INodeSelector> fSelectors;
 
     public MapNodeSelector(
-        INodeSelector.SelectionResult defaultSelectResult,
+        Boolean defaultSelectResult,
         Map<String, INodeSelector> selectors) {
         fDefaultSelectResult = defaultSelectResult;
         fSelectors = selectors;
     }
 
     @Override
-    public INodeSelector.SelectionResult accept(Object node) {
-        INodeSelector.SelectionResult result = INodeSelector.SelectionResult.NO;
+    public Boolean accept(Object node) {
+        Boolean result = Boolean.FALSE;
         if (node instanceof IHasValueMap) {
             Map<?, ?> map = ((IHasValueMap) node).getMap();
             result = fDefaultSelectResult;
             if (fSelectors != null && !fSelectors.isEmpty()) {
-                result = INodeSelector.SelectionResult.YES;
+                result = Boolean.TRUE;
                 for (Map.Entry<String, INodeSelector> entry : fSelectors
                     .entrySet()) {
                     String attrName = entry.getKey();
                     Object value = map.get(attrName);
                     INodeSelector selector = entry.getValue();
-                    SelectionResult attrResult = selector.accept(value);
-                    result = result.and(attrResult);
-                    if (result == INodeSelector.SelectionResult.NO) {
+                    Boolean attrResult = selector.accept(value);
+                    result = ANDSelector.and(result, attrResult);
+                    if (result == Boolean.FALSE) {
                         break;
                     }
                 }

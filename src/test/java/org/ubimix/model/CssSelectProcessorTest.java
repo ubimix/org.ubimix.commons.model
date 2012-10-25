@@ -62,20 +62,20 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
             obj,
             true,
             provider,
-            getPathSelector("[title~=Post]"),
+            getPathSelector("[title*=Post]"),
             firstPost.toString(),
             secondPost.toString());
         test(
             obj,
             true,
             provider,
-            getPathSelector("[entries] [content~=Just]"),
+            getPathSelector("[entries] [content*=Just]"),
             firstPost.toString());
         test(
             obj,
             true,
             provider,
-            getPathSelector("[entries] [content~=long]"),
+            getPathSelector("[entries] [content*=long]"),
             secondPost.toString());
         test(obj, true, provider, getPathSelector("[author]"), obj.toString());
         test(
@@ -90,16 +90,16 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
             obj,
             true,
             provider,
-            getPathSelector("[entries~='very long post']"),
+            getPathSelector("[entries*='very long post']"),
             obj.toString());
-        test(obj, true, provider, getPathSelector("[entries~=post1]"));
+        test(obj, true, provider, getPathSelector("[entries*=post1]"));
 
         // Sub-entries selection
         test(
             obj,
             true,
             provider,
-            getPathSelector("[entries] [entries~=tempor]"),
+            getPathSelector("[entries] [entries*=tempor]"),
             postWithSubentreis.toString());
         test(
             obj,
@@ -112,14 +112,14 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
             obj,
             true,
             provider,
-            getPathSelector("[entries] [entries] [title~='aliquam commodo']"),
+            getPathSelector("[entries] [entries] [title*='aliquam commodo']"),
             subEntry2.toString());
 
         test(
             obj,
             true,
             provider,
-            getPathSelector("[entries] [entries~=temporXX]"));
+            getPathSelector("[entries] [entries*=temporXX]"));
     }
 
     public void testSelectModel() {
@@ -151,14 +151,14 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
         testJson(
             json,
             true,
-            getPathSelector("name", "TopLevel [name~=X]"),
+            getPathSelector("name", "TopLevel [name~='^.*X(\\d)?$']"),
             json("{name:'Sub-sub-item-X1'}"),
             json("{name:'Sub-sub-item-X2'}"),
             json("{name:'X'}"));
         testJson(
             json,
             true,
-            getPathSelector("name", "TopLevel SubitemA [name~=X]"),
+            getPathSelector("name", "TopLevel SubitemA [name~='^.*X\\d$']"),
             json("{name:'Sub-sub-item-X1'}"),
             json("{name:'Sub-sub-item-X2'}"));
 
@@ -184,6 +184,11 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
             getPathSelector(".xxx"),
             "<p class='xxx'>first</p>",
             "<p class='xxx'>third</p>");
+        testXml(
+            xml,
+            getPathSelector(".yyy"),
+            "<p class='yyy n1'>before1 <a href='http://foo.bar1'>link1</a> after1</p>",
+            "<p class='yyy n2'>before2 <a href='http://foo.bar2'>link2</a> after2</p>");
         testXml(
             xml,
             getPathSelector(".yyy a"),
@@ -251,7 +256,7 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
         testXml(xml, getPathSelector("[class=yyy] > a"));
         testXml(
             xml,
-            getPathSelector("[class~=yyy] > a"),
+            getPathSelector("[class*=yyy] > a"),
             "<a href='http://foo.bar1'>link1</a>",
             "<a href='http://foo.bar2'>link2</a>");
         testXml(

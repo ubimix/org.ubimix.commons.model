@@ -33,25 +33,17 @@ public class PathProcessor {
         }
         boolean shouldContinue = true;
         INodeSelector selector = fSelectors.getNodeSelector(selectorPos);
-        INodeSelector.SelectionResult selectionResult = selector.accept(node);
         int childSelectorPos = -1;
-        switch (selectionResult) {
-            case YES:
-                if (selectorPos + 1 >= selectorNumber) {
-                    shouldContinue = collector.setResult(node);
-                    childSelectorPos = selectorPos;
-                } else {
-                    childSelectorPos = selectorPos + 1;
-                }
-                break;
-            case NO:
-                // Just exit. This node should not be explored anymore.
-                break;
-            case MAYBE:
-                // This node is skipped, so we have to apply the same select
-                // criteria to all children.
+        Boolean selectionResult = selector.accept(node);
+        if (selectionResult == null) { // MAYBE
+            childSelectorPos = selectorPos;
+        } else if (selectionResult.booleanValue()) {
+            if (selectorPos + 1 >= selectorNumber) {
+                shouldContinue = collector.setResult(node);
                 childSelectorPos = selectorPos;
-                break;
+            } else {
+                childSelectorPos = selectorPos + 1;
+            }
         }
         if (shouldContinue
             && childSelectorPos >= 0

@@ -145,7 +145,6 @@ public class SaxXmlParser implements IXmlParser {
     public SaxXmlParser() {
     }
 
-    @Override
     public ICharStream getStream() {
         return fStream;
     }

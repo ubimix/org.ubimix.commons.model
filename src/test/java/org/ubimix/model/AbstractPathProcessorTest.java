@@ -8,8 +8,6 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.ModelObject;
-import org.ubimix.model.TreePresenter;
 import org.ubimix.model.path.INodeProvider;
 import org.ubimix.model.path.IPathNodeCollector;
 import org.ubimix.model.path.IPathSelector;
@@ -56,9 +54,12 @@ public abstract class AbstractPathProcessorTest extends TestCase {
         IPathSelector selector,
         String... controls) {
         TreePresenter presenter = new TreePresenter("items");
-        INodeProvider provider = new TreeNodeProvider(
-            presenter,
-            ModelObject.FACTORY);
+        INodeProvider provider = new TreeNodeProvider(presenter) {
+            @Override
+            protected IValueFactory<?> getChildNodeFactory(IHasValueMap element) {
+                return ModelObject.FACTORY;
+            }
+        };
         ModelObject node = ModelObject.parse(json);
         test(node, collect, provider, selector, controls);
     }
@@ -69,9 +70,13 @@ public abstract class AbstractPathProcessorTest extends TestCase {
         IPathSelector selector,
         String... controls) {
         XmlElement node = XmlElement.parse(xml);
-        INodeProvider provider = new TreeNodeProvider(
-            XmlElement.TREE_ACCESSOR,
-            node.getNodeFactory());
+        INodeProvider provider = new TreeNodeProvider(XmlElement.TREE_ACCESSOR) {
+            @Override
+            protected IValueFactory<?> getChildNodeFactory(IHasValueMap element) {
+                return ((XmlElement) element).getNodeFactory();
+            }
+
+        };
         test(node, collect, provider, selector, controls);
     }
 

@@ -11,7 +11,6 @@ import java.util.Map;
 
 import org.ubimix.model.path.INodeProvider;
 import org.ubimix.model.path.INodeSelector;
-import org.ubimix.model.path.INodeSelector.SelectionResult;
 import org.ubimix.model.path.IPathSelector;
 import org.ubimix.model.path.PathProcessor;
 
@@ -22,17 +21,17 @@ public class PathSelectorBuilder {
 
     private Map<String, List<INodeSelector>> fAttributeSelectors = new LinkedHashMap<String, List<INodeSelector>>();
 
-    private SelectionResult fDefaultSelectResult;
+    private Boolean fDefaultSelectResult;
 
     protected List<INodeSelector> fList = new ArrayList<INodeSelector>();
 
     private boolean fSkip = true;
 
     public PathSelectorBuilder() {
-        this(SelectionResult.NO);
+        this(Boolean.FALSE);
     }
 
-    public PathSelectorBuilder(SelectionResult defaultSelectResult) {
+    public PathSelectorBuilder(Boolean defaultSelectResult) {
         fDefaultSelectResult = defaultSelectResult;
     }
 

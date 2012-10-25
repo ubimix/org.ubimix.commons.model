@@ -14,19 +14,18 @@ import org.ubimix.model.path.INodeProvider;
 /**
  * @author kotelnikov
  */
-public class TreeNodeProvider implements INodeProvider {
-
-    private IValueFactory<?> fFactory;
+public abstract class TreeNodeProvider implements INodeProvider {
 
     private TreePresenter fTreePresenter;
 
     /**
      * 
      */
-    public TreeNodeProvider(TreePresenter presenter, IValueFactory<?> factory) {
+    public TreeNodeProvider(TreePresenter presenter) {
         fTreePresenter = presenter;
-        fFactory = factory;
     }
+
+    protected abstract IValueFactory<?> getChildNodeFactory(IHasValueMap element);
 
     /**
      * @see org.ubimix.model.path.INodeProvider
@@ -38,6 +37,7 @@ public class TreeNodeProvider implements INodeProvider {
             return null;
         }
         final IHasValueMap element = (IHasValueMap) parent;
+        IValueFactory<?> fFactory = getChildNodeFactory(element);
         List<?> children = fTreePresenter.getChildren(
             element.getMap(),
             fFactory);

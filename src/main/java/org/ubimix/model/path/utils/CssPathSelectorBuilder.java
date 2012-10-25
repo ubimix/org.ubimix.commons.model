@@ -44,6 +44,9 @@ public class CssPathSelectorBuilder {
                 String attributeName,
                 String matchType,
                 String matchValue) {
+                if ("umx|tag".equals(attributeName)) {
+                    attributeName = fNameProperty;
+                }
                 fBuilder.addSelector(attributeName, matchType, matchValue);
             }
 

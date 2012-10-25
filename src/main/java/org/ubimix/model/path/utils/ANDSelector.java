@@ -12,6 +12,16 @@ import org.ubimix.model.path.INodeSelector;
  */
 public class ANDSelector extends CompositeSelector {
 
+    public static Boolean and(Boolean a, Boolean b) {
+        if (Boolean.FALSE.equals(a) || Boolean.FALSE.equals(b)) {
+            return Boolean.FALSE;
+        }
+        if (Boolean.TRUE.equals(a) && Boolean.TRUE.equals(b)) {
+            return Boolean.TRUE;
+        }
+        return null;
+    }
+
     /**
      * @param selectors
      */
@@ -30,19 +40,17 @@ public class ANDSelector extends CompositeSelector {
      * @see org.ubimix.model.path.utils.CompositeSelector#getStopResult()
      */
     @Override
-    protected SelectionResult getStopResult() {
-        return SelectionResult.NO;
+    protected Boolean getStopResult() {
+        return Boolean.FALSE;
     }
 
     /**
-     * @see org.ubimix.model.path.utils.CompositeSelector#process(org.ubimix.model.path.INodeSelector.SelectionResult,
-     *      org.ubimix.model.path.INodeSelector.SelectionResult)
+     * @see org.ubimix.model.path.utils.CompositeSelector#process(org.ubimix.model.path.INodeSelector.Boolean,
+     *      org.ubimix.model.path.INodeSelector.Boolean)
      */
     @Override
-    protected SelectionResult process(
-        SelectionResult previousResult,
-        SelectionResult currentResult) {
-        return previousResult.and(currentResult);
+    protected Boolean process(Boolean a, Boolean b) {
+        return and(a, b);
     }
 
 }

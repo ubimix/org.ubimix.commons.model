@@ -3,22 +3,25 @@
  */
 package org.ubimix.model.path.utils;
 
-
 /**
  * @author kotelnikov
  */
 public class ORSelector extends CompositeSelector {
 
     @Override
-    protected SelectionResult getStopResult() {
-        return SelectionResult.YES;
+    protected Boolean getStopResult() {
+        return Boolean.TRUE;
     }
 
     @Override
-    protected SelectionResult process(
-        SelectionResult previousResult,
-        SelectionResult currentResult) {
-        return previousResult.or(currentResult);
+    protected Boolean process(Boolean a, Boolean b) {
+        if (Boolean.TRUE.equals(a) || Boolean.TRUE.equals(b)) {
+            return Boolean.TRUE;
+        }
+        if (Boolean.FALSE.equals(a) && Boolean.FALSE.equals(b)) {
+            return Boolean.FALSE;
+        }
+        return null;
     }
 
 }

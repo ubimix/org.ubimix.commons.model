@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.ubimix.commons.parser.xml.IXmlListener;
+import org.ubimix.commons.parser.xml.utils.TextSerializer;
 import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 
 /**
@@ -176,6 +177,12 @@ public abstract class XmlNode {
     public String toString(boolean sortAttributes) {
         XmlSerializer listener = new XmlSerializer();
         listener.setSortAttributes(sortAttributes);
+        accept(listener);
+        return listener.toString();
+    }
+
+    public String toText() {
+        TextSerializer listener = new TextSerializer();
         accept(listener);
         return listener.toString();
     }
