@@ -9,11 +9,11 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.xml.IXmlParser;
+import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
-import org.ubimix.model.xml.server.SaxXmlParser;
 
 /**
  * @author kotelnikov
@@ -28,8 +28,8 @@ public class XmlTest extends TestCase {
     }
 
     protected IXmlParser newXmlParser() {
-        return new SaxXmlParser();
-        // return new XmlParser();
+        // return new SaxXmlParser();
+        return new XmlParser();
     }
 
     public void testElement() throws Exception {

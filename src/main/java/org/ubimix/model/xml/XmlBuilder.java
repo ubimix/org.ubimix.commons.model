@@ -13,7 +13,7 @@ import org.ubimix.commons.parser.xml.XmlListener;
  */
 public class XmlBuilder extends XmlListener {
 
-    private class Context {
+    protected class Context {
 
         private Map<String, String> fAttributes;
 
@@ -93,9 +93,9 @@ public class XmlBuilder extends XmlListener {
 
     }
 
-    private Context fContext;
+    protected Context fContext;
 
-    public XmlElement fTopElement;
+    protected XmlElement fTopElement;
 
     /**
      * 

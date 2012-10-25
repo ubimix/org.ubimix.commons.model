@@ -155,6 +155,12 @@ public class XmlElement extends XmlNode
         return result;
     }
 
+    public void addChildren(Iterable<XmlNode> children) {
+        for (XmlNode child : children) {
+            addChild(child);
+        }
+    }
+
     public void addPropertyField(String name, XmlNode value) {
         TreePresenter p = new TreePresenter(name);
         Map<Object, Object> map = getMap();
