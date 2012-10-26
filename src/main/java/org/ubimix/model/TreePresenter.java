@@ -4,10 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.ubimix.commons.parser.json.utils.JavaObjectBuilder;
+import org.ubimix.commons.parser.json.utils.JavaObjectVisitor;
+
 /**
  * @author kotelnikov
  */
 public class TreePresenter {
+
+    @SuppressWarnings("unchecked")
+    public static Map<Object, Object> copy(Map<Object, Object> map) {
+        JavaObjectVisitor visitor = new JavaObjectVisitor();
+        JavaObjectBuilder builder = new JavaObjectBuilder();
+        visitor.visit(map, false, builder);
+        return (Map<Object, Object>) builder.getTop();
+    }
 
     public static String toString(Object value) {
         return value != null ? value.toString() : null;

@@ -15,6 +15,11 @@
     <dependencies>
         <dependency>
             <groupId>org.ubimix.commons</groupId>
+            <artifactId>org.ubimix.commons.graph</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ubimix.commons</groupId>
             <artifactId>org.ubimix.commons.parser</artifactId>
             <version>1.0.0</version>
         </dependency>

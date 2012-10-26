@@ -9,7 +9,6 @@ import org.ubimix.commons.parser.ICharStream;
 import org.ubimix.commons.parser.ICharStream.IPointer;
 import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.html.HtmlParser;
-import org.ubimix.model.html.XmlSelect;
 import org.ubimix.model.xml.XmlBuilder;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlText;
@@ -26,7 +25,7 @@ public class HtmlFormatterSandbox {
             + "<pre class='doc'></pre>\n"
             + "</body>\n"
             + "</html>");
-        final XmlElement formatted = XmlSelect.on(formattedDoc).select("pre");
+        final XmlElement formatted = formattedDoc.select("pre");
         final int[] id = { 0 };
         final HtmlParser parser = new HtmlParser() {
             @Override
@@ -102,9 +101,9 @@ public class HtmlFormatterSandbox {
             + "<li>item \n"
             + "two", builder);
         XmlElement e = builder.getResult();
-        XmlElement formattedBody = XmlSelect.on(formattedDoc).select("body");
+        XmlElement formattedBody = formattedDoc.select("body");
         formattedBody.addChild(new XmlElement("hr"));
-        formattedBody.addChildren(XmlSelect.on(e).select("body"));
+        formattedBody.addChildren(e.select("body"));
 
         System.out.println(formattedDoc);
     }

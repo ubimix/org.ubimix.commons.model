@@ -33,4 +33,28 @@ public class HtmlDocument {
         return parse(stream);
     }
 
+    public static XmlElement parseFragment(ICharLoader stream) {
+        return toFragment(parse(stream));
+    }
+
+    public static XmlElement parseFragment(ICharStream stream) {
+        return toFragment(parse(stream));
+    }
+
+    public static XmlElement parseFragment(String html) {
+        return toFragment(parse(html));
+    }
+
+    private static XmlElement toFragment(XmlElement doc) {
+        if (doc == null) {
+            return null;
+        }
+        XmlElement body = doc.getChildByName("body");
+        if (body == null) {
+            return null;
+        }
+        XmlElement result = body.getChildElement();
+        return result;
+    }
+
 }

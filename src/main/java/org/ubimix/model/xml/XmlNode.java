@@ -152,6 +152,13 @@ public abstract class XmlNode {
         return fObject.hashCode();
     }
 
+    /**
+     * @param depth if this flag is <code>true</code> then this method should
+     *        also copy all children nodes
+     * @return a new copy of this node
+     */
+    public abstract XmlNode newCopy(boolean depth);
+
     protected abstract Object newObject();
 
     protected void removeFromParent() {

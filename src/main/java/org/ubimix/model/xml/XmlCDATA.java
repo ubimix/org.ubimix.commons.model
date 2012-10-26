@@ -39,6 +39,11 @@ public class XmlCDATA extends XmlText {
     }
 
     @Override
+    public XmlCDATA newCopy(boolean depth) {
+        return new XmlCDATA(getContent());
+    }
+
+    @Override
     protected String unwrapContent(String str) {
         return unwrapCDATA(str);
     }

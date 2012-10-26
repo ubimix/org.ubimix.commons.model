@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.List;
 
 import org.ubimix.model.html.HtmlDocument;
-import org.ubimix.model.html.XmlSelect;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 
@@ -84,11 +83,10 @@ public class ParseExample {
         XmlElement doc = load(url);
         System.out.println(doc);
 
-        List<XmlElement> list = XmlSelect.on(doc).selectAll("tr[valign=TOP]");
+        List<XmlElement> list = doc.selectAll("tr[valign=TOP]");
         for (XmlElement entry : list) {
-            XmlElement div = XmlSelect.on(entry).select(
-                "td > div[style='text-align:left']");
-            XmlElement a = XmlSelect.on(div).select("a");
+            XmlElement div = entry.select("td > div[style='text-align:left']");
+            XmlElement a = div.select("a");
             if (a == null) {
                 continue;
             }
@@ -102,14 +100,12 @@ public class ParseExample {
     public static void site2() throws IOException {
         String url = "http://www.ardeche.cci.fr/";
         XmlElement doc = load(url);
-        List<XmlElement> list = XmlSelect.on(doc).selectAll(
-            "#list_actu_in ul > li");
+        List<XmlElement> list = doc.selectAll("#list_actu_in ul > li");
         for (XmlElement entry : list) {
-            XmlSelect s = XmlSelect.on(entry);
-            XmlElement a = s.select("a");
+            XmlElement a = entry.select("a");
             String href = a.getAttribute("href");
             a.remove();
-            XmlElement h3 = s.select("h3");
+            XmlElement h3 = entry.select("h3");
             String title = h3.toText();
             h3.remove();
             String content = entry
@@ -130,13 +126,13 @@ public class ParseExample {
             "/home/kotelnikov/dev/workspaces/ubimix/org.ubimix.model/tmp/WikipediaFrance.html");
         XmlElement doc = load(new FileInputStream(file));
 
-        XmlElement main = XmlSelect.on(doc).select("#mw-content-text");
+        XmlElement main = doc.select("#mw-content-text");
 
-        List<XmlElement> headers = XmlSelect.on(main).selectAll("[umx|tag^=h]");
+        List<XmlElement> headers = main.selectAll("[umx|tag^=h]");
 
         for (XmlElement header : headers) {
             // Element span = header.select("span[id]").first();
-            XmlElement span = XmlSelect.on(header).select("[id]");
+            XmlElement span = header.select("[id]");
             if (span != null) {
                 List<XmlNode> children = span.getChildren();
                 header.removeChildren();
@@ -150,13 +146,16 @@ public class ParseExample {
             System.out.println(header);
         }
 
-        List<XmlElement> boxes = XmlSelect.on(main).selectAll("div.thumb");
+        List<XmlElement> boxes = main.selectAll("div.thumb");
+        int counter = 0;
         for (XmlElement box : boxes) {
-            List<XmlElement> divs = XmlSelect.on(box).selectAll("div.magnify");
+            List<XmlElement> divs = box.selectAll("div.magnify");
             for (XmlElement div : divs) {
                 div.remove();
             }
-            System.out.println("==============");
+            System.out.println("==============["
+                + (++counter)
+                + "]==============");
             System.out.println(box);
         }
     }

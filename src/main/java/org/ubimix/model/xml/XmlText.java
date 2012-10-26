@@ -28,6 +28,11 @@ public class XmlText extends XmlNode {
     }
 
     @Override
+    public XmlText newCopy(boolean depth) {
+        return new XmlText(getContent());
+    }
+
+    @Override
     protected Object newObject() {
         return "";
     }

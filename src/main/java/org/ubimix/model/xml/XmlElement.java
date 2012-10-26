@@ -3,6 +3,7 @@
  */
 package org.ubimix.model.xml;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -20,6 +21,11 @@ import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
+import org.ubimix.model.path.IPathNodeCollector;
+import org.ubimix.model.path.IPathSelector;
+import org.ubimix.model.path.PathProcessor;
+import org.ubimix.model.path.utils.CssPathSelectorBuilder;
+import org.ubimix.model.path.utils.TreeNodeProvider;
 
 /**
  * @author kotelnikov
@@ -29,18 +35,39 @@ public class XmlElement extends XmlNode
     Iterable<XmlNode>,
     IHasValueMap {
 
+    public static abstract class AbstractXmlElementFactory<T extends XmlElement>
+        implements
+        IValueFactory<T> {
+        @Override
+        public T newValue(Object object) {
+            XmlElement parent = null;
+            Map<Object, Object> map = null;
+            if (object instanceof IHasValueMap) {
+                map = ((IHasValueMap) object).getMap();
+                if (object instanceof XmlNode) {
+                    parent = ((XmlNode) object).getParent();
+                }
+            } else if (object instanceof Map<?, ?>) {
+                map = cast(object);
+            }
+            return map != null ? newXmlElement(parent, map) : null;
+        }
+
+        protected abstract T newXmlElement(
+            XmlElement parent,
+            Map<Object, Object> map);
+    }
+
     /**
      * Creates and returns {@link XmlElement} instance wrapping the specified
      * java value.
      */
-    public static final IValueFactory<XmlElement> FACTORY = new IValueFactory<XmlElement>() {
+    public static final IValueFactory<XmlElement> FACTORY = new AbstractXmlElementFactory<XmlElement>() {
         @Override
-        public XmlElement newValue(Object object) {
-            Map<Object, Object> map = null;
-            if (object instanceof Map<?, ?>) {
-                map = cast(object);
-            }
-            return map != null ? new XmlElement(null, map) : null;
+        protected XmlElement newXmlElement(
+            XmlElement parent,
+            Map<Object, Object> map) {
+            return new XmlElement(parent, map);
         }
     };
 
@@ -55,6 +82,14 @@ public class XmlElement extends XmlNode
     public static final String NS_PREFIX = "xmlns:";
 
     public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN);
+
+    public static TreeNodeProvider XML_TREE_NODE_PROVIDER = new TreeNodeProvider(
+        XmlElement.TREE_ACCESSOR) {
+        @Override
+        protected IValueFactory<?> getChildNodeFactory(IHasValueMap element) {
+            return ((XmlElement) element).getNodeFactory();
+        }
+    };
 
     protected static void addDeclaredNamespaces(
         Map<String, String> namespaces,
@@ -207,8 +242,62 @@ public class XmlElement extends XmlNode
         return result;
     }
 
+    public XmlElement getChildByName(String name) {
+        XmlElement result = null;
+        for (XmlNode node : this) {
+            if (!(node instanceof XmlElement)) {
+                continue;
+            }
+            XmlElement e = (XmlElement) node;
+            if (name.equals(e.getName())) {
+                result = e;
+            }
+        }
+        return result;
+    }
+
+    public <T extends XmlElement> T getChildByName(
+        String tagName,
+        IValueFactory<T> factory) {
+        T result = null;
+        for (XmlNode node : this) {
+            if (!(node instanceof XmlElement)) {
+                continue;
+            }
+            XmlElement e = (XmlElement) node;
+            if (tagName.equals(e.getName())) {
+                result = factory.newValue(e);
+                if (result != null) {
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     public int getChildCount() {
         return TREE_ACCESSOR.getChildCount(getMap());
+    }
+
+    public XmlElement getChildElement() {
+        XmlElement result = null;
+        for (XmlNode node : this) {
+            if (node instanceof XmlElement) {
+                result = (XmlElement) node;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public List<XmlElement> getChildElements() {
+        List<XmlElement> result = new ArrayList<XmlElement>();
+        for (XmlNode node : this) {
+            if (node instanceof XmlElement) {
+                result.add((XmlElement) node);
+            }
+        }
+        return result;
     }
 
     protected Object getChildObject(int pos) {
@@ -221,6 +310,29 @@ public class XmlElement extends XmlNode
 
     public List<XmlNode> getChildren() {
         return TREE_ACCESSOR.getChildren(getMap(), getNodeFactory());
+    }
+
+    public List<XmlElement> getChildrenByName(String tagName) {
+        return getChildrenByName(tagName, XmlElement.FACTORY);
+    }
+
+    public <T extends XmlElement> List<T> getChildrenByName(
+        String tagName,
+        IValueFactory<T> factory) {
+        List<T> result = new ArrayList<T>();
+        for (XmlNode node : this) {
+            if (!(node instanceof XmlElement)) {
+                continue;
+            }
+            XmlElement e = (XmlElement) node;
+            if (tagName.equals(e.getName())) {
+                T resultNode = factory.newValue(e);
+                if (resultNode != null) {
+                    result.add(resultNode);
+                }
+            }
+        }
+        return result;
     }
 
     /**
@@ -295,6 +407,15 @@ public class XmlElement extends XmlNode
                 return newChild(object);
             }
         };
+    }
+
+    protected PathProcessor getPathProcessor(String cssSelector) {
+        IPathSelector selector = CssPathSelectorBuilder.INSTANCE
+            .build(cssSelector);
+        PathProcessor pathProcessor = new PathProcessor(
+            XML_TREE_NODE_PROVIDER,
+            selector);
+        return pathProcessor;
     }
 
     public Map<String, XmlNode> getPropertyFields() {
@@ -387,6 +508,30 @@ public class XmlElement extends XmlNode
         return result;
     }
 
+    @Override
+    public XmlElement newCopy(boolean depth) {
+        Map<Object, Object> thisMap = getMap();
+        Map<Object, Object> map;
+        if (depth) {
+            map = TreePresenter.copy(thisMap);
+        } else {
+            map = new LinkedHashMap<Object, Object>();
+            for (Map.Entry<Object, Object> entry : thisMap.entrySet()) {
+                Object key = entry.getKey();
+                if (KEY_CHILDREN.equals(key)) {
+                    continue;
+                }
+                // Copy all non-object fields
+                Object value = entry.getValue();
+                if (!isExcludedAttributeValue(value)) {
+                    map.put(key, value);
+                }
+            }
+        }
+        XmlElement result = new XmlElement(null, map);
+        return result;
+    }
+
     private XmlElement newElement(Map<Object, Object> obj) {
         if (obj == null) {
             obj = newObject();
@@ -434,6 +579,46 @@ public class XmlElement extends XmlNode
 
     public void removeChildren() {
         TREE_ACCESSOR.removeChildren(getMap());
+    }
+
+    public XmlElement select(String cssSelector) {
+        return select(cssSelector, XmlElement.FACTORY);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends XmlNode> T select(
+        String cssSelector,
+        final IValueFactory<T> factory) {
+        final Object[] results = { null };
+        PathProcessor processor = getPathProcessor(cssSelector);
+        processor.select(this, new IPathNodeCollector() {
+            @Override
+            public boolean setResult(Object node) {
+                results[0] = factory.newValue(node);
+                return false;
+            }
+        });
+        return (T) results[0];
+    }
+
+    public List<XmlElement> selectAll(String cssSelector) {
+        return selectAll(cssSelector, XmlElement.FACTORY);
+    }
+
+    public <T extends XmlNode> List<T> selectAll(
+        String cssSelector,
+        final IValueFactory<T> factory) {
+        final List<T> results = new ArrayList<T>();
+        PathProcessor processor = getPathProcessor(cssSelector);
+        processor.select(this, new IPathNodeCollector() {
+            @Override
+            public boolean setResult(Object node) {
+                T value = factory.newValue(node);
+                results.add(value);
+                return true;
+            }
+        });
+        return results;
     }
 
     public XmlElement setAttribute(String key, String value) {

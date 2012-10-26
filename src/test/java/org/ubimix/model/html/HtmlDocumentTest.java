@@ -78,7 +78,7 @@ public class HtmlDocumentTest extends TestCase {
 
     private void testSelect(String html, String select, String... controls) {
         XmlElement e = HtmlDocument.parse(html);
-        List<XmlElement> list = XmlSelect.on(e).selectAll(select);
+        List<XmlElement> list = e.selectAll(select);
         assertEquals(controls.length, list.size());
         int i = 0;
         for (String control : controls) {
