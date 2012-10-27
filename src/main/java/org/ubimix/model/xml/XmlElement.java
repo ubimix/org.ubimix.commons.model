@@ -635,6 +635,11 @@ public class XmlElement extends XmlNode
         return this;
     }
 
+    public void setChildren(Iterable<XmlNode> children) {
+        removeChildren();
+        addChildren(children);
+    }
+
     public XmlElement setName(String tagName) {
         Map<Object, Object> map = getMap();
         if (tagName != null) {
