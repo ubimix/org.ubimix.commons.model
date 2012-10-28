@@ -14,7 +14,7 @@ import org.ubimix.model.xml.XmlText;
  * 
  * @author kotelnikov
  */
-public class TextNodeReducer extends AbstractTagListProcessor {
+public class TextNodeReducer extends AbstractTagProcessor {
 
     @Override
     public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {

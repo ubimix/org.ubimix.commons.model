@@ -81,6 +81,44 @@ public class TagBurnerTest extends TestCase {
             "<ul><li><ul><li><p> a </p><p> b </p><p> c </p></li></ul></li></ul>");
     }
 
+    public void testPre() {
+        testTagBurner("<pre>\n"
+            + " pre-\n"
+            + "      -forma-\n"
+            + "    -tt\n"
+            + "          ed"
+            + "</pre>", "<pre>\n"
+            + " pre-\n"
+            + "      -forma-\n"
+            + "    -tt\n"
+            + "          ed</pre>");
+        testTagBurner("<div>before<pre>\n"
+            + " pre-\n"
+            + "      -forma-\n"
+            + "    -tt\n"
+            + "          ed"
+            + "</pre>after</div>", ""
+            + "<div>"
+            + "<p>before</p>"
+            + "<pre>\n"
+            + " pre-\n"
+            + "      -forma-\n"
+            + "    -tt\n"
+            + "          ed</pre>"
+            + "<p>after</p>"
+            + "</div>");
+
+        testTagBurner(""
+            + "<div>  a  <pre>\n"
+            + "   b \n"
+            + "  <div>    c     </div>\n"
+            + "  </pre>  c \n"
+            + "  </div>", "<div><p> a </p><pre>\n"
+            + "   b \n"
+            + "  <div>    c     </div>\n"
+            + "  </pre><p> c </p></div>");
+    }
+
     public void testTagBurner() {
         testTagBurner(
             "<div>  a  <div>   b   </div>  c   </div>",
@@ -118,6 +156,47 @@ public class TagBurnerTest extends TestCase {
         testTagBurner(
             "<div> a  <div>    b    </div> c  </div>",
             "<div><p> a </p><p> b </p><p> c </p></div>");
+        testTagBurner(""
+            + "<div>"
+            + "<div>A</div>"
+            + "<div>B <p>C</p>"
+            + "</div>"
+            + "</div>"
+            + "", "<div><p>A</p><p>B </p><p>C</p></div>");
+        testTagBurner(""
+            + "<div>"
+            + "<div><div>A</div>"
+            + "<div>B <p>C</p>"
+            + "</div>"
+            + "</div>"
+            + "</div>"
+            + "", "<div><p>A</p><p>B </p><p>C</p></div>");
+        testTagBurner(""
+            + "<div>"
+            + "<div><div>A</div>"
+            + "<div>B<p>C</p>"
+            + "</div>"
+            + "</div>D"
+            + "</div>"
+            + "", "<div><p>A</p><p>B</p><p>C</p><p>D</p></div>");
+        testTagBurner(""
+            + "<div>"
+            + "<div>"
+            + "<h1>Title</h1>"
+            + "<div>Subtitle</div>"
+            + "</div>"
+            + "<img src='http://foo.bar/toto.jpg'/>"
+            + "<div>Image description</div>"
+            + "Text"
+            + "</div>"
+            + "", ""
+            + "<div>"
+            + "<h1>Title</h1>"
+            + "<p>Subtitle</p>"
+            + "<p><img src='http://foo.bar/toto.jpg'></img></p>"
+            + "<p>Image description</p>"
+            + "<p>Text</p>"
+            + "</div>");
     }
 
     private void testTagBurner(String str, String control) {

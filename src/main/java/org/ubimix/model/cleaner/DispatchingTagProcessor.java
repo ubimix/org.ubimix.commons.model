@@ -7,7 +7,7 @@ import java.util.Map;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 
-public class DispatchingTagListProcessor extends AbstractTagListProcessor {
+public class DispatchingTagProcessor extends AbstractTagProcessor {
 
     private ITagListProcessor fDefaultProcessor;
 
@@ -29,7 +29,7 @@ public class DispatchingTagListProcessor extends AbstractTagListProcessor {
         return list;
     }
 
-    public DispatchingTagListProcessor register(
+    public DispatchingTagProcessor register(
         ITagListProcessor processor,
         String... tags) {
         for (String tag : tags) {
@@ -39,7 +39,7 @@ public class DispatchingTagListProcessor extends AbstractTagListProcessor {
         return this;
     }
 
-    public DispatchingTagListProcessor register(
+    public DispatchingTagProcessor register(
         String tag,
         ITagListProcessor processor) {
         fProcessors.put(tag, processor);
@@ -47,7 +47,7 @@ public class DispatchingTagListProcessor extends AbstractTagListProcessor {
         return this;
     }
 
-    public DispatchingTagListProcessor setDefaultProcessor(
+    public DispatchingTagProcessor setDefaultProcessor(
         ITagListProcessor defaultProcessor) {
         defaultProcessor.setParent(this);
         fDefaultProcessor = defaultProcessor;

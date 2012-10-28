@@ -3,7 +3,6 @@
  */
 package org.ubimix.model.cleaner;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.ubimix.model.xml.XmlElement;
@@ -12,14 +11,12 @@ import org.ubimix.model.xml.XmlNode;
 /**
  * @author kotelnikov
  */
-public class NullProcessor extends AbstractTagListProcessor
-    implements
-    ITagListProcessor {
+public class HtmlTableNodeProcessor extends AbstractTagProcessor {
 
     /**
      * 
      */
-    public NullProcessor() {
+    public HtmlTableNodeProcessor() {
     }
 
     /**
@@ -28,7 +25,8 @@ public class NullProcessor extends AbstractTagListProcessor
      */
     @Override
     public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
-        return Arrays.<XmlNode> asList(element);
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

@@ -10,7 +10,7 @@ import org.ubimix.model.xml.XmlNode;
 /**
  * @author kotelnikov
  */
-public class GenericTagProcessor extends AbstractTagListProcessor {
+public class GenericTagProcessor extends AbstractTagProcessor {
 
     protected List<XmlNode> cleanupChildren(
         boolean keepSpaces,

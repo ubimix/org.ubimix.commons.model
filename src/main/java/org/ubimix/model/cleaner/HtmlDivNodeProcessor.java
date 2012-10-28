@@ -13,7 +13,7 @@ import org.ubimix.model.xml.XmlNode;
 /**
  * @author kotelnikov
  */
-public class HtmlDivNodeProcessor extends AbstractTagListProcessor {
+public class HtmlDivNodeProcessor extends AbstractTagProcessor {
 
     /**
      * 
@@ -32,15 +32,17 @@ public class HtmlDivNodeProcessor extends AbstractTagListProcessor {
             boolean inlineOnlyNodes = inlineOnlyNodes(children);
             if (inlineOnlyNodes) {
                 element.setName(HtmlTagDictionary.P);
+                result = Arrays.<XmlNode> asList(element);
             } else {
                 len = children.size();
                 if (len == 1) {
                     element = (XmlElement) children.get(0);
+                    result = Arrays.<XmlNode> asList(element);
                 } else {
-                    element.setChildren(children);
+                    // element.setChildren(children);
+                    result = children;
                 }
             }
-            result = Arrays.<XmlNode> asList(element);
         }
         return result;
     }

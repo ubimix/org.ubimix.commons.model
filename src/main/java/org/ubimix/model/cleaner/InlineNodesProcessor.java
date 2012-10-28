@@ -15,7 +15,7 @@ import org.ubimix.model.xml.XmlText;
  * 
  * @author kotelnikov
  */
-public class InlineNodesProcessor extends AbstractTagListProcessor {
+public class InlineNodesProcessor extends AbstractTagProcessor {
 
     private List<XmlNode> fInlineNodes = new ArrayList<XmlNode>();
 

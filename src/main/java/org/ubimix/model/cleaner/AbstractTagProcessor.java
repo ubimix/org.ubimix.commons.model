@@ -5,7 +5,7 @@ import java.util.Map;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.xml.XmlElement;
 
-public abstract class AbstractTagListProcessor implements ITagListProcessor {
+public abstract class AbstractTagProcessor implements ITagListProcessor {
 
     protected ITagListProcessor fParentProcessor;
 

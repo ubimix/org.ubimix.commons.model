@@ -11,7 +11,7 @@ import org.ubimix.model.xml.XmlNode;
 /**
  * @author kotelnikov
  */
-public class SkipNodeProcessor extends AbstractTagListProcessor {
+public class SkipNodeProcessor extends AbstractTagProcessor {
 
     /**
      * 

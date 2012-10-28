@@ -15,7 +15,7 @@ import org.ubimix.model.xml.XmlText;
 /**
  * @author kotelnikov
  */
-public class HtmlListNodeProcessor extends AbstractTagListProcessor {
+public class HtmlListNodeProcessor extends AbstractTagProcessor {
 
     /**
      * 
