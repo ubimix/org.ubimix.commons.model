@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,10 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ubimix.model.path.INodeProvider;
-import org.ubimix.model.path.INodeSelector;
-import org.ubimix.model.path.IPathSelector;
-import org.ubimix.model.path.PathProcessor;
+import org.ubimix.model.selector.INodeProvider;
+import org.ubimix.model.selector.INodeSelector;
+import org.ubimix.model.selector.IPathSelector;
+import org.ubimix.model.selector.PathProcessor;
 
 /**
  * @author kotelnikov

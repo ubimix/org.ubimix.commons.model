@@ -1,9 +1,9 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
-import org.ubimix.model.path.INodeSelector;
+import org.ubimix.model.selector.INodeSelector;
 
 /**
  * Selectors of this type are used to skip the current node and continue to make

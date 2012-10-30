@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
 /**
  * @author kotelnikov

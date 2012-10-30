@@ -6,11 +6,11 @@ package org.ubimix.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ubimix.model.path.INodeSelector;
-import org.ubimix.model.path.IPathSelector;
-import org.ubimix.model.path.utils.MapNodeSelector;
-import org.ubimix.model.path.utils.PathSelector;
-import org.ubimix.model.path.utils.SkipSelector;
+import org.ubimix.model.selector.INodeSelector;
+import org.ubimix.model.selector.IPathSelector;
+import org.ubimix.model.selector.utils.MapNodeSelector;
+import org.ubimix.model.selector.utils.PathSelector;
+import org.ubimix.model.selector.utils.SkipSelector;
 
 /**
  * @author kotelnikov

@@ -1,11 +1,11 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
 import java.util.List;
 
-import org.ubimix.model.path.INodeSelector;
+import org.ubimix.model.selector.INodeSelector;
 
 /**
  * @author kotelnikov
@@ -37,7 +37,7 @@ public class ANDSelector extends CompositeSelector {
     }
 
     /**
-     * @see org.ubimix.model.path.utils.CompositeSelector#getStopResult()
+     * @see org.ubimix.model.selector.utils.CompositeSelector#getStopResult()
      */
     @Override
     protected Boolean getStopResult() {
@@ -45,8 +45,8 @@ public class ANDSelector extends CompositeSelector {
     }
 
     /**
-     * @see org.ubimix.model.path.utils.CompositeSelector#process(org.ubimix.model.path.INodeSelector.Boolean,
-     *      org.ubimix.model.path.INodeSelector.Boolean)
+     * @see org.ubimix.model.selector.utils.CompositeSelector#process(org.ubimix.model.selector.INodeSelector.Boolean,
+     *      org.ubimix.model.selector.INodeSelector.Boolean)
      */
     @Override
     protected Boolean process(Boolean a, Boolean b) {

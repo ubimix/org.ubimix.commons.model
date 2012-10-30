@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.ubimix.model.path.INodeProvider;
-import org.ubimix.model.path.IPathSelector;
-import org.ubimix.model.path.utils.CssPathSelectorBuilder;
+import org.ubimix.model.selector.INodeProvider;
+import org.ubimix.model.selector.IPathSelector;
+import org.ubimix.model.selector.utils.CssPathSelectorBuilder;
 
 public class CssSelectProcessorTest extends AbstractPathProcessorTest {
 

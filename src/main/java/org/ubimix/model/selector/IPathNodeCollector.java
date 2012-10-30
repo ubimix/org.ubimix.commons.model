@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model.path;
+package org.ubimix.model.selector;
 
 public interface IPathNodeCollector {
     boolean setResult(Object node);

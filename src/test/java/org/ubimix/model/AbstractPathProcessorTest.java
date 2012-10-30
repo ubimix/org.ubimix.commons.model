@@ -8,11 +8,11 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.path.INodeProvider;
-import org.ubimix.model.path.IPathNodeCollector;
-import org.ubimix.model.path.IPathSelector;
-import org.ubimix.model.path.PathProcessor;
-import org.ubimix.model.path.utils.TreeNodeProvider;
+import org.ubimix.model.selector.INodeProvider;
+import org.ubimix.model.selector.IPathNodeCollector;
+import org.ubimix.model.selector.IPathSelector;
+import org.ubimix.model.selector.PathProcessor;
+import org.ubimix.model.selector.utils.TreeNodeProvider;
 import org.ubimix.model.xml.XmlElement;
 
 /**

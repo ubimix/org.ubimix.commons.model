@@ -1,14 +1,14 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.ubimix.model.path.INodeSelector;
-import org.ubimix.model.path.IPathSelector;
+import org.ubimix.model.selector.INodeSelector;
+import org.ubimix.model.selector.IPathSelector;
 
 /**
  * @author kotelnikov

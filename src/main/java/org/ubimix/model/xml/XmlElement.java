@@ -22,11 +22,11 @@ import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
-import org.ubimix.model.path.IPathNodeCollector;
-import org.ubimix.model.path.IPathSelector;
-import org.ubimix.model.path.PathProcessor;
-import org.ubimix.model.path.utils.CssPathSelectorBuilder;
-import org.ubimix.model.path.utils.TreeNodeProvider;
+import org.ubimix.model.selector.IPathNodeCollector;
+import org.ubimix.model.selector.IPathSelector;
+import org.ubimix.model.selector.PathProcessor;
+import org.ubimix.model.selector.utils.CssPathSelectorBuilder;
+import org.ubimix.model.selector.utils.TreeNodeProvider;
 
 /**
  * @author kotelnikov

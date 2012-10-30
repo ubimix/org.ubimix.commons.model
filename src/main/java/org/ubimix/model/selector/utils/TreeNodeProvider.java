@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
 import java.util.Iterator;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.List;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
-import org.ubimix.model.path.INodeProvider;
+import org.ubimix.model.selector.INodeProvider;
 
 /**
  * @author kotelnikov
@@ -28,7 +28,7 @@ public abstract class TreeNodeProvider implements INodeProvider {
     protected abstract IValueFactory<?> getChildNodeFactory(IHasValueMap element);
 
     /**
-     * @see org.ubimix.model.path.INodeProvider
+     * @see org.ubimix.model.selector.INodeProvider
      *      <T>#getChildren(java.lang.Object)
      */
     @Override

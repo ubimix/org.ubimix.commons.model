@@ -1,14 +1,14 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
 import org.ubimix.commons.parser.CharStream;
 import org.ubimix.commons.parser.ICharStream;
 import org.ubimix.commons.parser.css.CssSelectorListener;
 import org.ubimix.commons.parser.css.CssSelectorParser;
 import org.ubimix.commons.parser.css.ICssSelectorParser;
-import org.ubimix.model.path.IPathSelector;
+import org.ubimix.model.selector.IPathSelector;
 
 /**
  * @author kotelnikov

@@ -7,7 +7,7 @@ import java.util.Map;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
-import org.ubimix.model.path.PathProcessor;
+import org.ubimix.model.selector.PathProcessor;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;

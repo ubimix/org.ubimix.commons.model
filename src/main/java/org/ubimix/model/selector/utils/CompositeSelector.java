@@ -1,12 +1,12 @@
 /**
  * 
  */
-package org.ubimix.model.path.utils;
+package org.ubimix.model.selector.utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ubimix.model.path.INodeSelector;
+import org.ubimix.model.selector.INodeSelector;
 
 /**
  * @author kotelnikov
@@ -32,7 +32,7 @@ public abstract class CompositeSelector implements INodeSelector {
     }
 
     /**
-     * @see org.ubimix.model.path.INodeSelector#accept(java.lang.Object)
+     * @see org.ubimix.model.selector.INodeSelector#accept(java.lang.Object)
      */
     @Override
     public Boolean accept(Object node) {
