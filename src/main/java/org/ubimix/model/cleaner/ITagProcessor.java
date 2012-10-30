@@ -8,11 +8,11 @@ import org.ubimix.model.xml.XmlNode;
 /**
  * @author kotelnikov
  */
-public interface ITagListProcessor {
+public interface ITagProcessor {
 
-    ITagListProcessor getParentProcessor();
+    ITagProcessor getParentProcessor();
 
     List<XmlNode> handle(XmlElement element, boolean keepSpaces);
 
-    void setParent(ITagListProcessor parentProcessor);
+    void setParent(ITagProcessor parentProcessor);
 }

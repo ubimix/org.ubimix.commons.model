@@ -5,22 +5,22 @@ import java.util.Map;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.xml.XmlElement;
 
-public abstract class AbstractTagProcessor implements ITagListProcessor {
+public abstract class AbstractTagProcessor implements ITagProcessor {
 
-    protected ITagListProcessor fParentProcessor;
+    protected ITagProcessor fParentProcessor;
 
     protected String getHtmlName(XmlElement e) {
         return e.getName().toLowerCase();
     }
 
     @Override
-    public ITagListProcessor getParentProcessor() {
+    public ITagProcessor getParentProcessor() {
         return fParentProcessor;
     }
 
-    public ITagListProcessor getRootProcessor() {
-        ITagListProcessor processor = this;
-        ITagListProcessor parent = processor.getParentProcessor();
+    public ITagProcessor getRootProcessor() {
+        ITagProcessor processor = this;
+        ITagProcessor parent = processor.getParentProcessor();
         while (parent != null) {
             processor = parent;
             parent = processor.getParentProcessor();
@@ -70,7 +70,7 @@ public abstract class AbstractTagProcessor implements ITagListProcessor {
     }
 
     @Override
-    public void setParent(ITagListProcessor parentProcessor) {
+    public void setParent(ITagProcessor parentProcessor) {
         fParentProcessor = parentProcessor;
     }
 }

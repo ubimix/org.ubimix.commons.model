@@ -40,7 +40,7 @@ public class InlineNodesBurnerTest extends TestCase {
     }
 
     private void testHandler(
-        ITagListProcessor processor,
+        ITagProcessor processor,
         boolean keepSpaces,
         List<XmlNode> list,
         String... controls) {

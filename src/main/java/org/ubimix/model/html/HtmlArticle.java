@@ -10,6 +10,7 @@ import org.ubimix.model.IValueFactory;
 import org.ubimix.model.path.PathProcessor;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.XmlText;
 
 /**
  * @author kotelnikov
@@ -52,8 +53,12 @@ public class HtmlArticle extends XmlElement {
 
     public HtmlArticle addArticle() {
         HtmlArticle article = new HtmlArticle(this);
-        this.addChild(article);
+        addArticle(article);
         return article;
+    }
+
+    public void addArticle(HtmlArticle article) {
+        this.addChild(article);
     }
 
     public List<HtmlArticle> getArticles() {
@@ -66,6 +71,14 @@ public class HtmlArticle extends XmlElement {
 
     public List<XmlNode> getContent() {
         return getSection().getChildren();
+    }
+
+    public String getContentAsHtml() {
+        return getSerializedContent(true);
+    }
+
+    public String getContentAsText() {
+        return getSerializedContent(false);
     }
 
     protected XmlElement getOrCreate(XmlElement e, String childName) {
@@ -99,6 +112,25 @@ public class HtmlArticle extends XmlElement {
         return getOrCreate(this, HtmlTagDictionary.SECTION);
     }
 
+    private String getSerializedContent(boolean html) {
+        StringBuilder buf = new StringBuilder();
+        for (XmlNode node : getSection()) {
+            String str;
+            if (node instanceof XmlElement) {
+                XmlElement e = (XmlElement) node;
+                if (html) {
+                    str = e.toString();
+                } else {
+                    str = e.toText();
+                }
+            } else {
+                str = node.toString();
+            }
+            buf.append(str);
+        }
+        return buf.toString();
+    }
+
     public String getTitle() {
         XmlElement title = getTitleElement();
         return title.toText();
@@ -107,6 +139,11 @@ public class HtmlArticle extends XmlElement {
     public XmlElement getTitleElement() {
         XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
         return getOrCreate(hgroup, HtmlTagDictionary.H1);
+    }
+
+    public void setTitle(String title) {
+        XmlElement e = getTitleElement();
+        e.setChildren(new XmlText(title));
     }
 
 }

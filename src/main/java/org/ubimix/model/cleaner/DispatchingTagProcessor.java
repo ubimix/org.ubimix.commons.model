@@ -9,12 +9,12 @@ import org.ubimix.model.xml.XmlNode;
 
 public class DispatchingTagProcessor extends AbstractTagProcessor {
 
-    private ITagListProcessor fDefaultProcessor;
+    private ITagProcessor fDefaultProcessor;
 
-    private Map<String, ITagListProcessor> fProcessors = new HashMap<String, ITagListProcessor>();
+    private Map<String, ITagProcessor> fProcessors = new HashMap<String, ITagProcessor>();
 
-    public ITagListProcessor getProcessor(String elementName) {
-        ITagListProcessor result = fProcessors.get(elementName);
+    public ITagProcessor getProcessor(String elementName) {
+        ITagProcessor result = fProcessors.get(elementName);
         if (result == null) {
             result = fDefaultProcessor;
         }
@@ -24,13 +24,13 @@ public class DispatchingTagProcessor extends AbstractTagProcessor {
     @Override
     public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
         String name = getHtmlName(element);
-        ITagListProcessor processor = getProcessor(name);
+        ITagProcessor processor = getProcessor(name);
         List<XmlNode> list = processor.handle(element, keepSpaces);
         return list;
     }
 
     public DispatchingTagProcessor register(
-        ITagListProcessor processor,
+        ITagProcessor processor,
         String... tags) {
         for (String tag : tags) {
             fProcessors.put(tag, processor);
@@ -41,14 +41,14 @@ public class DispatchingTagProcessor extends AbstractTagProcessor {
 
     public DispatchingTagProcessor register(
         String tag,
-        ITagListProcessor processor) {
+        ITagProcessor processor) {
         fProcessors.put(tag, processor);
         processor.setParent(this);
         return this;
     }
 
     public DispatchingTagProcessor setDefaultProcessor(
-        ITagListProcessor defaultProcessor) {
+        ITagProcessor defaultProcessor) {
         defaultProcessor.setParent(this);
         fDefaultProcessor = defaultProcessor;
         return this;

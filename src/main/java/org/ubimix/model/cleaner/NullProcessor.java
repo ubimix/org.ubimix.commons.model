@@ -14,7 +14,7 @@ import org.ubimix.model.xml.XmlNode;
  */
 public class NullProcessor extends AbstractTagProcessor
     implements
-    ITagListProcessor {
+    ITagProcessor {
 
     /**
      * 
@@ -23,7 +23,7 @@ public class NullProcessor extends AbstractTagProcessor
     }
 
     /**
-     * @see org.ubimix.model.cleaner.ITagListProcessor#handle(org.ubimix.model.xml.XmlElement,
+     * @see org.ubimix.model.cleaner.ITagProcessor#handle(org.ubimix.model.xml.XmlElement,
      *      boolean)
      */
     @Override

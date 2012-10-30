@@ -4,6 +4,7 @@
 package org.ubimix.model.xml;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -635,9 +636,14 @@ public class XmlElement extends XmlNode
         return this;
     }
 
-    public void setChildren(Iterable<XmlNode> children) {
+    public XmlElement setChildren(Iterable<XmlNode> children) {
         removeChildren();
         addChildren(children);
+        return this;
+    }
+
+    public XmlElement setChildren(XmlNode... children) {
+        return setChildren(Arrays.asList(children));
     }
 
     public XmlElement setName(String tagName) {

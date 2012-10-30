@@ -19,7 +19,7 @@ public class GenericTagProcessor extends AbstractTagProcessor {
         for (XmlNode node : children) {
             if (node instanceof XmlElement) {
                 XmlElement e = (XmlElement) node;
-                ITagListProcessor rootProcessor = getRootProcessor();
+                ITagProcessor rootProcessor = getRootProcessor();
                 List<XmlNode> list = rootProcessor.handle(e, keepSpaces);
                 result.addAll(list);
             } else {

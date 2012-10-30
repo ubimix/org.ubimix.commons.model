@@ -180,9 +180,13 @@ public class HtmlArticleBuilder {
 
     public HtmlArticle visit(XmlElement e) {
         HtmlArticle result = new HtmlArticle();
-        fSectionStack.push(result);
-        doVisit(e);
-        fTreeBuilder.close();
+        visit(e, result);
         return result;
+    }
+
+    public void visit(XmlElement element, HtmlArticle article) {
+        fSectionStack.push(article);
+        doVisit(element);
+        fTreeBuilder.close();
     }
 }

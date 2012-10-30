@@ -12,9 +12,9 @@ import org.ubimix.model.xml.XmlNode;
  */
 public class CompositeTagProcessor extends AbstractTagProcessor {
 
-    private List<ITagListProcessor> fProcessors = new ArrayList<ITagListProcessor>();
+    private List<ITagProcessor> fProcessors = new ArrayList<ITagProcessor>();
 
-    public CompositeTagProcessor addProcessor(ITagListProcessor processor) {
+    public CompositeTagProcessor addProcessor(ITagProcessor processor) {
         fProcessors.add(processor);
         processor.setParent(this);
         return this;
@@ -23,7 +23,7 @@ public class CompositeTagProcessor extends AbstractTagProcessor {
     @Override
     public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
         List<XmlNode> list = Arrays.<XmlNode> asList(element);
-        for (ITagListProcessor processor : fProcessors) {
+        for (ITagProcessor processor : fProcessors) {
             if (list.isEmpty()) {
                 break;
             }
@@ -42,7 +42,7 @@ public class CompositeTagProcessor extends AbstractTagProcessor {
         return list;
     }
 
-    public CompositeTagProcessor removeProcessor(ITagListProcessor processor) {
+    public CompositeTagProcessor removeProcessor(ITagProcessor processor) {
         fProcessors.remove(processor);
         return this;
     }

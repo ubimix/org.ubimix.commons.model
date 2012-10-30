@@ -24,7 +24,7 @@ public class HtmlListNodeProcessor extends AbstractTagProcessor {
     }
 
     /**
-     * @see org.ubimix.model.cleaner.ITagListProcessor#handle(org.ubimix.model.xml.XmlElement,
+     * @see org.ubimix.model.cleaner.ITagProcessor#handle(org.ubimix.model.xml.XmlElement,
      *      boolean)
      */
     @Override
