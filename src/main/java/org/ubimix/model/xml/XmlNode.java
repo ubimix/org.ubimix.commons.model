@@ -80,6 +80,44 @@ public abstract class XmlNode {
         }
     }
 
+    public static <T extends XmlNode> String toString(
+        boolean sortAttributes,
+        T... nodes) {
+        XmlSerializer listener = new XmlSerializer();
+        listener.setSortAttributes(sortAttributes);
+        for (XmlNode node : nodes) {
+            node.accept(listener);
+        }
+        return listener.toString();
+    }
+
+    public static <T extends XmlNode> String toString(
+        Iterable<T> nodes,
+        boolean sortAttributes) {
+        XmlSerializer listener = new XmlSerializer();
+        listener.setSortAttributes(sortAttributes);
+        for (XmlNode node : nodes) {
+            node.accept(listener);
+        }
+        return listener.toString();
+    }
+
+    public static <T extends XmlNode> String toText(Iterable<T> nodes) {
+        TextSerializer listener = new TextSerializer();
+        for (XmlNode node : nodes) {
+            node.accept(listener);
+        }
+        return listener.toString();
+    }
+
+    public static <T extends XmlNode> String toText(T... nodes) {
+        TextSerializer listener = new TextSerializer();
+        for (XmlNode node : nodes) {
+            node.accept(listener);
+        }
+        return listener.toString();
+    }
+
     private Object fObject;
 
     private XmlElement fParent;

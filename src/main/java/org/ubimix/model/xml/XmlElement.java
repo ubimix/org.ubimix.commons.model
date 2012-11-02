@@ -5,6 +5,7 @@ package org.ubimix.model.xml;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -18,7 +19,6 @@ import org.ubimix.commons.parser.xml.EntityFactory;
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XMLTokenizer;
 import org.ubimix.commons.parser.xml.XmlParser;
-import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
@@ -328,9 +328,28 @@ public class XmlElement extends XmlNode
             XmlElement e = (XmlElement) node;
             if (tagName.equals(e.getName())) {
                 T resultNode = factory.newValue(e);
-                if (resultNode != null) {
-                    result.add(resultNode);
-                }
+                result.add(resultNode);
+            }
+        }
+        return result;
+    }
+
+    public List<XmlElement> getChildrenByNames(Collection<String> tagNames) {
+        return getChildrenByNames(tagNames, XmlElement.FACTORY);
+    }
+
+    public <T extends XmlElement> List<T> getChildrenByNames(
+        Collection<String> tagNames,
+        IValueFactory<T> factory) {
+        List<T> result = new ArrayList<T>();
+        for (XmlNode node : this) {
+            if (!(node instanceof XmlElement)) {
+                continue;
+            }
+            XmlElement e = (XmlElement) node;
+            if (tagNames.contains(e.getName())) {
+                T resultNode = factory.newValue(e);
+                result.add(resultNode);
             }
         }
         return result;
@@ -683,12 +702,7 @@ public class XmlElement extends XmlNode
         if (includeElement) {
             return super.toString(sortAttributes);
         } else {
-            XmlSerializer listener = new XmlSerializer();
-            listener.setSortAttributes(sortAttributes);
-            for (XmlNode node : this) {
-                node.accept(listener);
-            }
-            return listener.toString();
+            return toString(this, sortAttributes);
         }
     }
 

@@ -4,6 +4,8 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 
 import org.ubimix.model.html.HtmlArticleBuilderTest;
+import org.ubimix.model.html.HtmlDocumentTest;
+import org.ubimix.model.html.StructuredTableTest;
 
 public class AllTests {
 
@@ -19,6 +21,9 @@ public class AllTests {
         suite.addTestSuite(SimpleStringMatcherTest.class);
         suite.addTestSuite(XmlTest.class);
         suite.addTestSuite(HtmlArticleBuilderTest.class);
+        suite.addTestSuite(HtmlDocumentTest.class);
+        suite.addTestSuite(HtmlArticleBuilderTest.class);
+        suite.addTestSuite(StructuredTableTest.class);
         // $JUnit-END$
         return suite;
     }
