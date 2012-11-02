@@ -38,6 +38,16 @@ public class ModelObject implements IHasValueMap {
 
     private static IJsonParser fJsonParser;
 
+    /**
+     * A "do-nothing" factory. It returns the original object.
+     */
+    public static final IValueFactory<Object> NULL_FACTORY = new IValueFactory<Object>() {
+        @Override
+        public Object newValue(Object object) {
+            return object;
+        }
+    };
+
     @SuppressWarnings("unchecked")
     protected static <T> T cast(Object value) {
         return (T) value;
@@ -102,6 +112,17 @@ public class ModelObject implements IHasValueMap {
         setInnerMap(obj);
     }
 
+    public ModelObject addValue(String name, Object value) {
+        value = importValue(value);
+        if (fMap.containsKey(name)) {
+            List<Object> list = getInnerList(name, true, true);
+            list.add(value);
+        } else {
+            fMap.put(name, value);
+        }
+        return this;
+    }
+
     /**
      * Creates an fills values from the internal array in the given collection.
      * 
@@ -124,6 +145,41 @@ public class ModelObject implements IHasValueMap {
             }
         }
         return collection;
+    }
+
+    /**
+     * Returns list representation of this object. It returns the value of the
+     * "~" property.
+     * 
+     * @return an array representation of this object
+     */
+    public List<?> asList() {
+        return asList(NULL_FACTORY);
+    }
+
+    /**
+     * Returns list representation of this object. It returns the value of the
+     * "~" property.
+     * 
+     * @return an array representation of this object
+     */
+    @SuppressWarnings("unchecked")
+    public <T> List<T> asList(IValueFactory<T> factory) {
+        List<T> result = new ArrayList<T>();
+        String key = "~";
+        if (fMap.containsKey(key)) {
+            Object object = fMap.get(key);
+            if (object instanceof Collection<?>) {
+                for (Object o : (Collection<Object>) object) {
+                    T value = factory.newValue(o);
+                    result.add(value);
+                }
+            } else {
+                T value = factory.newValue(object);
+                result.add(value);
+            }
+        }
+        return result;
     }
 
     protected <T extends ModelObject> T cast() {
@@ -181,12 +237,22 @@ public class ModelObject implements IHasValueMap {
     }
 
     protected List<Object> getInnerList(String name, boolean create) {
+        return getInnerList(name, create, true);
+    }
+
+    protected List<Object> getInnerList(
+        String name,
+        boolean create,
+        boolean wrap) {
         List<Object> result = null;
         Object value = fMap.get(name);
         if (value instanceof List<?>) {
             result = cast(value);
         } else if (create) {
             result = newList();
+            if (wrap && fMap.containsKey(name)) {
+                result.add(value);
+            }
             fMap.put(name, result);
         }
         return result;
@@ -246,6 +312,11 @@ public class ModelObject implements IHasValueMap {
         return result;
     }
 
+    /**
+     * @param name the name of the property
+     * @return a list of model objects corresponding to the specified property
+     *         key
+     */
     public List<ModelObject> getList(String name) {
         return getList(name, FACTORY);
     }
@@ -298,6 +369,14 @@ public class ModelObject implements IHasValueMap {
         return getObject(name, false);
     }
 
+    /**
+     * Returns an object corresponding to the specified property key.
+     * 
+     * @param name the property key
+     * @param create if this flag is <code>true</code> but there is no object
+     *        for the specified key then a new object is created
+     * @return an object corresponding to the specified key
+     */
     public ModelObject getObject(String name, boolean create) {
         Object value = fMap.get(name);
         Map<Object, Object> map = null;
@@ -358,6 +437,9 @@ public class ModelObject implements IHasValueMap {
         return result;
     }
 
+    /**
+     * @return the "type" of this object stored in the "!" property
+     */
     public String getType() {
         return getString("!");
     }
@@ -431,19 +513,30 @@ public class ModelObject implements IHasValueMap {
         return this;
     }
 
-    public <T extends ModelObject> T setInnerMap(Object obj) {
+    /**
+     * @param object
+     * @return
+     */
+    public <T extends ModelObject> T setInnerMap(Object object) {
         Map<Object, Object> map = null;
-        obj = importValue(obj);
-        if (obj instanceof Map<?, ?>) {
-            map = cast(obj);
-        } else if (obj instanceof List<?>) {
+        object = importValue(object);
+        if ((object instanceof Boolean)
+            || (object instanceof Integer)
+            || (object instanceof Long)
+            || (object instanceof Double)
+            || (object instanceof String)) {
+            object = Arrays.asList(object);
+        }
+        if (object instanceof Map<?, ?>) {
+            map = cast(object);
+        } else if (object instanceof List<?>) {
             map = newMap();
-            map.put("~", obj);
-        } else if (obj != null) {
-            String str = obj.toString();
-            Object object = parseToInnerObject(str);
-            if (object instanceof Map<?, ?>) {
-                map = cast(object);
+            map.put("~", object);
+        } else if (object != null) {
+            String str = object.toString();
+            Object innerObject = parseToInnerObject(str);
+            if (innerObject instanceof Map<?, ?>) {
+                map = cast(innerObject);
             }
         }
         if (map == null) {
@@ -451,6 +544,22 @@ public class ModelObject implements IHasValueMap {
         }
         fMap = map;
         return cast(this);
+    }
+
+    /**
+     * Interprets the given object array as a sequence of key/value pairs to set
+     * in this object.
+     * 
+     * @param values key/value pairs
+     * @return reference to this object
+     */
+    public ModelObject setKeyValuePairs(Object... values) {
+        for (int i = 0; i < values.length;) {
+            String key = values[i++] + "";
+            Object value = i < values.length ? values[i++] : null;
+            setValue(key, value);
+        }
+        return this;
     }
 
     public ModelObject setType(String type) {

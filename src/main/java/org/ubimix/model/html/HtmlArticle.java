@@ -7,6 +7,7 @@ import java.util.Map;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
+import org.ubimix.model.ModelObject;
 import org.ubimix.model.selector.PathProcessor;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
@@ -108,6 +109,12 @@ public class HtmlArticle extends XmlElement {
         return processor;
     }
 
+    public ModelObject getProperties() {
+        XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
+        XmlElement e = hgroup.select("properties");
+        return e != null ? ModelObject.FACTORY.newValue(e) : new ModelObject();
+    }
+
     public XmlElement getSection() {
         return getOrCreate(this, HtmlTagDictionary.SECTION);
     }
@@ -139,6 +146,19 @@ public class HtmlArticle extends XmlElement {
     public XmlElement getTitleElement() {
         XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
         return getOrCreate(hgroup, HtmlTagDictionary.H1);
+    }
+
+    public void setContent(XmlElement contentXml) {
+        XmlElement section = getSection();
+        section.removeChildren();
+        section.addChild(contentXml);
+    }
+
+    public void setProperties(ModelObject properties) {
+        XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
+        XmlElement e = new XmlElement(properties);
+        e.setName("properties");
+        hgroup.addChild(e);
     }
 
     public void setTitle(String title) {

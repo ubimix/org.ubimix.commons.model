@@ -436,7 +436,7 @@ public class HtmlArticleBuilderTest extends TestCase {
         throws IOException {
         HtmlArticleBuilder builder = new HtmlArticleBuilder();
         XmlElement w = HtmlDocument.parseFragment(xml);
-        HtmlArticle article = builder.visit(w);
+        HtmlArticle article = builder.buildArticle(w);
         ModelObject o = toModelObject(article);
         ModelObject controlJson = ModelObject.parse(control);
         assertEquals(controlJson + "", o + "");

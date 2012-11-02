@@ -1,7 +1,9 @@
 package org.ubimix.model.html;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Level;
@@ -10,6 +12,7 @@ import java.util.logging.Logger;
 import org.ubimix.commons.graph.TreeBuilder;
 import org.ubimix.commons.graph.WalkerListener;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
+import org.ubimix.model.cleaner.TagBurner;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 
@@ -80,6 +83,25 @@ public class HtmlArticleBuilder {
     private final static Logger log = Logger.getLogger(HtmlArticleBuilder.class
         .getName());
 
+    public static void burnContent(TagBurner burner, HtmlArticle article) {
+        XmlElement section = article.getSection();
+        List<XmlNode> newContent = new ArrayList<XmlNode>();
+        for (XmlNode node : section) {
+            if (node instanceof XmlElement) {
+                XmlElement e = (XmlElement) node;
+                List<XmlNode> list = burner.handle(e, false);
+                newContent.addAll(list);
+            } else {
+                newContent.add(node);
+            }
+        }
+        section.setChildren(newContent);
+
+        for (HtmlArticle a : article.getArticles()) {
+            burnContent(burner, a);
+        }
+    }
+
     private static String getHTMLName(XmlElement e) {
         return e.getName();
     }
@@ -125,6 +147,30 @@ public class HtmlArticleBuilder {
         T clone = (T) child.newCopy(false);
         element.addChild(clone);
         return clone;
+    }
+
+    public HtmlArticle buildArticle(XmlElement e) {
+        HtmlArticle result = new HtmlArticle();
+        buildArticle(e, result);
+        return result;
+    }
+
+    public HtmlArticle buildArticle(XmlElement element, HtmlArticle article) {
+        fSectionStack.push(article);
+        doVisit(element);
+        fTreeBuilder.close();
+        return article;
+    }
+
+    public HtmlArticle buildArticle(
+        XmlElement element,
+        HtmlArticle article,
+        TagBurner burner) {
+        buildArticle(element, article);
+        if (burner != null) {
+            burnContent(burner, article);
+        }
+        return article;
     }
 
     private void doVisit(XmlElement e) {
@@ -176,17 +222,5 @@ public class HtmlArticleBuilder {
             || "h5".equals(name)
             || "h6".equals(name);
         return isTitle;
-    }
-
-    public HtmlArticle visit(XmlElement e) {
-        HtmlArticle result = new HtmlArticle();
-        visit(e, result);
-        return result;
-    }
-
-    public void visit(XmlElement element, HtmlArticle article) {
-        fSectionStack.push(article);
-        doVisit(element);
-        fTreeBuilder.close();
     }
 }

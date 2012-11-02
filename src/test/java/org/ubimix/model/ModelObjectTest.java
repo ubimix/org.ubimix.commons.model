@@ -27,7 +27,7 @@ import junit.framework.TestCase;
 public class ModelObjectTest extends TestCase {
 
     public static class MyList extends ModelObject {
-        public List<MyValue> getList() {
+        public List<MyValue> asList() {
             return getList("list", MyValue.FACTORY);
         }
 
@@ -112,7 +112,7 @@ public class ModelObjectTest extends TestCase {
         list.add(new MyValue(i++));
         MyList obj = new MyList().setTitle("This is a title").setList(list);
         assertEquals("This is a title", obj.getTitle());
-        assertEquals(list, obj.getList());
+        assertEquals(list, obj.asList());
         testSerializationDeserialization(obj);
 
         ModelObject o = ModelObject.parse("{"
@@ -134,7 +134,7 @@ public class ModelObjectTest extends TestCase {
             + "    }\n"
             + "  ]\n"
             + "}");
-        assertEquals(o.getList("list"), obj.getList());
+        assertEquals(o.getList("list"), obj.asList());
 
         assertEquals(ModelObject.parse(o.toString()).toString(), o.toString());
         assertEquals(""
