@@ -44,6 +44,26 @@ public class StructuredTableTest extends TestCase {
         testTableColumns(table, "Property", "Value");
         testTableColumnValues(table, "Property", "firstName", "lastName");
         testTableColumnValues(table, "Value", "John", "Smith");
+        assertEquals("John", table
+            .getCell("Property", "firstName", "Value")
+            .getAsText());
+        assertEquals("Smith", table
+            .getCell("Property", "lastName", "Value")
+            .getAsText());
+
+        assertEquals("firstName", table
+            .getCell("Property", "firstName", 0)
+            .getAsText());
+        assertEquals("John", table
+            .getCell("Property", "firstName", 1)
+            .getAsText());
+        assertEquals("lastName", table
+            .getCell("Property", "lastName", 0)
+            .getAsText());
+        assertEquals("Smith", table
+            .getCell("Property", "lastName", 1)
+            .getAsText());
+
     }
 
     private void testTableColumns(StructuredTable table, String... columnNames) {

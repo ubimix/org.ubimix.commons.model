@@ -45,7 +45,7 @@ public class StructuredTable extends StructuredNode {
                     XmlElement e = firstLine.get(i);
                     String name = e.getName();
                     if (HtmlTagDictionary.TH.equals(name)) {
-                        String str = new Value(e).getAsText().trim();
+                        String str = newValue(e).getAsText().trim();
                         fColumnNames.add(str);
                         str = str.toLowerCase();
                         fColumnNameToIndex.put(str, i);
@@ -58,12 +58,32 @@ public class StructuredTable extends StructuredNode {
 
     public Value getCell(int row, int col) {
         XmlElement e = getCellElement(row, col);
-        return newCell(e);
+        return newValue(e);
+    }
+
+    public Value getCell(int keyColumn, String key, int valueColumn) {
+        int row = getRowIndex(keyColumn, key);
+        return getCell(row, valueColumn);
     }
 
     public Value getCell(String columnName, int row) {
         int col = getColumnIndex(columnName);
         return getCell(row, col);
+    }
+
+    public Value getCell(String keyColumnName, String key, int valueColumn) {
+        int keyColumn = getColumnIndex(keyColumnName);
+        return getCell(keyColumn, key, valueColumn);
+    }
+
+    public Value getCell(
+        String keyColumnName,
+        String key,
+        String valueColumnName) {
+        int keyColumn = getColumnIndex(keyColumnName);
+        int valueColumn = getColumnIndex(valueColumnName);
+        Value value = getCell(keyColumn, key, valueColumn);
+        return value;
     }
 
     public XmlElement getCellElement(int row, int col) {
@@ -91,8 +111,7 @@ public class StructuredTable extends StructuredNode {
                 }
             }
             for (XmlElement row : rows) {
-                List<XmlElement> elements = row
-                    .getChildrenByNames(CELL_NAMES);
+                List<XmlElement> elements = row.getChildrenByNames(CELL_NAMES);
                 fCells.add(elements);
             }
         }
@@ -151,12 +170,62 @@ public class StructuredTable extends StructuredNode {
         return cells.size();
     }
 
+    public List<Value> getRow(int row) {
+        List<Value> result = new ArrayList<Value>();
+        List<XmlElement> elements = getRowElements(row);
+        if (elements != null) {
+            for (XmlElement e : elements) {
+                result.add(newValue(e));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @param columnName the name of the column
+     * @param columnValue the value of the cell in the specified column
+     * @return a row values which contains the specified value of the column
+     *         with the given name
+     */
+    public List<Value> getRow(String columnName, String columnValue) {
+        int column = getColumnIndex(columnName);
+        int row = getRowIndex(column, columnValue);
+        return getRow(row);
+    }
+
+    /**
+     * @param row the row number
+     * @return a list of all elements of the specified row
+     */
     public List<XmlElement> getRowElements(int row) {
         if (row < 0) {
             return null;
         }
         List<List<XmlElement>> cells = getCells();
         return row >= cells.size() ? null : cells.get(row);
+    }
+
+    /**
+     * @param column the column containing the specified value
+     * @param columnValue the value to seek
+     * @return the index of the row containing the specified value in the column
+     */
+    public int getRowIndex(int column, String columnValue) {
+        int result = -1;
+        if (column >= 0) {
+            List<List<XmlElement>> cells = getCells();
+            for (int row = 0; row < cells.size(); row++) {
+                List<XmlElement> line = cells.get(row);
+                XmlElement e = column < line.size() ? line.get(column) : null;
+                Value value = newValue(e);
+                String textValue = value.getAsText();
+                if (columnValue.equals(textValue)) {
+                    result = row;
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
     public int getWidth() {
@@ -173,7 +242,7 @@ public class StructuredTable extends StructuredNode {
         return fTableWidth;
     }
 
-    protected Value newCell(XmlElement e) {
+    protected Value newValue(XmlElement e) {
         return new Value(e);
     }
 }
