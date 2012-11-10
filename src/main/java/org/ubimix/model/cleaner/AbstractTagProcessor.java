@@ -28,6 +28,11 @@ public abstract class AbstractTagProcessor implements ITagProcessor {
         return processor;
     }
 
+    protected boolean hasId(XmlElement element) {
+        String id = element.getAttribute(HtmlTagDictionary.ATTR_ID);
+        return id != null;
+    }
+
     protected boolean isEmpty(String content) {
         content = reduceText(content, false);
         return "".equals(content) || " ".equals(content);

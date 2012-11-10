@@ -25,24 +25,38 @@ public class HtmlDivNodeProcessor extends AbstractTagProcessor {
     public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
         List<XmlNode> children = element.getChildren();
         int len = children.size();
-        List<XmlNode> result;
+        List<XmlNode> result = null;
         if (len == 0) {
-            result = children;
+            if (!hasId(element)) {
+                result = children;
+            }
         } else {
             boolean inlineOnlyNodes = inlineOnlyNodes(children);
             if (inlineOnlyNodes) {
                 element.setName(HtmlTagDictionary.P);
-                result = Arrays.<XmlNode> asList(element);
             } else {
                 len = children.size();
                 if (len == 1) {
-                    element = (XmlElement) children.get(0);
-                    result = Arrays.<XmlNode> asList(element);
-                } else {
+                    XmlElement child = (XmlElement) children.get(0);
+                    if (hasId(element)) {
+                        if (!hasId(child)) {
+                            // Transfert the ID from the parent to the child
+                            String id = element
+                                .getAttribute(HtmlTagDictionary.ATTR_ID);
+                            child.setAttribute(HtmlTagDictionary.ATTR_ID, id);
+                            result = Arrays.<XmlNode> asList(child);
+                        }
+                    } else {
+                        result = children;
+                    }
+                } else if (!hasId(element)) {
                     // element.setChildren(children);
                     result = children;
                 }
             }
+        }
+        if (result == null) {
+            result = Arrays.<XmlNode> asList(element);
         }
         return result;
     }

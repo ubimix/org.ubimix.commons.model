@@ -7,6 +7,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import org.ubimix.model.html.HtmlDocument;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 
@@ -20,6 +21,88 @@ public class TagBurnerTest extends TestCase {
      */
     public TagBurnerTest(String name) {
         super(name);
+    }
+
+    public void testHtmlLists() {
+        testHtmlTagBurner(
+            "<div><ul><ul><li> a <div> b </div> c </li></ul></ul></div>",
+            "<ul><li><p> a </p><p> b </p><p> c </p></li></ul>");
+        testHtmlTagBurner(
+            "<div><ul>before<ul><li> a <div> b </div> c </li></ul>after</ul></div>",
+            "<div>"
+                + "<p>before</p>"
+                + "<ul>"
+                + "<li>"
+                + "<p> a </p>"
+                + "<p> b </p>"
+                + "<p> c </p>"
+                + "</li>"
+                + "</ul>"
+                + "<p>after</p>"
+                + "</div>");
+        testHtmlTagBurner(
+            "<div><ul><p>before</p><li> a <div> b </div> c </li>after</ul></div>",
+            ""
+                + "<div>"
+                + "<p>before</p>"
+                + "<ul>"
+                + "<li>"
+                + "<p> a </p><p> b </p><p> c </p>"
+                + "</li>"
+                + "</ul>"
+                + "<p>after</p>"
+                + "</div>");
+        testHtmlTagBurner(
+            "<div><ul><p>before</p><li> a <div> b </div> c </li>after</ul></div>",
+            ""
+                + "<div>"
+                + "<p>before</p>"
+                + "<ul>"
+                + "<li><p> a </p><p> b </p><p> c </p></li>"
+                + "</ul>"
+                + "<p>after</p>"
+                + "</div>");
+        testHtmlTagBurner(
+            "<div><ul>before<li> a <div> b </div> c </li>after</ul></div>",
+            "<div><p>before</p><ul><li><p> a </p><p> b </p><p> c </p></li></ul><p>after</p></div>");
+
+    }
+
+    private void testHtmlTagBurner(String str, String control) {
+        TagBurner burner = new TagBurner();
+        XmlElement div = HtmlDocument.parseFragment(str);
+        List<XmlNode> l = burner.handle(div, false);
+        if (l.size() > 1) {
+            div = new XmlElement("div");
+            div.setChildren(l);
+            assertEquals(control, div.toString());
+        } else if (l.size() == 1) {
+            XmlNode e = l.get(0);
+            assertTrue(e instanceof XmlElement);
+            assertEquals(control, e.toString());
+        }
+    }
+
+    public void testIds() {
+        testTagBurner(
+            "<div><div id='x'> a <div> b </div> c </div></div>",
+            "<div id='x'><p> a </p><p> b </p><p> c </p></div>");
+        testTagBurner(
+            "<div><div id='x'> a </div><div> b </div> c </div></div>",
+            "<div><p id='x'> a </p><p> b </p><p> c </p></div>");
+        testTagBurner(
+            "<div><div id='x'><div id='y'><div id='z'> a </div></div></div><div> b </div> c </div></div>",
+            "<div><div id='x'><div id='y'><p id='z'> a </p></div></div><p> b </p><p> c </p></div>");
+        testTagBurner(
+            "<div><div id='x'><div><div id='z'> a </div></div></div><div> b </div> c </div></div>",
+            "<div><div id='x'><p id='z'> a </p></div><p> b </p><p> c </p></div>");
+
+        testTagBurner(
+            "<div><p id='1'>a<p>b</p><p>c</p></p></div>",
+            "<p id='1'><p>a</p><p>b</p><p>c</p></p>");
+        testHtmlTagBurner(
+            "<div><p id='1'>a<p>b</p><p>c</p></p></div>",
+            "<div><p id='1'>a</p><p>b</p><p>c</p></div>");
     }
 
     public void testLists() {
