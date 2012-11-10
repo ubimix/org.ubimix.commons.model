@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
+import org.ubimix.model.IValueFactory;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 
@@ -15,7 +16,46 @@ public class StructuredNode {
     /**
      * @author kotelnikov
      */
+    public static class StructuredNodeContainer extends StructuredNode {
+
+        private IValueFactory<? extends Value> fValueFactory;
+
+        public StructuredNodeContainer(
+            XmlElement element,
+            IValueFactory<? extends Value> factory) {
+            super(element);
+            fValueFactory = factory;
+        }
+
+        public IValueFactory<? extends Value> getValueFactory() {
+            return fValueFactory;
+        }
+
+        protected Value newValue(XmlElement e) {
+            Value value = fValueFactory.newValue(e);
+            value.setContainer(this);
+            return value;
+        }
+
+        public void setValueFactory(IValueFactory<? extends Value> valueFactory) {
+            fValueFactory = valueFactory;
+        }
+
+    }
+
+    /**
+     * @author kotelnikov
+     */
     public static class Value extends StructuredNode {
+
+        public static final IValueFactory<Value> FACTORY = new IValueFactory<Value>() {
+            @Override
+            public Value newValue(Object object) {
+                return new Value((XmlElement) object);
+            }
+        };
+
+        private StructuredNodeContainer fContainer;
 
         private boolean fTrim = true;
 
@@ -35,9 +75,11 @@ public class StructuredNode {
                 boolean include = includeText;
                 if (node instanceof XmlElement) {
                     XmlElement e = (XmlElement) node;
+                    if (isExcludedElement(e)) {
+                        continue;
+                    }
                     String name = e.getName();
-                    boolean inline = HtmlTagDictionary
-                        .isInlineElement(name);
+                    boolean inline = HtmlTagDictionary.isInlineElement(name);
                     include = inline
                         ? includeInlineElements
                         : includeBlockElements;
@@ -72,6 +114,10 @@ public class StructuredNode {
 
         public String getBlockElementsAsText() {
             return trim(XmlNode.toText(getBlockElements()));
+        }
+
+        public StructuredNodeContainer getContainer() {
+            return fContainer;
         }
 
         /**
@@ -131,6 +177,18 @@ public class StructuredNode {
             return element;
         }
 
+        @Override
+        protected boolean isExcludedElement(XmlElement e) {
+            if (fContainer != null) {
+                return fContainer.isExcludedElement(e);
+            }
+            return false;
+        }
+
+        public void setContainer(StructuredNodeContainer container) {
+            fContainer = container;
+        }
+
         public StructuredNode.Value setTrim(boolean trim) {
             fTrim = trim;
             return this;
@@ -146,6 +204,27 @@ public class StructuredNode {
             return text;
         }
 
+    }
+
+    protected static <T> T wrapFirstElement(
+        Iterable<XmlNode> list,
+        IValueFactory<T> factory,
+        String... acceptedNames) {
+        T result = null;
+        for (XmlNode node : list) {
+            if (node instanceof XmlElement) {
+                XmlElement e = (XmlElement) node;
+                String name = e.getName();
+                for (int i = 0; i < acceptedNames.length; i++) {
+                    String acceptedName = acceptedNames[i];
+                    if (acceptedName.equals(name)) {
+                        result = factory.newValue(e);
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     protected XmlElement fElement;
@@ -175,6 +254,10 @@ public class StructuredNode {
     @Override
     public int hashCode() {
         return fElement != null ? fElement.hashCode() : 0;
+    }
+
+    protected boolean isExcludedElement(XmlElement e) {
+        return false;
     }
 
     @Override

@@ -8,15 +8,45 @@ import java.util.Map;
 import java.util.Set;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
+import org.ubimix.model.IValueFactory;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlNode;
 
-public class StructuredTable extends StructuredNode {
+/**
+ * @author kotelnikov
+ */
+public class StructuredTable extends StructuredNode.StructuredNodeContainer {
 
     private static Set<String> CELL_NAMES = new HashSet<String>();
+
+    private static final IValueFactory<StructuredTable> FACTORY = new IValueFactory<StructuredTable>() {
+        @Override
+        public StructuredTable newValue(Object object) {
+            return new StructuredTable((XmlElement) object);
+        }
+    };
 
     static {
         CELL_NAMES.add(HtmlTagDictionary.TD);
         CELL_NAMES.add(HtmlTagDictionary.TH);
+    }
+
+    public static StructuredTable search(Iterable<XmlNode> list) {
+        StructuredTable table = wrapFirstElement(
+            list,
+            FACTORY,
+            HtmlTagDictionary.TABLE);
+        return table;
+    }
+
+    public static StructuredTable search(
+        Iterable<XmlNode> list,
+        IValueFactory<? extends Value> valueFactory) {
+        StructuredTable table = search(list);
+        if (table != null) {
+            table.setValueFactory(valueFactory);
+        }
+        return table;
     }
 
     private List<List<XmlElement>> fCells;
@@ -30,7 +60,13 @@ public class StructuredTable extends StructuredNode {
     private int fTableWidth = -1;
 
     public StructuredTable(XmlElement element) {
-        super(element);
+        super(element, Value.FACTORY);
+    }
+
+    public StructuredTable(
+        XmlElement element,
+        IValueFactory<? extends Value> factory) {
+        super(element, factory);
     }
 
     private void checkColumnNames() {
@@ -242,7 +278,4 @@ public class StructuredTable extends StructuredNode {
         return fTableWidth;
     }
 
-    protected Value newValue(XmlElement e) {
-        return new Value(e);
-    }
 }

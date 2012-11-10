@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ubimix.commons.parser.CharStream;
+import org.ubimix.commons.parser.ICharStream;
 import org.ubimix.commons.parser.ITokenizer;
 import org.ubimix.commons.parser.html.XHTMLEntities;
 import org.ubimix.commons.parser.xml.EntityFactory;
@@ -142,11 +144,16 @@ public class XmlElement extends XmlNode
         return (value instanceof Map<?, ?>) || (value instanceof List<?>);
     }
 
-    public static XmlElement parse(String xml) {
+    public static XmlElement parse(ICharStream stream) {
         XmlBuilder builder = new XmlBuilder();
         IXmlParser parser = getParser();
-        parser.parse(xml, builder);
+        parser.parse(stream, builder);
         return builder.getResult();
+    }
+
+    public static XmlElement parse(String xml) {
+        ICharStream stream = new CharStream(xml);
+        return parse(stream);
     }
 
     public static void setParser(IXmlParser parser) {
@@ -202,6 +209,11 @@ public class XmlElement extends XmlNode
         Map<Object, Object> map = getMap();
         int len = p.getChildCount(map);
         p.addChild(map, len, value.getObject());
+    }
+
+    public XmlElement addText(String str) {
+        addChild(new XmlText(str));
+        return this;
     }
 
     public String getAttribute(String key) {
@@ -268,6 +280,44 @@ public class XmlElement extends XmlNode
             XmlElement e = (XmlElement) node;
             if (tagName.equals(e.getName())) {
                 result = factory.newValue(e);
+                if (result != null) {
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    public XmlElement getChildByPath(
+        IValueFactory<XmlElement> factory,
+        String... path) {
+        XmlElement result = getChildByPath(path, 0, factory);
+        return result;
+    }
+
+    public XmlElement getChildByPath(String... path) {
+        return getChildByPath(XmlElement.FACTORY, path);
+    }
+
+    private <T> T getChildByPath(
+        String[] path,
+        int pos,
+        IValueFactory<T> factory) {
+        if (pos >= path.length) {
+            return null;
+        }
+        T result = null;
+        String tagName = path[pos];
+        for (XmlNode node : this) {
+            if (node instanceof XmlElement) {
+                XmlElement e = (XmlElement) node;
+                if (tagName.equals(e.getName())) {
+                    if (pos == path.length - 1) {
+                        result = factory.newValue(e);
+                    } else {
+                        result = getChildByPath(path, pos + 1, factory);
+                    }
+                }
                 if (result != null) {
                     break;
                 }
@@ -355,6 +405,42 @@ public class XmlElement extends XmlNode
         return result;
     }
 
+    public <T extends XmlElement> List<T> getChildrenByPath(
+        IValueFactory<T> factory,
+        String... path) {
+        List<T> result = new ArrayList<T>();
+        getChildrenByPath(result, path, 0, factory);
+        return result;
+    }
+
+    private <T> void getChildrenByPath(
+        List<T> result,
+        String[] path,
+        int pos,
+        IValueFactory<T> factory) {
+        if (pos >= path.length) {
+            return;
+        }
+        String tagName = path[pos];
+        for (XmlNode node : this) {
+            if (node instanceof XmlElement) {
+                XmlElement e = (XmlElement) node;
+                if (tagName.equals(e.getName())) {
+                    if (pos == path.length - 1) {
+                        T resultNode = factory.newValue(e);
+                        result.add(resultNode);
+                    } else {
+                        getChildrenByPath(result, path, pos + 1, factory);
+                    }
+                }
+            }
+        }
+    }
+
+    public List<XmlElement> getChildrenByPath(String... path) {
+        return getChildrenByPath(XmlElement.FACTORY, path);
+    }
+
     /**
      * Returns a map with prefixes and the corresponding namespaces defined
      * directly in this element. The default namespace corresponds to an empty
@@ -427,6 +513,19 @@ public class XmlElement extends XmlNode
                 return newChild(object);
             }
         };
+    }
+
+    public XmlElement getOrCreateElement(String name) {
+        return getOrCreateElement(this, name);
+    }
+
+    public XmlElement getOrCreateElement(XmlElement e, String name) {
+        XmlElement child = e.getChildByName(name);
+        if (child == null) {
+            child = new XmlElement(name);
+            addChild(child);
+        }
+        return child;
     }
 
     protected PathProcessor getPathProcessor(String cssSelector) {
@@ -677,6 +776,11 @@ public class XmlElement extends XmlNode
 
     public XmlElement setNamespaces(Map<String, String> attributes) {
         setValues(attributes, "xmlns");
+        return this;
+    }
+
+    public XmlElement setText(String str) {
+        setChildren(new XmlText(str));
         return this;
     }
 
