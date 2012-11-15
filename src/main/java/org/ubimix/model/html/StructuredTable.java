@@ -9,40 +9,47 @@ import java.util.Set;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.IValueFactory;
+import org.ubimix.model.html.StructuredNode.Value;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 
 /**
  * @author kotelnikov
  */
-public class StructuredTable extends StructuredNode.StructuredNodeContainer {
+public class StructuredTable<T extends Value>
+    extends
+    StructuredNode.StructuredNodeContainer<T> {
 
     private static Set<String> CELL_NAMES = new HashSet<String>();
 
-    private static final IValueFactory<StructuredTable> FACTORY = new IValueFactory<StructuredTable>() {
-        @Override
-        public StructuredTable newValue(Object object) {
-            return new StructuredTable((XmlElement) object);
-        }
-    };
+    public static final IValueFactory<StructuredTable<Value>> FACTORY = newStructuredTableFactory(Value.FACTORY);
 
     static {
         CELL_NAMES.add(HtmlTagDictionary.TD);
         CELL_NAMES.add(HtmlTagDictionary.TH);
     }
 
-    public static StructuredTable search(Iterable<XmlNode> list) {
-        StructuredTable table = wrapFirstElement(
-            list,
-            FACTORY,
-            HtmlTagDictionary.TABLE);
-        return table;
+    public static <T extends Value> IValueFactory<StructuredTable<T>> newStructuredTableFactory(
+        final IValueFactory<T> valueFactory) {
+        return new IValueFactory<StructuredTable<T>>() {
+            @Override
+            public StructuredTable<T> newValue(Object object) {
+                return new StructuredTable<T>((XmlElement) object, valueFactory);
+            }
+        };
     }
 
-    public static StructuredTable search(
+    public static StructuredTable<Value> search(Iterable<XmlNode> list) {
+        return search(list, Value.FACTORY);
+    }
+
+    public static <T extends Value> StructuredTable<T> search(
         Iterable<XmlNode> list,
-        IValueFactory<? extends Value> valueFactory) {
-        StructuredTable table = search(list);
+        final IValueFactory<T> valueFactory) {
+        StructuredTable<T> table = wrapFirstElement(
+            list,
+            newStructuredTableFactory(valueFactory),
+            HtmlTagDictionary.TABLE);
         if (table != null) {
             table.setValueFactory(valueFactory);
         }
@@ -59,13 +66,7 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
 
     private int fTableWidth = -1;
 
-    public StructuredTable(XmlElement element) {
-        super(element, Value.FACTORY);
-    }
-
-    public StructuredTable(
-        XmlElement element,
-        IValueFactory<? extends Value> factory) {
+    public StructuredTable(XmlElement element, IValueFactory<T> factory) {
         super(element, factory);
     }
 
@@ -92,33 +93,30 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         }
     }
 
-    public Value getCell(int row, int col) {
+    public T getCell(int row, int col) {
         XmlElement e = getCellElement(row, col);
         return newValue(e);
     }
 
-    public Value getCell(int keyColumn, String key, int valueColumn) {
+    public T getCell(int keyColumn, String key, int valueColumn) {
         int row = getRowIndex(keyColumn, key);
         return getCell(row, valueColumn);
     }
 
-    public Value getCell(String columnName, int row) {
+    public T getCell(String columnName, int row) {
         int col = getColumnIndex(columnName);
         return getCell(row, col);
     }
 
-    public Value getCell(String keyColumnName, String key, int valueColumn) {
+    public T getCell(String keyColumnName, String key, int valueColumn) {
         int keyColumn = getColumnIndex(keyColumnName);
         return getCell(keyColumn, key, valueColumn);
     }
 
-    public Value getCell(
-        String keyColumnName,
-        String key,
-        String valueColumnName) {
+    public T getCell(String keyColumnName, String key, String valueColumnName) {
         int keyColumn = getColumnIndex(keyColumnName);
         int valueColumn = getColumnIndex(valueColumnName);
-        Value value = getCell(keyColumn, key, valueColumn);
+        T value = getCell(keyColumn, key, valueColumn);
         return value;
     }
 
@@ -154,20 +152,20 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         return fCells;
     }
 
-    public List<Value> getColumn(int columnIndex) {
-        List<Value> result = new ArrayList<Value>();
+    public List<T> getColumn(int columnIndex) {
+        List<T> result = new ArrayList<T>();
         int width = getWidth();
         if (columnIndex >= 0 && columnIndex < width) {
             int height = getHeight();
             for (int i = 0; i < height; i++) {
-                Value cell = getCell(i, columnIndex);
+                T cell = getCell(i, columnIndex);
                 result.add(cell);
             }
         }
         return result;
     }
 
-    public List<Value> getColumn(String columnName) {
+    public List<T> getColumn(String columnName) {
         int columnIndex = getColumnIndex(columnName);
         return getColumn(columnIndex);
     }
@@ -206,8 +204,8 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         return cells.size();
     }
 
-    public List<Value> getRow(int row) {
-        List<Value> result = new ArrayList<Value>();
+    public List<T> getRow(int row) {
+        List<T> result = new ArrayList<T>();
         List<XmlElement> elements = getRowElements(row);
         if (elements != null) {
             for (XmlElement e : elements) {
@@ -223,7 +221,7 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
      * @return a row values which contains the specified value of the column
      *         with the given name
      */
-    public List<Value> getRow(String columnName, String columnValue) {
+    public List<T> getRow(String columnName, String columnValue) {
         int column = getColumnIndex(columnName);
         int row = getRowIndex(column, columnValue);
         return getRow(row);
@@ -253,7 +251,7 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
             for (int row = 0; row < cells.size(); row++) {
                 List<XmlElement> line = cells.get(row);
                 XmlElement e = column < line.size() ? line.get(column) : null;
-                Value value = newValue(e);
+                T value = newValue(e);
                 String textValue = value.getAsText();
                 if (columnValue.equals(textValue)) {
                     result = row;

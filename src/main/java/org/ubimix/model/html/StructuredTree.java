@@ -14,14 +14,11 @@ import org.ubimix.model.xml.XmlNode;
 /**
  * @author kotelnikov
  */
-public class StructuredTree extends StructuredNode.StructuredNodeContainer {
+public class StructuredTree<T extends StructuredNode.Value>
+    extends
+    StructuredNode.StructuredNodeContainer<T> {
 
-    public static final IValueFactory<StructuredTree> FACTORY = new IValueFactory<StructuredTree>() {
-        @Override
-        public StructuredTree newValue(Object object) {
-            return new StructuredTree((XmlElement) object);
-        }
-    };
+    public static final IValueFactory<StructuredTree<Value>> FACTORY = newStructuredTreeFactory(Value.FACTORY);
 
     protected static List<XmlElement> getLists(XmlElement element) {
         List<XmlElement> result = new ArrayList<XmlElement>();
@@ -42,46 +39,46 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
         return result;
     }
 
-    public static StructuredTree search(Iterable<XmlNode> list) {
+    public static <T extends Value> IValueFactory<StructuredTree<T>> newStructuredTreeFactory(
+        final IValueFactory<T> factory) {
+        return new IValueFactory<StructuredTree<T>>() {
+            @Override
+            public StructuredTree<T> newValue(Object object) {
+                return new StructuredTree<T>((XmlElement) object, factory);
+            }
+        };
+    }
+
+    public static StructuredTree<Value> search(Iterable<XmlNode> list) {
+        return search(list, Value.FACTORY);
+    }
+
+    public static <T extends Value> StructuredTree<T> search(
+        Iterable<XmlNode> list,
+        IValueFactory<T> factory) {
         return wrapFirstElement(
             list,
-            FACTORY,
+            newStructuredTreeFactory(factory),
             HtmlTagDictionary.UL,
             HtmlTagDictionary.OL);
     }
 
-    public static StructuredTree search(
-        Iterable<XmlNode> list,
-        IValueFactory<? extends Value> valueFactory) {
-        StructuredTree tree = search(list);
-        if (tree != null) {
-            tree.setValueFactory(valueFactory);
-        }
-        return tree;
-    }
+    private List<StructuredTree<T>> fChildren;
 
-    private List<StructuredTree> fChildren;
+    private T fValue;
 
-    private Value fValue;
-
-    public StructuredTree(XmlElement element) {
-        this(element, Value.FACTORY);
-    }
-
-    public StructuredTree(
-        XmlElement element,
-        IValueFactory<? extends Value> factory) {
+    public StructuredTree(XmlElement element, IValueFactory<T> factory) {
         super(element, factory);
     }
 
     public int getSize() {
-        List<StructuredTree> children = getSubtrees();
+        List<StructuredTree<T>> children = getSubtrees();
         return children.size();
     }
 
-    public StructuredTree getSubtree(int pos) {
-        List<StructuredTree> children = getSubtrees();
-        StructuredTree result = null;
+    public StructuredTree<T> getSubtree(int pos) {
+        List<StructuredTree<T>> children = getSubtrees();
+        StructuredTree<T> result = null;
         if (pos >= 0 && pos <= children.size()) {
             result = children.get(pos);
         }
@@ -91,9 +88,9 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
     /**
      * @return a list of all children of this node
      */
-    public List<StructuredTree> getSubtrees() {
+    public List<StructuredTree<T>> getSubtrees() {
         if (fChildren == null) {
-            fChildren = new ArrayList<StructuredTree>();
+            fChildren = new ArrayList<StructuredTree<T>>();
             List<XmlElement> lists = getLists(fElement);
             for (XmlElement list : lists) {
                 for (XmlNode node : list) {
@@ -101,7 +98,7 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
                         XmlElement e = (XmlElement) node;
                         String name = e.getName();
                         if (HtmlTagDictionary.isListItem(name)) {
-                            StructuredTree child = newChildTree(e);
+                            StructuredTree<T> child = newChildTree(e);
                             if (child != null) {
                                 fChildren.add(child);
                             }
@@ -116,7 +113,7 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
     /**
      * @return structured representation for the content of this node
      */
-    public Value getValue() {
+    public T getValue() {
         if (fValue == null) {
             fValue = newValue(fElement);
         }
@@ -130,8 +127,8 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
             || HtmlTagDictionary.isListItem(name);
     }
 
-    protected StructuredTree newChildTree(XmlElement e) {
-        return new StructuredTree(e, getValueFactory());
+    protected StructuredTree<T> newChildTree(XmlElement e) {
+        return new StructuredTree<T>(e, getValueFactory());
     }
 
 }

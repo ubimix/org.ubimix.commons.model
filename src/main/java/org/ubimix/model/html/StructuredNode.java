@@ -16,28 +16,30 @@ public class StructuredNode {
     /**
      * @author kotelnikov
      */
-    public static class StructuredNodeContainer extends StructuredNode {
+    public static class StructuredNodeContainer<T extends Value>
+        extends
+        StructuredNode {
 
-        private IValueFactory<? extends Value> fValueFactory;
+        private IValueFactory<T> fValueFactory;
 
         public StructuredNodeContainer(
             XmlElement element,
-            IValueFactory<? extends Value> factory) {
+            IValueFactory<T> factory) {
             super(element);
             fValueFactory = factory;
         }
 
-        public IValueFactory<? extends Value> getValueFactory() {
+        public IValueFactory<T> getValueFactory() {
             return fValueFactory;
         }
 
-        protected Value newValue(XmlElement e) {
-            Value value = fValueFactory.newValue(e);
+        protected T newValue(XmlElement e) {
+            T value = fValueFactory.newValue(e);
             value.setContainer(this);
             return value;
         }
 
-        public void setValueFactory(IValueFactory<? extends Value> valueFactory) {
+        public void setValueFactory(IValueFactory<T> valueFactory) {
             fValueFactory = valueFactory;
         }
 
@@ -55,7 +57,7 @@ public class StructuredNode {
             }
         };
 
-        private StructuredNodeContainer fContainer;
+        private StructuredNodeContainer<?> fContainer;
 
         private boolean fTrim = true;
 
@@ -116,7 +118,7 @@ public class StructuredNode {
             return trim(XmlNode.toText(getBlockElements()));
         }
 
-        public StructuredNodeContainer getContainer() {
+        public StructuredNodeContainer<?> getContainer() {
             return fContainer;
         }
 
@@ -185,7 +187,7 @@ public class StructuredNode {
             return false;
         }
 
-        public void setContainer(StructuredNodeContainer container) {
+        public void setContainer(StructuredNodeContainer<?> container) {
             fContainer = container;
         }
 

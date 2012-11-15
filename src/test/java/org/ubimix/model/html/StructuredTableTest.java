@@ -26,9 +26,9 @@ public class StructuredTableTest extends TestCase {
         super(name);
     }
 
-    private StructuredTable getTable(String html) {
+    private StructuredTable<Value> getTable(String html) {
         XmlElement e = HtmlDocument.parseFragment(html);
-        return new StructuredTable(e);
+        return new StructuredTable<Value>(e, Value.FACTORY);
     }
 
     private XmlElement tdRow(String... values) {
@@ -36,7 +36,7 @@ public class StructuredTableTest extends TestCase {
     }
 
     public void test() throws Exception {
-        StructuredTable table = getTable(""
+        StructuredTable<Value> table = getTable(""
             + "<table>"
             + "<tr><th>  Property  <th>  Value  "
             + "<tr><td>firstName<td>John"
@@ -66,7 +66,9 @@ public class StructuredTableTest extends TestCase {
 
     }
 
-    private void testTableColumns(StructuredTable table, String... columnNames) {
+    private void testTableColumns(
+        StructuredTable<Value> table,
+        String... columnNames) {
         List<String> list = table.getColumnNames();
         assertNotNull(list);
         assertEquals(columnNames.length, list.size());
@@ -83,7 +85,7 @@ public class StructuredTableTest extends TestCase {
     }
 
     private void testTableColumnValues(
-        StructuredTable table,
+        StructuredTable<Value> table,
         String columnName,
         String... controls) {
         int index = table.getColumnIndex(columnName);
@@ -124,7 +126,9 @@ public class StructuredTableTest extends TestCase {
 
     private void testTableDimentions(int cols, XmlElement... rows) {
         XmlElement table = toTable(rows);
-        StructuredTable sTable = new StructuredTable(table);
+        StructuredTable<Value> sTable = new StructuredTable<Value>(
+            table,
+            Value.FACTORY);
         assertEquals(cols, sTable.getWidth());
         assertEquals(rows.length, sTable.getHeight());
         for (int i = 0; i < cols; i++) {

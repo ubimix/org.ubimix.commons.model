@@ -22,13 +22,13 @@ public class StructuredTreeTest extends TestCase {
         super(name);
     }
 
-    private StructuredTree getTree(String html) {
+    private StructuredTree<Value> getTree(String html) {
         XmlElement e = HtmlDocument.parseFragment(html);
-        return new StructuredTree(e);
+        return new StructuredTree<Value>(e, Value.FACTORY);
     }
 
     public void testHierarchy() throws Exception {
-        StructuredTree tree;
+        StructuredTree<Value> tree;
 
         // --------------------------------------------------------------------
         tree = getTree(""
@@ -50,7 +50,7 @@ public class StructuredTreeTest extends TestCase {
             + "   </ul>"
             + " <li> Third");
         testTree(tree, "", "First", "Second", "Third");
-        StructuredTree subtree = tree.getSubtree(1);
+        StructuredTree<Value> subtree = tree.getSubtree(1);
         testTree(subtree, "Second", "A", "B", "C");
 
         // --------------------------------------------------------------------
@@ -96,18 +96,18 @@ public class StructuredTreeTest extends TestCase {
     }
 
     private void testTree(
-        StructuredTree tree,
+        StructuredTree<Value> tree,
         String valueControl,
         String... controls) {
         Value value = tree.getValue();
         testValue(valueControl, value);
         assertEquals(controls.length, tree.getSize());
-        List<StructuredTree> list = tree.getSubtrees();
+        List<StructuredTree<Value>> list = tree.getSubtrees();
         assertEquals(controls.length, list.size());
         for (int i = 0; i < controls.length; i++) {
             String control = controls[i];
 
-            StructuredTree subtree = tree.getSubtree(i);
+            StructuredTree<Value> subtree = tree.getSubtree(i);
             assertNotNull(subtree);
             testValue(control, subtree.getValue());
 

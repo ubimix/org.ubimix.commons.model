@@ -144,6 +144,29 @@ public class XmlElement extends XmlNode
         return (value instanceof Map<?, ?>) || (value instanceof List<?>);
     }
 
+    private static <T extends XmlElement> void loadChildrenByName(
+        XmlElement element,
+        String tagName,
+        List<T> result,
+        IValueFactory<T> factory,
+        boolean recursive) {
+        for (XmlNode node : element) {
+            if (!(node instanceof XmlElement)) {
+                continue;
+            }
+            XmlElement e = (XmlElement) node;
+            if (tagName.equals(e.getName())) {
+                T resultNode = factory.newValue(e);
+                if (resultNode != null) {
+                    result.add(resultNode);
+                }
+            }
+            if (recursive) {
+                loadChildrenByName(e, tagName, result, factory, recursive);
+            }
+        }
+    }
+
     public static XmlElement parse(ICharStream stream) {
         XmlBuilder builder = new XmlBuilder();
         IXmlParser parser = getParser();
@@ -198,7 +221,7 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    public void addChildren(Iterable<XmlNode> children) {
+    public void addChildren(Iterable<? extends XmlNode> children) {
         for (XmlNode child : children) {
             addChild(child);
         }
@@ -214,6 +237,18 @@ public class XmlElement extends XmlNode
     public XmlElement addText(String str) {
         addChild(new XmlText(str));
         return this;
+    }
+
+    public List<XmlElement> getAllChildrenByName(String tagName) {
+        return getAllChildrenByName(tagName, FACTORY);
+    }
+
+    public <T extends XmlElement> List<T> getAllChildrenByName(
+        String tagName,
+        IValueFactory<T> factory) {
+        List<T> result = new ArrayList<T>();
+        loadChildrenByName(this, tagName, result, factory, true);
+        return result;
     }
 
     public String getAttribute(String key) {
@@ -371,16 +406,7 @@ public class XmlElement extends XmlNode
         String tagName,
         IValueFactory<T> factory) {
         List<T> result = new ArrayList<T>();
-        for (XmlNode node : this) {
-            if (!(node instanceof XmlElement)) {
-                continue;
-            }
-            XmlElement e = (XmlElement) node;
-            if (tagName.equals(e.getName())) {
-                T resultNode = factory.newValue(e);
-                result.add(resultNode);
-            }
-        }
+        loadChildrenByName(this, tagName, result, factory, false);
         return result;
     }
 

@@ -1,5 +1,6 @@
 package org.ubimix.model.html;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,42 @@ public class HtmlArticle extends XmlElement {
     };
 
     private static Map<String, PathProcessor> fPathProcessorCache = new HashMap<String, PathProcessor>();
+
+    public static List<String> getImageUrls(XmlElement element) {
+        return getLinks(element, "img", "src");
+    }
+
+    private static List<String> getLinks(
+        XmlElement element,
+        String tagName,
+        final String attr) {
+        List<String> result = new ArrayList<String>();
+        List<XmlElement> references = element.getAllChildrenByName(
+            tagName,
+            new IValueFactory<XmlElement>() {
+                @Override
+                public XmlElement newValue(Object object) {
+                    XmlElement e = (XmlElement) object;
+                    String value = e.getAttribute(attr);
+                    if (value == null) {
+                        return null;
+                    }
+                    return e;
+                }
+            });
+        for (XmlElement reference : references) {
+            String href = reference.getAttribute(attr);
+            if (href != null) {
+                String url = new String(href);
+                result.add(url);
+            }
+        }
+        return result;
+    }
+
+    public static List<String> getReferences(XmlElement element) {
+        return getLinks(element, "a", "href");
+    }
 
     public HtmlArticle() {
         super(HtmlTagDictionary.ARTICLE);
@@ -82,6 +119,28 @@ public class HtmlArticle extends XmlElement {
         return getSerializedContent(false);
     }
 
+    public List<String> getImageUrls() {
+        return getImageUrls(this);
+    }
+
+    public <T> List<T> getImageUrlsAs(IValueFactory<T> factory) {
+        List<String> refs = getImageUrls();
+        return getLinksAs(refs, factory);
+    }
+
+    private <T> List<T> getLinksAs(List<String> refs, IValueFactory<T> factory) {
+        List<T> result = new ArrayList<T>();
+        if (refs != null && !refs.isEmpty()) {
+            for (String ref : refs) {
+                T value = factory.newValue(ref);
+                if (value != null) {
+                    result.add(value);
+                }
+            }
+        }
+        return result;
+    }
+
     protected XmlElement getOrCreate(XmlElement e, String childName) {
         return getOrCreate(e, childName, XmlElement.FACTORY);
     }
@@ -113,6 +172,15 @@ public class HtmlArticle extends XmlElement {
         XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
         XmlElement e = hgroup.select("properties");
         return e != null ? ModelObject.FACTORY.newValue(e) : new ModelObject();
+    }
+
+    public List<String> getReferences() {
+        return getReferences(this);
+    }
+
+    public <T> List<T> getReferencesAs(IValueFactory<T> factory) {
+        List<String> refs = getReferences();
+        return getLinksAs(refs, factory);
     }
 
     public XmlElement getSection() {
