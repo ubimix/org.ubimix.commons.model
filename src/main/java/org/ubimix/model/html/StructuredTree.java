@@ -39,6 +39,11 @@ public class StructuredTree<T extends StructuredNode.Value>
         return result;
     }
 
+    /**
+     * @param factory
+     * @return a new {@link IValueFactory} used to create new
+     *         {@link StructuredTree} instances
+     */
     public static <T extends Value> IValueFactory<StructuredTree<T>> newStructuredTreeFactory(
         final IValueFactory<T> factory) {
         return new IValueFactory<StructuredTree<T>>() {
@@ -49,10 +54,29 @@ public class StructuredTree<T extends StructuredNode.Value>
         };
     }
 
+    /**
+     * This method searches a list item (UL or OL) in the given collection of
+     * XML nodes; if a list is found then this method returns a
+     * {@link StructuredTree} wrapper around it.
+     * 
+     * @param list a list of elements where a list should be found and wrapperd
+     * @return a {@link StructuredNode} wrapper for the first list found in the
+     *         specified list of XML nodes
+     */
     public static StructuredTree<Value> search(Iterable<XmlNode> list) {
         return search(list, Value.FACTORY);
     }
 
+    /**
+     * This method searches a list item (UL or OL) in the given collection of
+     * XML nodes; if a list is found then this method returns a
+     * {@link StructuredTree} wrapper around it.
+     * 
+     * @param list a list of elements where a list should be found and wrapperd
+     * @param factory a factory used to create values
+     * @return a {@link StructuredNode} wrapper for the first list found in the
+     *         specified list of XML nodes
+     */
     public static <T extends Value> StructuredTree<T> search(
         Iterable<XmlNode> list,
         IValueFactory<T> factory) {
@@ -63,6 +87,15 @@ public class StructuredTree<T extends StructuredNode.Value>
             HtmlTagDictionary.OL);
     }
 
+    /**
+     * Recursively search a list in the specified node and if it is found then
+     * returns a {@link StructuredTree} wrapper around it. This method returns
+     * <code>null</code> if no lists were found.
+     * 
+     * @param content the list of XML nodes (or an {@link XmlElement})
+     * @param valueFactory a factory used to create values
+     * @return a {@link StructuredTree} wrapper around a list
+     */
     public static <T extends Value> StructuredTree<T> searchTreeRecursively(
         Iterable<XmlNode> content,
         IValueFactory<T> valueFactory) {
@@ -81,12 +114,64 @@ public class StructuredTree<T extends StructuredNode.Value>
         return tree;
     }
 
+    /**
+     * Cached list of child sub-nodes. This field should never be used directly;
+     * use the {@link #getSubtrees()} method instead.
+     */
     private List<StructuredTree<T>> fChildren;
 
+    /**
+     * A parent of this tree node
+     */
+    private StructuredTree<T> fParent;
+
+    /**
+     * Value object associated with this tree item
+     */
     private T fValue;
 
-    public StructuredTree(XmlElement element, IValueFactory<T> factory) {
+    /**
+     * Creates a new tree node.
+     * 
+     * @param parent a parent node; could be <code>null</code>..
+     * @param element the element corresponding to this tree item
+     * @param factory a factory used to create values
+     */
+    public StructuredTree(
+        StructuredTree<T> parent,
+        XmlElement element,
+        IValueFactory<T> factory) {
         super(element, factory);
+        fParent = parent;
+    }
+
+    /**
+     * Creates a new tree node.
+     * 
+     * @param element the element corresponding to this tree item
+     * @param factory a factory used to create values
+     */
+    public StructuredTree(XmlElement element, IValueFactory<T> factory) {
+        this(null, element, factory);
+    }
+
+    /**
+     * Returns the index (position) of this tree item in the parent tree. If
+     * this item does not have a parent then this method returns -1.
+     * 
+     * @return the index (position) of this tree item in the parent tree
+     */
+    public int getIndex() {
+        int result = -1;
+        if (fParent != null) {
+            List<StructuredTree<T>> children = fParent.getSubtrees();
+            result = children.indexOf(this);
+        }
+        return result;
+    }
+
+    public StructuredTree<T> getParent() {
+        return fParent;
     }
 
     public int getSize() {
@@ -146,7 +231,11 @@ public class StructuredTree<T extends StructuredNode.Value>
     }
 
     protected StructuredTree<T> newChildTree(XmlElement e) {
-        return new StructuredTree<T>(e, getValueFactory());
+        return new StructuredTree<T>(this, e, getValueFactory());
+    }
+
+    public void setParent(StructuredTree<T> parent) {
+        fParent = parent;
     }
 
 }

@@ -22,6 +22,30 @@ public class StructuredTreeTest extends TestCase {
         super(name);
     }
 
+    protected void checkTree(
+        StructuredTree<Value> tree,
+        String valueControl,
+        String... controls) {
+        Value value = tree.getValue();
+        testValue(valueControl, value);
+        assertEquals(controls.length, tree.getSize());
+        List<StructuredTree<Value>> list = tree.getSubtrees();
+        assertEquals(controls.length, list.size());
+        for (int i = 0; i < controls.length; i++) {
+            String control = controls[i];
+
+            StructuredTree<Value> subtree = tree.getSubtree(i);
+            assertNotNull(subtree);
+            assertEquals(i, subtree.getIndex());
+            testValue(control, subtree.getValue());
+
+            subtree = list.get(i);
+            assertNotNull(subtree);
+            testValue(control, subtree.getValue());
+        }
+
+    }
+
     private StructuredTree<Value> getTree(String html) {
         XmlElement e = HtmlDocument.parseFragment(html);
         return new StructuredTree<Value>(e, Value.FACTORY);
@@ -36,7 +60,7 @@ public class StructuredTreeTest extends TestCase {
             + " <li> First"
             + " <li> Second"
             + " <li> Third");
-        testTree(tree, "", "First", "Second", "Third");
+        checkTree(tree, "", "First", "Second", "Third");
 
         // --------------------------------------------------------------------
         tree = getTree(""
@@ -49,9 +73,9 @@ public class StructuredTreeTest extends TestCase {
             + "     <li> C"
             + "   </ul>"
             + " <li> Third");
-        testTree(tree, "", "First", "Second", "Third");
+        checkTree(tree, "", "First", "Second", "Third");
         StructuredTree<Value> subtree = tree.getSubtree(1);
-        testTree(subtree, "Second", "A", "B", "C");
+        checkTree(subtree, "Second", "A", "B", "C");
 
         // --------------------------------------------------------------------
         tree = getTree(""
@@ -68,9 +92,9 @@ public class StructuredTreeTest extends TestCase {
             + " <li> Third"
             + "</ul>"
             + "</div>");
-        testTree(tree, "Hello, there", "First", "Second", "Third");
+        checkTree(tree, "Hello, there", "First", "Second", "Third");
         subtree = tree.getSubtree(1);
-        testTree(subtree, "Second", "A", "B", "C");
+        checkTree(subtree, "Second", "A", "B", "C");
 
         // --------------------------------------------------------------------
         tree = getTree(""
@@ -90,32 +114,9 @@ public class StructuredTreeTest extends TestCase {
             + "   </ul>"
             + "   After "
             + " <li> Third");
-        testTree(tree, "", "First", "Before Between After", "Third");
+        checkTree(tree, "", "First", "Before Between After", "Third");
         subtree = tree.getSubtree(1);
-        testTree(subtree, "Before Between After", "A", "B", "C", "D", "E", "F");
-    }
-
-    private void testTree(
-        StructuredTree<Value> tree,
-        String valueControl,
-        String... controls) {
-        Value value = tree.getValue();
-        testValue(valueControl, value);
-        assertEquals(controls.length, tree.getSize());
-        List<StructuredTree<Value>> list = tree.getSubtrees();
-        assertEquals(controls.length, list.size());
-        for (int i = 0; i < controls.length; i++) {
-            String control = controls[i];
-
-            StructuredTree<Value> subtree = tree.getSubtree(i);
-            assertNotNull(subtree);
-            testValue(control, subtree.getValue());
-
-            subtree = list.get(i);
-            assertNotNull(subtree);
-            testValue(control, subtree.getValue());
-        }
-
+        checkTree(subtree, "Before Between After", "A", "B", "C", "D", "E", "F");
     }
 
     protected void testValue(String valueControl, Value value) {
