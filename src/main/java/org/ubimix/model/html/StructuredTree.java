@@ -63,6 +63,24 @@ public class StructuredTree<T extends StructuredNode.Value>
             HtmlTagDictionary.OL);
     }
 
+    public static <T extends Value> StructuredTree<T> searchTreeRecursively(
+        Iterable<XmlNode> content,
+        IValueFactory<T> valueFactory) {
+        StructuredTree<T> tree = StructuredTree.search(content, valueFactory);
+        if (tree == null) {
+            for (XmlNode node : content) {
+                if (node instanceof XmlElement) {
+                    XmlElement e = (XmlElement) node;
+                    tree = searchTreeRecursively(e, valueFactory);
+                    if (tree != null) {
+                        break;
+                    }
+                }
+            }
+        }
+        return tree;
+    }
+
     private List<StructuredTree<T>> fChildren;
 
     private T fValue;

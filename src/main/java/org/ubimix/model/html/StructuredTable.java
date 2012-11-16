@@ -56,6 +56,33 @@ public class StructuredTable<T extends Value>
         return table;
     }
 
+    public static <T extends Value> StructuredTable<T> searchTableRecursively(
+        Iterable<XmlNode> content,
+        IValueFactory<T> valueFactory,
+        String... headers) {
+        StructuredTable<T> result = null;
+        for (XmlNode node : content) {
+            if (node instanceof XmlElement) {
+                XmlElement e = (XmlElement) node;
+                String name = e.getName();
+                if (HtmlTagDictionary.isTableElement(name)) {
+                    StructuredTable<T> table = new StructuredTable<T>(
+                        e,
+                        valueFactory);
+                    if (table.checkColumnNames(headers)) {
+                        result = table;
+                    }
+                } else {
+                    result = searchTableRecursively(e, valueFactory, headers);
+                }
+                if (result != null) {
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     private List<List<XmlElement>> fCells;
 
     private Map<Integer, String> fColumnIndexToName;
@@ -82,15 +109,43 @@ public class StructuredTable<T extends Value>
                     XmlElement e = firstLine.get(i);
                     String name = e.getName();
                     if (HtmlTagDictionary.TH.equals(name)) {
-                        String str = newValue(e).getAsText().trim();
+                        String str = cleanColumnName(newValue(e).getAsText());
                         fColumnNames.add(str);
-                        str = str.toLowerCase();
+                        str = cleanColumnName(str);
                         fColumnNameToIndex.put(str, i);
                         fColumnIndexToName.put(i, str);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * This method checks if this table has the specified column names. If a
+     * name is not specified in a position then it is considered that any header
+     * name is acceptable.
+     * 
+     * @param columnNames name of columns
+     * @return <code>true</code> if this table has the specified column names
+     */
+    public boolean checkColumnNames(String... columnNames) {
+        boolean result = true;
+        List<String> list = getColumnNames();
+        for (int i = 0; result && i < columnNames.length; i++) {
+            String name = columnNames[i];
+            if (name != null) {
+                name = cleanColumnName(name);
+                String realName = list.get(i);
+                if (!name.equals(realName)) {
+                    result = false;
+                }
+            }
+        }
+        return result;
+    }
+
+    protected String cleanColumnName(String columnName) {
+        return columnName.toLowerCase().trim();
     }
 
     public T getCell(int row, int col) {
@@ -189,7 +244,7 @@ public class StructuredTable<T extends Value>
 
     public int getColumnIndex(String columnName) {
         checkColumnNames();
-        columnName = columnName.toLowerCase();
+        columnName = cleanColumnName(columnName);
         Integer value = fColumnNameToIndex.get(columnName);
         return value != null ? value.intValue() : -1;
     }
