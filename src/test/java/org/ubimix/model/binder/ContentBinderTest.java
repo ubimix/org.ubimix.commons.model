@@ -8,11 +8,15 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.model.IValueFactory;
+import org.ubimix.model.binder.ContentBinding;
+import org.ubimix.model.binder.DispatchingBinder;
+import org.ubimix.model.binder.IBinder;
+import org.ubimix.model.binder.IContentWidget;
 import org.ubimix.model.html.HtmlDocument;
-import org.ubimix.model.html.StructuredContentBinding;
 import org.ubimix.model.html.StructuredContentBinding.StructuredBinder;
 import org.ubimix.model.html.StructuredContentBinding.StructuredWidget;
 import org.ubimix.model.html.StructuredNode.Value;
+import org.ubimix.model.html.StructuredContentBinding;
 import org.ubimix.model.html.StructuredTable;
 import org.ubimix.model.html.StructuredTree;
 import org.ubimix.model.xml.XmlElement;
@@ -134,6 +138,7 @@ public class ContentBinderTest extends TestCase {
         TableContentWrapper<Value> table = binding
             .getWidget(TableContentWrapper.class);
         assertNotNull(table);
+        System.out.println(table);
 
         @SuppressWarnings("unchecked")
         TocWidget<Value> tree = binding.getWidget(TocWidget.class);
@@ -142,5 +147,7 @@ public class ContentBinderTest extends TestCase {
         assertNotNull(list);
         assertEquals(1, list.size());
         assertEquals(tree, list.get(0));
+        System.out.println(tree);
+
     }
 }
