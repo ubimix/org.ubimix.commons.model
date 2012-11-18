@@ -3,6 +3,7 @@ package org.ubimix.model;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import org.ubimix.model.binder.ContentBinderTest;
 import org.ubimix.model.cleaner.InlineNodesBurnerTest;
 import org.ubimix.model.cleaner.TagBurnerTest;
 import org.ubimix.model.html.HtmlArticleBuilderTest;
@@ -12,6 +13,9 @@ import org.ubimix.model.html.StructuredTreeTest;
 
 public class AllTests {
 
+    /**
+     * @return
+     */
     public static Test suite() {
         TestSuite suite = new TestSuite(AllTests.class.getName());
         // $JUnit-BEGIN$
@@ -31,6 +35,7 @@ public class AllTests {
         suite.addTestSuite(TagBurnerTest.class);
         suite.addTestSuite(StructuredTableTest.class);
         suite.addTestSuite(StructuredTreeTest.class);
+        suite.addTestSuite(ContentBinderTest.class);
         // $JUnit-END$
         return suite;
     }
