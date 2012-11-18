@@ -170,8 +170,41 @@ public class StructuredTree<T extends StructuredNode.Value>
         return result;
     }
 
+    /**
+     * Returns the next sibling node in this tree structure.
+     * 
+     * @return the next sibling node in this tree structure
+     */
+    public StructuredTree<T> getNextSibling() {
+        return getSibling(+1);
+    }
+
     public StructuredTree<T> getParent() {
         return fParent;
+    }
+
+    /**
+     * Returns the previous sibling node in this tree structure.
+     * 
+     * @return the previous sibling node in this tree structure
+     */
+    public StructuredTree<T> getPreviousSibling() {
+        return getSibling(-1);
+    }
+
+    private StructuredTree<T> getSibling(int delta) {
+        StructuredTree<T> result = null;
+        if (fParent != null) {
+            List<StructuredTree<T>> children = fParent.getSubtrees();
+            int idx = children.indexOf(this);
+            if (idx >= 0) {
+                idx += delta;
+                if (idx >= 0 && idx < children.size()) {
+                    result = children.get(idx);
+                }
+            }
+        }
+        return result;
     }
 
     public int getSize() {
