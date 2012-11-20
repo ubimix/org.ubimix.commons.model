@@ -26,6 +26,11 @@ public class StructuredTableTest extends TestCase {
         super(name);
     }
 
+    private StructuredPropertiesTable<Value> getProperties(String html) {
+        XmlElement e = HtmlDocument.parseFragment(html);
+        return new StructuredPropertiesTable<Value>(e, Value.FACTORY);
+    }
+
     private StructuredTable<Value> getTable(String html) {
         XmlElement e = HtmlDocument.parseFragment(html);
         return new StructuredTable<Value>(e, Value.FACTORY);
@@ -35,7 +40,20 @@ public class StructuredTableTest extends TestCase {
         return toLine(HtmlTagDictionary.TD, values);
     }
 
-    public void test() throws Exception {
+    public void testProperties() throws Exception {
+        StructuredPropertiesTable<Value> table = getProperties(""
+            + "<table>"
+            + "<tr><th>  Property  <th>  Value  "
+            + "<tr><td>firstName<td>John"
+            + "<tr><td>lastName<td>Smith");
+        testTableColumns(table, "Property", "Value");
+        testTableColumnValues(table, "Property", "firstName", "lastName");
+        testTableColumnValues(table, "Value", "John", "Smith");
+        assertEquals("John", table.getProperty("firstName").getAsText());
+        assertEquals("Smith", table.getProperty("lastName").getAsText());
+    }
+
+    public void testTable() throws Exception {
         StructuredTable<Value> table = getTable(""
             + "<table>"
             + "<tr><th>  Property  <th>  Value  "

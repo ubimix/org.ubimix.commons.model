@@ -9,6 +9,9 @@ import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 
 /**
+ * A common superclass for all objects providing structured access to XML
+ * elements.
+ * 
  * @author kotelnikov
  */
 public class StructuredNode {
@@ -231,6 +234,12 @@ public class StructuredNode {
 
     protected XmlElement fElement;
 
+    /**
+     * This constructor sets the content binding and the XML element associated
+     * with this object.
+     * 
+     * @param element the XML element corresponding to this object
+     */
     public StructuredNode(XmlElement element) {
         fElement = element;
     }
@@ -244,9 +253,9 @@ public class StructuredNode {
             return false;
         }
         StructuredNode o = (StructuredNode) obj;
-        return fElement == null || o.fElement == null
-            ? fElement == o.fElement
-            : fElement.equals(o.fElement);
+        XmlElement e = o.getElement();
+        return fElement == null || e == null ? fElement == e : fElement
+            .equals(e);
     }
 
     public XmlElement getElement() {
@@ -255,7 +264,8 @@ public class StructuredNode {
 
     @Override
     public int hashCode() {
-        return fElement != null ? fElement.hashCode() : 0;
+        XmlElement e = getElement();
+        return e != null ? e.hashCode() : 0;
     }
 
     protected boolean isExcludedElement(XmlElement e) {
@@ -264,7 +274,8 @@ public class StructuredNode {
 
     @Override
     public String toString() {
-        return fElement != null ? fElement.toString() : null;
+        XmlElement e = getElement();
+        return e != null ? e.toString() : null;
     }
 
 }
