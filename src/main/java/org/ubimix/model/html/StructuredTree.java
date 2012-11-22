@@ -14,11 +14,9 @@ import org.ubimix.model.xml.XmlNode;
 /**
  * @author kotelnikov
  */
-public class StructuredTree<T extends StructuredNode.Value>
-    extends
-    StructuredNode.StructuredNodeContainer<T> {
+public class StructuredTree extends StructuredNode.StructuredNodeContainer {
 
-    public static final IValueFactory<StructuredTree<Value>> FACTORY = newStructuredTreeFactory(Value.FACTORY);
+    public static final IValueFactory<StructuredTree> FACTORY = newStructuredTreeFactory(Value.FACTORY);
 
     protected static List<XmlElement> getLists(XmlElement element) {
         List<XmlElement> result = new ArrayList<XmlElement>();
@@ -44,12 +42,12 @@ public class StructuredTree<T extends StructuredNode.Value>
      * @return a new {@link IValueFactory} used to create new
      *         {@link StructuredTree} instances
      */
-    public static <T extends Value> IValueFactory<StructuredTree<T>> newStructuredTreeFactory(
+    public static <T extends Value> IValueFactory<StructuredTree> newStructuredTreeFactory(
         final IValueFactory<T> factory) {
-        return new IValueFactory<StructuredTree<T>>() {
+        return new IValueFactory<StructuredTree>() {
             @Override
-            public StructuredTree<T> newValue(Object object) {
-                return new StructuredTree<T>((XmlElement) object, factory);
+            public StructuredTree newValue(Object object) {
+                return new StructuredTree((XmlElement) object, factory);
             }
         };
     }
@@ -63,7 +61,7 @@ public class StructuredTree<T extends StructuredNode.Value>
      * @return a {@link StructuredNode} wrapper for the first list found in the
      *         specified list of XML nodes
      */
-    public static StructuredTree<Value> search(Iterable<XmlNode> list) {
+    public static StructuredTree search(Iterable<XmlNode> list) {
         return search(list, Value.FACTORY);
     }
 
@@ -77,7 +75,7 @@ public class StructuredTree<T extends StructuredNode.Value>
      * @return a {@link StructuredNode} wrapper for the first list found in the
      *         specified list of XML nodes
      */
-    public static <T extends Value> StructuredTree<T> search(
+    public static <T extends Value> StructuredTree search(
         Iterable<XmlNode> list,
         IValueFactory<T> factory) {
         return wrapFirstElement(
@@ -96,10 +94,10 @@ public class StructuredTree<T extends StructuredNode.Value>
      * @param valueFactory a factory used to create values
      * @return a {@link StructuredTree} wrapper around a list
      */
-    public static <T extends Value> StructuredTree<T> searchTreeRecursively(
+    public static <T extends Value> StructuredTree searchTreeRecursively(
         Iterable<XmlNode> content,
         IValueFactory<T> valueFactory) {
-        StructuredTree<T> tree = StructuredTree.search(content, valueFactory);
+        StructuredTree tree = StructuredTree.search(content, valueFactory);
         if (tree == null) {
             for (XmlNode node : content) {
                 if (node instanceof XmlElement) {
@@ -118,17 +116,17 @@ public class StructuredTree<T extends StructuredNode.Value>
      * Cached list of child sub-nodes. This field should never be used directly;
      * use the {@link #getSubtrees()} method instead.
      */
-    private List<StructuredTree<T>> fChildren;
+    private List<StructuredTree> fChildren;
 
     /**
      * A parent of this tree node
      */
-    private StructuredTree<T> fParent;
+    private StructuredTree fParent;
 
     /**
      * Value object associated with this tree item
      */
-    private T fValue;
+    private Value fValue;
 
     /**
      * Creates a new tree node.
@@ -138,9 +136,9 @@ public class StructuredTree<T extends StructuredNode.Value>
      * @param factory a factory used to create values
      */
     public StructuredTree(
-        StructuredTree<T> parent,
+        StructuredTree parent,
         XmlElement element,
-        IValueFactory<T> factory) {
+        IValueFactory<? extends Value> factory) {
         super(element, factory);
         fParent = parent;
     }
@@ -151,7 +149,9 @@ public class StructuredTree<T extends StructuredNode.Value>
      * @param element the element corresponding to this tree item
      * @param factory a factory used to create values
      */
-    public StructuredTree(XmlElement element, IValueFactory<T> factory) {
+    public StructuredTree(
+        XmlElement element,
+        IValueFactory<? extends Value> factory) {
         this(null, element, factory);
     }
 
@@ -164,7 +164,7 @@ public class StructuredTree<T extends StructuredNode.Value>
     public int getIndex() {
         int result = -1;
         if (fParent != null) {
-            List<StructuredTree<T>> children = fParent.getSubtrees();
+            List<StructuredTree> children = fParent.getSubtrees();
             result = children.indexOf(this);
         }
         return result;
@@ -175,11 +175,11 @@ public class StructuredTree<T extends StructuredNode.Value>
      * 
      * @return the next sibling node in this tree structure
      */
-    public StructuredTree<T> getNextSibling() {
+    public StructuredTree getNextSibling() {
         return getSibling(+1);
     }
 
-    public StructuredTree<T> getParent() {
+    public StructuredTree getParent() {
         return fParent;
     }
 
@@ -188,14 +188,14 @@ public class StructuredTree<T extends StructuredNode.Value>
      * 
      * @return the previous sibling node in this tree structure
      */
-    public StructuredTree<T> getPreviousSibling() {
+    public StructuredTree getPreviousSibling() {
         return getSibling(-1);
     }
 
-    private StructuredTree<T> getSibling(int delta) {
-        StructuredTree<T> result = null;
+    private StructuredTree getSibling(int delta) {
+        StructuredTree result = null;
         if (fParent != null) {
-            List<StructuredTree<T>> children = fParent.getSubtrees();
+            List<StructuredTree> children = fParent.getSubtrees();
             int idx = children.indexOf(this);
             if (idx >= 0) {
                 idx += delta;
@@ -208,13 +208,13 @@ public class StructuredTree<T extends StructuredNode.Value>
     }
 
     public int getSize() {
-        List<StructuredTree<T>> children = getSubtrees();
+        List<StructuredTree> children = getSubtrees();
         return children.size();
     }
 
-    public StructuredTree<T> getSubtree(int pos) {
-        List<StructuredTree<T>> children = getSubtrees();
-        StructuredTree<T> result = null;
+    public StructuredTree getSubtree(int pos) {
+        List<StructuredTree> children = getSubtrees();
+        StructuredTree result = null;
         if (pos >= 0 && pos <= children.size()) {
             result = children.get(pos);
         }
@@ -224,9 +224,9 @@ public class StructuredTree<T extends StructuredNode.Value>
     /**
      * @return a list of all children of this node
      */
-    public List<StructuredTree<T>> getSubtrees() {
+    public List<StructuredTree> getSubtrees() {
         if (fChildren == null) {
-            fChildren = new ArrayList<StructuredTree<T>>();
+            fChildren = new ArrayList<StructuredTree>();
             List<XmlElement> lists = getLists(fElement);
             for (XmlElement list : lists) {
                 for (XmlNode node : list) {
@@ -234,7 +234,7 @@ public class StructuredTree<T extends StructuredNode.Value>
                         XmlElement e = (XmlElement) node;
                         String name = e.getName();
                         if (HtmlTagDictionary.isListItem(name)) {
-                            StructuredTree<T> child = newChildTree(e);
+                            StructuredTree child = newChildTree(e);
                             if (child != null) {
                                 fChildren.add(child);
                             }
@@ -249,11 +249,11 @@ public class StructuredTree<T extends StructuredNode.Value>
     /**
      * @return structured representation for the content of this node
      */
-    public T getValue() {
+    public <T extends Value> T getValue() {
         if (fValue == null) {
             fValue = newValue(fElement);
         }
-        return fValue;
+        return cast(fValue);
     }
 
     @Override
@@ -263,11 +263,11 @@ public class StructuredTree<T extends StructuredNode.Value>
             || HtmlTagDictionary.isListItem(name);
     }
 
-    protected StructuredTree<T> newChildTree(XmlElement e) {
-        return new StructuredTree<T>(this, e, getValueFactory());
+    protected StructuredTree newChildTree(XmlElement e) {
+        return new StructuredTree(this, e, getValueFactory());
     }
 
-    public void setParent(StructuredTree<T> parent) {
+    public void setParent(StructuredTree parent) {
         fParent = parent;
     }
 

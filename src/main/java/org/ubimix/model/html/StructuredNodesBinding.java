@@ -20,23 +20,21 @@ import org.ubimix.model.xml.XmlNode;
  * 
  * @author kotelnikov
  */
-public class StructuredNodesBinding<T extends Value> {
+public class StructuredNodesBinding {
 
     /**
-     * This implementation of the {@link IStructuredNodesBinder<T>} interface is
+     * This implementation of the {@link IStructuredNodesBinder} interface is
      * used to associate individual binder instances with XML tag names.
      * 
      * @author kotelnikov
      */
-    public static class DispatchingStructureBinder<T extends Value>
-        implements
-        IStructureBinder<T> {
+    public static class DispatchingStructureBinder implements IStructureBinder {
 
         /**
          * This map contains tag names with a list of binders used to create
          * widgets for XML elements with this name.
          */
-        private Map<String, List<IStructureBinder<T>>> fMap = new HashMap<String, List<IStructureBinder<T>>>();
+        private Map<String, List<IStructureBinder>> fMap = new HashMap<String, List<IStructureBinder>>();
 
         /**
          * Associates a binder with specified tags.
@@ -44,14 +42,14 @@ public class StructuredNodesBinding<T extends Value> {
          * @param binder a binder to add
          * @param tagNames an array of tag names to associate with the binder
          */
-        public DispatchingStructureBinder<T> addBinder(
-            IStructureBinder<T> binder,
+        public DispatchingStructureBinder addBinder(
+            IStructureBinder binder,
             String... tagNames) {
             for (String tagName : tagNames) {
                 tagName = checkTagName(tagName);
-                List<IStructureBinder<T>> list = fMap.get(tagName);
+                List<IStructureBinder> list = fMap.get(tagName);
                 if (list == null) {
-                    list = new ArrayList<IStructureBinder<T>>();
+                    list = new ArrayList<IStructureBinder>();
                     fMap.put(tagName, list);
                 }
                 list.add(binder);
@@ -65,21 +63,21 @@ public class StructuredNodesBinding<T extends Value> {
          * @param tagName the name of the tag
          * @param binder the binder to add name to associate with the binder
          */
-        public DispatchingStructureBinder<T> addBinder(
+        public DispatchingStructureBinder addBinder(
             String tagName,
-            IStructureBinder<T> binder) {
+            IStructureBinder binder) {
             return addBinder(binder, tagName);
         }
 
         @Override
-        public StructuredNodeContainer<T> bind(
-            StructuredNodesBinding<T> binding,
+        public StructuredNodeContainer bind(
+            StructuredNodesBinding binding,
             XmlElement e) {
-            StructuredNodeContainer<T> result = null;
+            StructuredNodeContainer result = null;
             String name = checkTagName(e.getName());
-            List<IStructureBinder<T>> list = fMap.get(name);
+            List<IStructureBinder> list = fMap.get(name);
             if (list != null) {
-                for (IStructureBinder<T> binder : list) {
+                for (IStructureBinder binder : list) {
                     result = binder.bind(binding, e);
                     if (result != null) {
                         break;
@@ -107,7 +105,7 @@ public class StructuredNodesBinding<T extends Value> {
      * 
      * @author kotelnikov
      */
-    public interface IStructureBinder<T extends Value> {
+    public interface IStructureBinder {
 
         /**
          * Creates and returns a structured node associated with the specified
@@ -120,8 +118,8 @@ public class StructuredNodesBinding<T extends Value> {
          * @param e an XML element
          * @return a structured node corresponding to the specified XML element
          */
-        StructuredNodeContainer<T> bind(
-            StructuredNodesBinding<T> binding,
+        StructuredNodeContainer bind(
+            StructuredNodesBinding binding,
             XmlElement e);
 
     }
@@ -136,7 +134,7 @@ public class StructuredNodesBinding<T extends Value> {
     /**
      * The root binder used as a factory for structured nodes.
      */
-    private IStructureBinder<T> fBinder;
+    private IStructureBinder fBinder;
 
     /**
      * Internal counter for structured node identifiers
@@ -147,12 +145,12 @@ public class StructuredNodesBinding<T extends Value> {
      * This map is used to keep identifiers and the corresponding structured
      * nodes.
      */
-    private Map<String, StructuredNodeContainer<T>> fMap = new HashMap<String, StructuredNodeContainer<T>>();
+    private Map<String, StructuredNodeContainer> fMap = new HashMap<String, StructuredNodeContainer>();
 
     /**
      * The value factory used to create {@link Value} instances
      */
-    private IValueFactory<T> fValueFactory;
+    private IValueFactory<? extends Value> fValueFactory;
 
     /**
      * The main constructor. Initializes internal fields and sets the given
@@ -161,9 +159,9 @@ public class StructuredNodesBinding<T extends Value> {
      * @param factory the value factory used to create {@link Value} instances
      * @param binder the factory for structured nodes
      */
-    protected StructuredNodesBinding(
-        IValueFactory<T> factory,
-        IStructureBinder<T> binder) {
+    public StructuredNodesBinding(
+        IValueFactory<? extends Value> factory,
+        IStructureBinder binder) {
         fValueFactory = factory;
         fBinder = binder;
     }
@@ -177,8 +175,8 @@ public class StructuredNodesBinding<T extends Value> {
      * @param element the XML element to bind with the structured nodes
      */
     public StructuredNodesBinding(
-        IValueFactory<T> factory,
-        IStructureBinder<T> binder,
+        IValueFactory<? extends Value> factory,
+        IStructureBinder binder,
         XmlElement element) {
         this(factory, binder);
         bindStructuredNodes(element);
@@ -201,7 +199,7 @@ public class StructuredNodesBinding<T extends Value> {
                 continue;
             }
             XmlElement e = (XmlElement) node;
-            StructuredNodeContainer<T> s = fBinder.bind(this, e);
+            StructuredNodeContainer s = fBinder.bind(this, e);
             if (s != null) {
                 String id = newId();
                 e.setAttribute(ATTR_BINDING_ID, id);
@@ -219,10 +217,9 @@ public class StructuredNodesBinding<T extends Value> {
      * @return the structured node of the specified type
      */
     @SuppressWarnings("unchecked")
-    public <N extends StructuredNodeContainer<T>> N getStructuredNode(
-        Class<N> type) {
+    public <N extends StructuredNodeContainer> N getStructuredNode(Class<N> type) {
         N result = null;
-        for (StructuredNodeContainer<T> w : fMap.values()) {
+        for (StructuredNodeContainer w : fMap.values()) {
             if (type.isInstance(w)) {
                 result = (N) w;
                 break;
@@ -239,8 +236,8 @@ public class StructuredNodesBinding<T extends Value> {
      * @param e an XML element to check
      * @return a structured node associated with the given element
      */
-    public StructuredNodeContainer<T> getStructuredNode(XmlElement e) {
-        StructuredNodeContainer<T> result = null;
+    public StructuredNodeContainer getStructuredNode(XmlElement e) {
+        StructuredNodeContainer result = null;
         String id = getStructuredNodeId(e);
         if (id != null) {
             result = fMap.get(id);
@@ -267,10 +264,10 @@ public class StructuredNodesBinding<T extends Value> {
      * @return a list of all structured nodes of the specified type
      */
     @SuppressWarnings("unchecked")
-    public <N extends StructuredNodeContainer<T>> List<N> getStructuredNodes(
+    public <N extends StructuredNodeContainer> List<N> getStructuredNodes(
         Class<?> type) {
         List<N> result = new ArrayList<N>();
-        for (StructuredNodeContainer<T> w : fMap.values()) {
+        for (StructuredNodeContainer w : fMap.values()) {
             if (type.isInstance(w)) {
                 result.add((N) w);
             }
@@ -281,7 +278,7 @@ public class StructuredNodesBinding<T extends Value> {
     /**
      * @return a value factory used to create {@link Value} instances
      */
-    public IValueFactory<T> getValueFactory() {
+    public IValueFactory<? extends Value> getValueFactory() {
         return fValueFactory;
     }
 
@@ -297,7 +294,7 @@ public class StructuredNodesBinding<T extends Value> {
      * 
      * @param valueFactory the factory to set
      */
-    public void setValueFactory(IValueFactory<T> valueFactory) {
+    public void setValueFactory(IValueFactory<? extends Value> valueFactory) {
         fValueFactory = valueFactory;
     }
 }

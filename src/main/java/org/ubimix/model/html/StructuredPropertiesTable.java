@@ -4,15 +4,12 @@
 package org.ubimix.model.html;
 
 import org.ubimix.model.IValueFactory;
-import org.ubimix.model.html.StructuredNode.Value;
 import org.ubimix.model.xml.XmlElement;
 
 /**
  * @author kotelnikov
  */
-public class StructuredPropertiesTable<T extends Value>
-    extends
-    StructuredTable<T> {
+public class StructuredPropertiesTable extends StructuredTable {
 
     private int fPropertyColumnId = 0;
 
@@ -20,11 +17,11 @@ public class StructuredPropertiesTable<T extends Value>
 
     public StructuredPropertiesTable(
         XmlElement element,
-        IValueFactory<T> factory) {
+        IValueFactory<? extends Value> factory) {
         super(element, factory);
     }
 
-    public T getProperty(String name) {
+    public <T extends Value> T getProperty(String name) {
         T result = getCell(fPropertyColumnId, name, fValueColumnId);
         return result;
     }
@@ -37,12 +34,12 @@ public class StructuredPropertiesTable<T extends Value>
         return fValueColumnId;
     }
 
-    public StructuredPropertiesTable<T> setPropertyColumnId(int propertyColumnId) {
+    public StructuredPropertiesTable setPropertyColumnId(int propertyColumnId) {
         fPropertyColumnId = propertyColumnId;
         return this;
     }
 
-    public StructuredPropertiesTable<T> setValueColumnId(int valueColumnId) {
+    public StructuredPropertiesTable setValueColumnId(int valueColumnId) {
         fValueColumnId = valueColumnId;
         return this;
     }

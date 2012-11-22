@@ -19,22 +19,24 @@ import org.ubimix.model.xml.XmlElement;
  */
 public class StructuredNodesBindingTest extends TestCase {
 
-    public static class TocTree<T extends Value> extends StructuredTree<T> {
+    public static class TocTree extends StructuredTree {
 
         public TocTree(
-            StructuredTree<T> parent,
+            StructuredTree parent,
             XmlElement element,
-            IValueFactory<T> factory) {
+            IValueFactory<? extends Value> factory) {
             super(parent, element, factory);
         }
 
-        public TocTree(XmlElement element, IValueFactory<T> factory) {
+        public TocTree(
+            XmlElement element,
+            IValueFactory<? extends Value> factory) {
             super(null, element, factory);
         }
 
         @Override
-        protected StructuredTree<T> newChildTree(XmlElement e) {
-            return new TocTree<T>(this, e, getValueFactory());
+        protected StructuredTree newChildTree(XmlElement e) {
+            return new TocTree(this, e, getValueFactory());
         }
 
     }
@@ -68,70 +70,64 @@ public class StructuredNodesBindingTest extends TestCase {
             + "<p>Third paragraph.</p>\n"
             + "<p>Fourth paragraph.</p>\n";
         XmlElement e = HtmlDocument.parse(content);
-        DispatchingStructureBinder<Value> binder = new DispatchingStructureBinder<Value>();
-        binder.addBinder("table", new IStructureBinder<Value>() {
+        DispatchingStructureBinder binder = new DispatchingStructureBinder();
+        binder.addBinder("table", new IStructureBinder() {
             @Override
-            public StructuredNodeContainer<Value> bind(
-                StructuredNodesBinding<Value> binding,
+            public StructuredNodeContainer bind(
+                StructuredNodesBinding binding,
                 XmlElement e) {
-                return new StructuredTable<Value>(e, binding.getValueFactory());
+                return new StructuredTable(e, binding.getValueFactory());
             }
         });
-        binder.addBinder(new IStructureBinder<Value>() {
+        binder.addBinder(new IStructureBinder() {
             @Override
-            public StructuredNodeContainer<Value> bind(
-                StructuredNodesBinding<Value> binding,
+            public StructuredNodeContainer bind(
+                StructuredNodesBinding binding,
                 XmlElement e) {
-                @SuppressWarnings("unchecked")
-                TocTree<Value> prev = binding.getStructuredNode(TocTree.class);
+                TocTree prev = binding.getStructuredNode(TocTree.class);
                 if (prev != null) {
                     return null;
                 }
-                return new TocTree<Value>(e, binding.getValueFactory());
+                return new TocTree(e, binding.getValueFactory());
             }
         }, "ul", "ol");
-        binder.addBinder(new IStructureBinder<Value>() {
+        binder.addBinder(new IStructureBinder() {
             @Override
-            public StructuredNodeContainer<Value> bind(
-                StructuredNodesBinding<Value> binding,
+            public StructuredNodeContainer bind(
+                StructuredNodesBinding binding,
                 XmlElement e) {
-                return new StructuredTree<Value>(e, binding.getValueFactory());
+                return new StructuredTree(e, binding.getValueFactory());
             }
         }, "ul", "ol");
 
         IValueFactory<Value> factory = Value.FACTORY;
 
-        StructuredNodesBinding<Value> binding = new StructuredNodesBinding<Value>(
+        StructuredNodesBinding binding = new StructuredNodesBinding(
             factory,
             binder);
         binding.bindStructuredNodes(e);
 
-        @SuppressWarnings("unchecked")
-        StructuredTable<Value> table = binding
+        StructuredTable table = binding
             .getStructuredNode(StructuredTable.class);
         assertNotNull(table);
         System.out.println(table);
 
-        @SuppressWarnings("unchecked")
-        TocTree<Value> toc = binding.getStructuredNode(TocTree.class);
+        TocTree toc = binding.getStructuredNode(TocTree.class);
         assertNotNull(toc);
-        List<TocTree<Value>> tocList = binding
-            .getStructuredNodes(TocTree.class);
+        List<TocTree> tocList = binding.getStructuredNodes(TocTree.class);
         assertNotNull(tocList);
         assertEquals(1, tocList.size());
         assertEquals(toc, tocList.get(0));
 
-        @SuppressWarnings("unchecked")
-        StructuredTree<Value> tree = binding
-            .getStructuredNode(StructuredTree.class);
+        StructuredTree tree = binding.getStructuredNode(StructuredTree.class);
         assertNotNull(tree);
         assertEquals(toc, tree);
-        List<StructuredTree<Value>> list = binding
+        List<StructuredTree> list = binding
             .getStructuredNodes(StructuredTree.class);
         assertNotNull(list);
         assertEquals(2, list.size());
         assertEquals(tree, list.get(0));
-        StructuredTree<Value> test = list.get(1);
+        StructuredTree test = list.get(1);
         assertNotNull(test);
         System.out.println(tree);
 

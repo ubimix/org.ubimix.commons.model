@@ -23,30 +23,30 @@ public class StructuredTreeTest extends TestCase {
     }
 
     protected void checkTree(
-        StructuredTree<Value> tree,
+        StructuredTree tree,
         String valueControl,
         String... controls) {
         Value value = tree.getValue();
         checkValue(valueControl, value);
         assertEquals(controls.length, tree.getSize());
-        List<StructuredTree<Value>> list = tree.getSubtrees();
+        List<StructuredTree> list = tree.getSubtrees();
         assertEquals(controls.length, list.size());
         for (int i = 0; i < controls.length; i++) {
             String control = controls[i];
 
-            StructuredTree<Value> subtree = tree.getSubtree(i);
+            StructuredTree subtree = tree.getSubtree(i);
             assertNotNull(subtree);
             assertEquals(i, subtree.getIndex());
             checkValue(control, subtree.getValue());
 
             if (i > 0) {
-                StructuredTree<Value> prev = tree.getSubtree(i - 1);
-                StructuredTree<Value> test = subtree.getPreviousSibling();
+                StructuredTree prev = tree.getSubtree(i - 1);
+                StructuredTree test = subtree.getPreviousSibling();
                 assertEquals(prev, test);
             }
             if (i < controls.length - 1) {
-                StructuredTree<Value> next = tree.getSubtree(i + 1);
-                StructuredTree<Value> test = subtree.getNextSibling();
+                StructuredTree next = tree.getSubtree(i + 1);
+                StructuredTree test = subtree.getNextSibling();
                 assertEquals(next, test);
             }
 
@@ -62,13 +62,13 @@ public class StructuredTreeTest extends TestCase {
         assertEquals(valueControl, value.getAsText());
     }
 
-    private StructuredTree<Value> getTree(String html) {
+    private StructuredTree getTree(String html) {
         XmlElement e = HtmlDocument.parseFragment(html);
-        return new StructuredTree<Value>(e, Value.FACTORY);
+        return new StructuredTree(e, Value.FACTORY);
     }
 
     public void testHierarchy() throws Exception {
-        StructuredTree<Value> tree;
+        StructuredTree tree;
 
         // --------------------------------------------------------------------
         tree = getTree(""
@@ -90,11 +90,11 @@ public class StructuredTreeTest extends TestCase {
             + "   </ul>"
             + " <li> Third");
         checkTree(tree, "", "First", "Second", "Third");
-        StructuredTree<Value> subtree = tree.getSubtree(1);
+        StructuredTree subtree = tree.getSubtree(1);
         checkTree(subtree, "Second", "A", "B", "C");
 
-        StructuredTree<Value> first = tree.getSubtree(0);
-        StructuredTree<Value> third = tree.getSubtree(2);
+        StructuredTree first = tree.getSubtree(0);
+        StructuredTree third = tree.getSubtree(2);
 
         // --------------------------------------------------------------------
         tree = getTree(""

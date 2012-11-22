@@ -19,30 +19,33 @@ public class StructuredNode {
     /**
      * @author kotelnikov
      */
-    public static class StructuredNodeContainer<T extends Value>
-        extends
-        StructuredNode {
+    public static class StructuredNodeContainer extends StructuredNode {
 
-        private IValueFactory<T> fValueFactory;
+        private IValueFactory<? extends Value> fValueFactory;
 
         public StructuredNodeContainer(
             XmlElement element,
-            IValueFactory<T> factory) {
+            IValueFactory<? extends Value> factory) {
             super(element);
             fValueFactory = factory;
         }
 
-        public IValueFactory<T> getValueFactory() {
+        @SuppressWarnings("unchecked")
+        protected <T extends Value> T cast(Value value) {
+            return (T) value;
+        }
+
+        public IValueFactory<? extends Value> getValueFactory() {
             return fValueFactory;
         }
 
-        protected T newValue(XmlElement e) {
-            T value = fValueFactory.newValue(e);
+        protected <T extends Value> T newValue(XmlElement e) {
+            Value value = fValueFactory.newValue(e);
             value.setContainer(this);
-            return value;
+            return cast(value);
         }
 
-        public void setValueFactory(IValueFactory<T> valueFactory) {
+        public void setValueFactory(IValueFactory<? extends Value> valueFactory) {
             fValueFactory = valueFactory;
         }
 
@@ -60,7 +63,7 @@ public class StructuredNode {
             }
         };
 
-        private StructuredNodeContainer<?> fContainer;
+        private StructuredNodeContainer fContainer;
 
         private boolean fTrim = true;
 
@@ -95,6 +98,11 @@ public class StructuredNode {
             }
         }
 
+        @SuppressWarnings("unchecked")
+        protected <T extends Value> T cast(Value value) {
+            return (T) value;
+        }
+
         public String getAsString() {
             return trim(XmlNode.toString(getNodes(), true));
         }
@@ -121,7 +129,7 @@ public class StructuredNode {
             return trim(XmlNode.toText(getBlockElements()));
         }
 
-        public StructuredNodeContainer<?> getContainer() {
+        public StructuredNodeContainer getContainer() {
             return fContainer;
         }
 
@@ -190,13 +198,13 @@ public class StructuredNode {
             return false;
         }
 
-        public void setContainer(StructuredNodeContainer<?> container) {
+        public void setContainer(StructuredNodeContainer container) {
             fContainer = container;
         }
 
-        public StructuredNode.Value setTrim(boolean trim) {
+        public <T extends Value> T setTrim(boolean trim) {
             fTrim = trim;
-            return this;
+            return cast(this);
         }
 
         protected String trim(String text) {
