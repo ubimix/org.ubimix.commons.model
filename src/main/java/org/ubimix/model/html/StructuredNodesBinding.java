@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.ubimix.model.IValueFactory;
-import org.ubimix.model.html.StructuredNode.StructuredNodeContainer;
 import org.ubimix.model.html.StructuredNode.Value;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
@@ -70,10 +69,8 @@ public class StructuredNodesBinding {
         }
 
         @Override
-        public StructuredNodeContainer bind(
-            StructuredNodesBinding binding,
-            XmlElement e) {
-            StructuredNodeContainer result = null;
+        public StructuredNode bind(StructuredNodesBinding binding, XmlElement e) {
+            StructuredNode result = null;
             String name = checkTagName(e.getName());
             List<IStructureBinder> list = fMap.get(name);
             if (list != null) {
@@ -118,9 +115,7 @@ public class StructuredNodesBinding {
          * @param e an XML element
          * @return a structured node corresponding to the specified XML element
          */
-        StructuredNodeContainer bind(
-            StructuredNodesBinding binding,
-            XmlElement e);
+        StructuredNode bind(StructuredNodesBinding binding, XmlElement e);
 
     }
 
@@ -145,7 +140,7 @@ public class StructuredNodesBinding {
      * This map is used to keep identifiers and the corresponding structured
      * nodes.
      */
-    private Map<String, StructuredNodeContainer> fMap = new HashMap<String, StructuredNodeContainer>();
+    private Map<String, StructuredNode> fMap = new HashMap<String, StructuredNode>();
 
     /**
      * The value factory used to create {@link Value} instances
@@ -199,7 +194,7 @@ public class StructuredNodesBinding {
                 continue;
             }
             XmlElement e = (XmlElement) node;
-            StructuredNodeContainer s = fBinder.bind(this, e);
+            StructuredNode s = fBinder.bind(this, e);
             if (s != null) {
                 String id = newId();
                 e.setAttribute(ATTR_BINDING_ID, id);
@@ -217,9 +212,9 @@ public class StructuredNodesBinding {
      * @return the structured node of the specified type
      */
     @SuppressWarnings("unchecked")
-    public <N extends StructuredNodeContainer> N getStructuredNode(Class<N> type) {
+    public <N extends StructuredNode> N getStructuredNode(Class<N> type) {
         N result = null;
-        for (StructuredNodeContainer w : fMap.values()) {
+        for (StructuredNode w : fMap.values()) {
             if (type.isInstance(w)) {
                 result = (N) w;
                 break;
@@ -236,8 +231,8 @@ public class StructuredNodesBinding {
      * @param e an XML element to check
      * @return a structured node associated with the given element
      */
-    public StructuredNodeContainer getStructuredNode(XmlElement e) {
-        StructuredNodeContainer result = null;
+    public StructuredNode getStructuredNode(XmlElement e) {
+        StructuredNode result = null;
         String id = getStructuredNodeId(e);
         if (id != null) {
             result = fMap.get(id);
@@ -264,10 +259,9 @@ public class StructuredNodesBinding {
      * @return a list of all structured nodes of the specified type
      */
     @SuppressWarnings("unchecked")
-    public <N extends StructuredNodeContainer> List<N> getStructuredNodes(
-        Class<?> type) {
+    public <N extends StructuredNode> List<N> getStructuredNodes(Class<?> type) {
         List<N> result = new ArrayList<N>();
-        for (StructuredNodeContainer w : fMap.values()) {
+        for (StructuredNode w : fMap.values()) {
             if (type.isInstance(w)) {
                 result.add((N) w);
             }

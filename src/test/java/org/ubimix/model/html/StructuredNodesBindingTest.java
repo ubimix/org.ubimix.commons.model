@@ -8,7 +8,6 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.model.IValueFactory;
-import org.ubimix.model.html.StructuredNode.StructuredNodeContainer;
 import org.ubimix.model.html.StructuredNode.Value;
 import org.ubimix.model.html.StructuredNodesBinding.DispatchingStructureBinder;
 import org.ubimix.model.html.StructuredNodesBinding.IStructureBinder;
@@ -18,6 +17,12 @@ import org.ubimix.model.xml.XmlElement;
  * @author kotelnikov
  */
 public class StructuredNodesBindingTest extends TestCase {
+
+    public static class Reference extends Value {
+        public Reference(XmlElement element) {
+            super(element);
+        }
+    }
 
     public static class TocTree extends StructuredTree {
 
@@ -68,12 +73,22 @@ public class StructuredNodesBindingTest extends TestCase {
             + "<ul><li>A</li><li>B</li></ul>\n"
             + ""
             + "<p>Third paragraph.</p>\n"
+            + "<p>Paragraph with a <a href='./page.html'>reference</a>."
             + "<p>Fourth paragraph.</p>\n";
         XmlElement e = HtmlDocument.parse(content);
         DispatchingStructureBinder binder = new DispatchingStructureBinder();
+        binder.addBinder("a", new IStructureBinder() {
+            @Override
+            public StructuredNode bind(
+                StructuredNodesBinding binding,
+                XmlElement e) {
+                binding.bindStructuredNodes(e);
+                return new Reference(e);
+            }
+        });
         binder.addBinder("table", new IStructureBinder() {
             @Override
-            public StructuredNodeContainer bind(
+            public StructuredNode bind(
                 StructuredNodesBinding binding,
                 XmlElement e) {
                 return new StructuredTable(e, binding.getValueFactory());
@@ -81,7 +96,7 @@ public class StructuredNodesBindingTest extends TestCase {
         });
         binder.addBinder(new IStructureBinder() {
             @Override
-            public StructuredNodeContainer bind(
+            public StructuredNode bind(
                 StructuredNodesBinding binding,
                 XmlElement e) {
                 TocTree prev = binding.getStructuredNode(TocTree.class);
@@ -93,7 +108,7 @@ public class StructuredNodesBindingTest extends TestCase {
         }, "ul", "ol");
         binder.addBinder(new IStructureBinder() {
             @Override
-            public StructuredNodeContainer bind(
+            public StructuredNode bind(
                 StructuredNodesBinding binding,
                 XmlElement e) {
                 return new StructuredTree(e, binding.getValueFactory());
@@ -129,7 +144,13 @@ public class StructuredNodesBindingTest extends TestCase {
         assertEquals(tree, list.get(0));
         StructuredTree test = list.get(1);
         assertNotNull(test);
-        System.out.println(tree);
 
+        List<Reference> references = binding
+            .getStructuredNodes(Reference.class);
+        assertEquals(1, references.size());
+        Reference ref = references.get(0);
+        XmlElement a = ref.getReferenceElement();
+        assertNotNull(a);
+        assertEquals("./page.html", a.getAttribute("href"));
     }
 }

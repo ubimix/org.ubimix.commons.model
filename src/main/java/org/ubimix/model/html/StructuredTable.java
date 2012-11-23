@@ -326,6 +326,11 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         return result;
     }
 
+    public int getRowNumber() {
+        List<List<XmlElement>> cells = getCells();
+        return cells.size();
+    }
+
     public int getWidth() {
         if (fTableWidth < 0) {
             List<List<XmlElement>> cells = getCells();
