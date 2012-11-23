@@ -185,6 +185,10 @@ public class XmlElement extends XmlNode
 
     public XmlElement(IHasValueMap object) {
         this(null, object.getMap());
+        if (object instanceof XmlNode) {
+            XmlNode node = (XmlNode) object;
+            setParent(node.getParent());
+        }
     }
 
     public XmlElement(String name) {
