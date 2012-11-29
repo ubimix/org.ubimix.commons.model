@@ -7,14 +7,33 @@ import org.ubimix.commons.parser.html.HtmlTagDictionary;
  */
 public class TagBurner extends CompositeTagProcessor {
 
+    public static class TagBurnerConfig {
+
+        private boolean fTransformBrToParagraph = true;
+
+        public void setTransformBrToParagraph(boolean transformBrToParagraph) {
+            fTransformBrToParagraph = transformBrToParagraph;
+        }
+
+        public boolean transformBrToParagraph() {
+            return fTransformBrToParagraph;
+        }
+    }
+
     public TagBurner() {
+        this(new TagBurnerConfig());
+    }
+
+    public TagBurner(TagBurnerConfig config) {
         CompositeTagProcessor cleaner = new CompositeTagProcessor();
         cleaner.addProcessor(new GenericTagProcessor());
         cleaner.addProcessor(new TextNodeReducer());
-        cleaner.addProcessor(new InlineNodesProcessor());
+        cleaner.addProcessor(new InlineNodesProcessor(config
+            .transformBrToParagraph()));
 
         DispatchingTagProcessor preprocessor = new DispatchingTagProcessor()
             .setDefaultProcessor(cleaner)
+            .register(HtmlTagDictionary.A, new HtmlANodeProcessor())
             .register(
                 HtmlTagDictionary.PRE,
                 new HtmlPreformattedNodeProcessor());
@@ -22,7 +41,7 @@ public class TagBurner extends CompositeTagProcessor {
 
         DispatchingTagProcessor postprocessor = new DispatchingTagProcessor()
             .setDefaultProcessor(new NullProcessor())
-            .register(HtmlTagDictionary.SPAN, new SkipNodeProcessor())
+            .register(HtmlTagDictionary.SPAN, new HtmlSpanNodeProcessor())
             .register(HtmlTagDictionary.DIV, new HtmlDivNodeProcessor())
             .register(
                 new HtmlListNodeProcessor(),

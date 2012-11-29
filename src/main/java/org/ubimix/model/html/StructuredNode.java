@@ -76,10 +76,24 @@ public class StructuredNode {
             boolean includeText,
             boolean includeInlineElements,
             boolean includeBlockElements) {
-            if (fElement == null) {
+            addInnerNodes(
+                list,
+                fElement,
+                includeText,
+                includeInlineElements,
+                includeBlockElements);
+        }
+
+        protected void addInnerNodes(
+            List<XmlNode> list,
+            XmlElement element,
+            boolean includeText,
+            boolean includeInlineElements,
+            boolean includeBlockElements) {
+            if (element == null) {
                 return;
             }
-            for (XmlNode node : fElement) {
+            for (XmlNode node : element) {
                 boolean include = includeText;
                 if (node instanceof XmlElement) {
                     XmlElement e = (XmlElement) node;
@@ -91,6 +105,14 @@ public class StructuredNode {
                     include = inline
                         ? includeInlineElements
                         : includeBlockElements;
+                    if (!include) {
+                        addInnerNodes(
+                            list,
+                            e,
+                            includeText,
+                            includeInlineElements,
+                            includeBlockElements);
+                    }
                 }
                 if (include) {
                     list.add(node);
@@ -170,6 +192,16 @@ public class StructuredNode {
 
         public String getInlineElementsAsText() {
             return trim(XmlNode.toText(getInlineElements()));
+        }
+
+        /**
+         * @return a list of inner inline elements; block elements and text
+         *         nodes are ignored
+         */
+        public List<XmlNode> getInlineNodes() {
+            List<XmlNode> result = new ArrayList<XmlNode>();
+            addInnerNodes(result, true, true, false);
+            return result;
         }
 
         /**

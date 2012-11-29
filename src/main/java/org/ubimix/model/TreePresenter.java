@@ -93,7 +93,7 @@ public class TreePresenter {
         if (value != null) {
             if (value instanceof List<?>) {
                 List<?> list = (List<?>) value;
-                result = list.indexOf(nodeObject);
+                result = indexOf(list, nodeObject);
             } else if (nodeObject.equals(value)) {
                 result = 0;
             }
@@ -123,6 +123,21 @@ public class TreePresenter {
             }
         }
         return result;
+    }
+
+    private int indexOf(List<?> list, Object nodeObject) {
+        int idx = -1;
+        if (!list.isEmpty()) {
+            for (idx = 0; idx < list.size(); idx++) {
+                if (same(nodeObject, list.get(idx))) {
+                    break;
+                }
+            }
+            if (idx >= list.size()) {
+                idx = -1;
+            }
+        }
+        return idx;
     }
 
     public boolean removeChild(Map<Object, Object> map, int pos) {
@@ -170,6 +185,10 @@ public class TreePresenter {
 
     public void removeChildren(Map<Object, Object> map) {
         map.remove(fFieldName);
+    }
+
+    private boolean same(Object first, Object second) {
+        return first == second;
     }
 
 }

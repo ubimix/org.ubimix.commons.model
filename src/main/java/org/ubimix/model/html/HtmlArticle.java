@@ -34,7 +34,7 @@ public class HtmlArticle extends XmlElement {
         return getLinks(element, "img", "src");
     }
 
-    private static List<String> getLinks(
+    public static List<String> getLinks(
         XmlElement element,
         String tagName,
         final String attr) {
@@ -55,8 +55,7 @@ public class HtmlArticle extends XmlElement {
         for (XmlElement reference : references) {
             String href = reference.getAttribute(attr);
             if (href != null) {
-                String url = new String(href);
-                result.add(url);
+                result.add(href);
             }
         }
         return result;
@@ -68,12 +67,12 @@ public class HtmlArticle extends XmlElement {
 
     public HtmlArticle() {
         super(HtmlTagDictionary.ARTICLE);
-        XmlElement hgroup = new XmlElement(HtmlTagDictionary.HGROUP);
-        addChild(hgroup);
-        XmlElement h1 = new XmlElement(HtmlTagDictionary.H1);
-        hgroup.addChild(h1);
-        addChild(new XmlElement(HtmlTagDictionary.SECTION));
-        addChild(new XmlElement(HtmlTagDictionary.FOOTER));
+        // XmlElement hgroup = new XmlElement(HtmlTagDictionary.HGROUP);
+        // addChild(hgroup);
+        // XmlElement h1 = new XmlElement(HtmlTagDictionary.H1);
+        // hgroup.addChild(h1);
+        // addChild(new XmlElement(HtmlTagDictionary.SECTION));
+        // addChild(new XmlElement(HtmlTagDictionary.FOOTER));
     }
 
     public HtmlArticle(IHasValueMap object) {

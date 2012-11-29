@@ -151,6 +151,8 @@ public abstract class XmlNode {
     }
 
     /**
+     * FIXME: does not work really for non-element nodes
+     * 
      * @return
      */
     public XmlNode getNextSibling() {
@@ -159,7 +161,9 @@ public abstract class XmlNode {
         }
         int parentSize = fParent.getChildCount();
         int pos = fParent.getChildPosition(this);
-        return pos < parentSize - 1 ? fParent.getChild(pos + 1) : null;
+        return pos >= 0 && pos < parentSize - 1
+            ? fParent.getChild(pos + 1)
+            : null;
     }
 
     public Object getObject() {
@@ -174,7 +178,7 @@ public abstract class XmlNode {
     }
 
     /**
-     * @return
+     * FIXME: does not work really for non-element nodes
      */
     public XmlNode getPreviousSibling() {
         if (fParent == null) {
@@ -198,6 +202,13 @@ public abstract class XmlNode {
     public abstract XmlNode newCopy(boolean depth);
 
     protected abstract Object newObject();
+
+    public void remove() {
+        XmlElement parent = getParent();
+        if (parent != null) {
+            parent.removeChild(this);
+        }
+    }
 
     protected void removeFromParent() {
         if (fParent != null) {

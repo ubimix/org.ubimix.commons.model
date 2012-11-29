@@ -394,7 +394,7 @@ public class XmlElement extends XmlNode
         return TREE_ACCESSOR.getChildObject(getMap(), pos);
     }
 
-    protected int getChildPosition(XmlNode node) {
+    public int getChildPosition(XmlNode node) {
         return TREE_ACCESSOR.getChildPosition(getMap(), node.getObject());
     }
 
@@ -700,13 +700,6 @@ public class XmlElement extends XmlNode
     public XmlText newText(String content) {
         XmlText text = new XmlText(this, content);
         return text;
-    }
-
-    public void remove() {
-        XmlElement parent = getParent();
-        if (parent != null) {
-            parent.removeChild(this);
-        }
     }
 
     public XmlElement removeAttribute(String key) {

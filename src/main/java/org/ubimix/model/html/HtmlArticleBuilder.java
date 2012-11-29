@@ -124,7 +124,12 @@ public class HtmlArticleBuilder {
             try {
                 HtmlArticle parentArticle = fSectionStack.peek();
                 HtmlArticle article = parentArticle.addArticle();
-                article.getTitleElement().addChildren(node);
+                XmlElement titleElement = article.getTitleElement();
+                titleElement.addChildren(node);
+                String id = node.getAttribute("id");
+                if (id != null) {
+                    titleElement.setAttribute("id", id);
+                }
                 fSectionStack.push(article);
             } catch (Throwable t) {
                 throw handleError("Can not create a new XML node", t);

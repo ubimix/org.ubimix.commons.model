@@ -307,7 +307,7 @@ public class InlineNodesBurnerTest extends TestCase {
     private void testInlineNodesProcessor(
         List<XmlNode> list,
         String... controls) {
-        testHandler(new InlineNodesProcessor(), false, list, controls);
+        testHandler(new InlineNodesProcessor(false), false, list, controls);
     }
 
     public void testTextNodeReducer() {

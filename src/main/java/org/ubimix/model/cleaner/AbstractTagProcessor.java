@@ -7,6 +7,20 @@ import org.ubimix.model.xml.XmlElement;
 
 public abstract class AbstractTagProcessor implements ITagProcessor {
 
+    /**
+     * Returns <code>true</code> if the given character is a space character
+     * 
+     * @param ch the character to check
+     * @return <code>true</code> if the given character is a space character
+     */
+    private static boolean isSpaceChar(char ch) {
+        return ch == 160 /* &nbsp; */
+            || ch == '\t'
+            || ch == '\r'
+            || ch == '\n'
+            || Character.isSpaceChar(ch);
+    }
+
     protected ITagProcessor fParentProcessor;
 
     protected String getHtmlName(XmlElement e) {
@@ -57,10 +71,30 @@ public abstract class AbstractTagProcessor implements ITagProcessor {
     }
 
     protected String reduceText(String txtStr, boolean keepSpaces) {
-        if (keepSpaces) {
-            return txtStr;
+        if (txtStr == null) {
+            return "";
         }
-        return txtStr.replaceAll("\\s+", " ");
+        char[] array = txtStr.toCharArray();
+        if (array == null || array.length == 0) {
+            return "";
+        }
+        StringBuilder buf = new StringBuilder();
+        int spaceCount = 0;
+        for (int i = 0; i < array.length; i++) {
+            char ch = array[i];
+            if (isSpaceChar(ch)) {
+                if (keepSpaces) {
+                    buf.append(ch);
+                } else if (spaceCount == 0) {
+                    buf.append(' ');
+                }
+                spaceCount++;
+            } else {
+                buf.append(ch);
+                spaceCount = 0;
+            }
+        }
+        return buf.toString();
     }
 
     protected void removeUnusedAttributes(XmlElement e) {

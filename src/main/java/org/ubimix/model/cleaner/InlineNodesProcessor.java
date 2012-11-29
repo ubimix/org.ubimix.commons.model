@@ -25,6 +25,12 @@ public class InlineNodesProcessor extends AbstractTagProcessor {
 
     private List<XmlNode> fSpaces = new ArrayList<XmlNode>();
 
+    private boolean fTransformBrToParagraph;
+
+    public InlineNodesProcessor(boolean transformBrToParagraphs) {
+        fTransformBrToParagraph = transformBrToParagraphs;
+    }
+
     private void clear() {
         fInlineNodes.clear();
         fLineBreaks.clear();
@@ -38,7 +44,11 @@ public class InlineNodesProcessor extends AbstractTagProcessor {
             if (number > 1) {
                 wrapInlineNodesInParagraph();
             } else if (hasNodesBefore()) {
-                fInlineNodes.add(fLineBreaks.get(0));
+                if (fTransformBrToParagraph) {
+                    wrapInlineNodesInParagraph();
+                } else {
+                    fInlineNodes.add(fLineBreaks.get(0));
+                }
             }
             fLineBreaks.clear();
         }
