@@ -8,12 +8,8 @@ package org.ubimix.model.xml;
  */
 public class XmlText extends XmlNode {
 
-    public XmlText(String content) {
-        this(null, content);
-    }
-
-    public XmlText(XmlElement parent, String content) {
-        super(parent, content);
+    protected XmlText(String content) {
+        super(null, content);
     }
 
     @Override

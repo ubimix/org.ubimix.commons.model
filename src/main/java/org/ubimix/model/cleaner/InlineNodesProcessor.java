@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
 
@@ -130,7 +131,8 @@ public class InlineNodesProcessor extends AbstractTagProcessor {
 
     private void wrapInlineNodesInParagraph() {
         if (fInlineNodes.size() > 0) {
-            XmlElement paragraph = new XmlElement(HtmlTagDictionary.P);
+            XmlFactory factory = fInlineNodes.get(0).getFactory();
+            XmlElement paragraph = factory.newElement(HtmlTagDictionary.P);
             fResult.add(paragraph);
             paragraph.addChildren(fInlineNodes);
             fInlineNodes.clear();

@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.commons.parser.xml.utils.XmlSerializer;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
@@ -33,26 +34,29 @@ public class XmlTest extends TestCase {
     }
 
     public void testElement() throws Exception {
+        XmlFactory doc = new XmlFactory();
         XmlElement e;
 
-        e = new XmlElement("div");
+        e = doc.newElement("div");
         assertEquals("div", e.getName());
         assertEquals("<div></div>", e.toString());
 
-        e = new XmlElement((String) null);
+        e = doc.newElement((String) null);
         assertEquals("umx:object", e.getName());
         assertEquals("<umx:object></umx:object>", e.toString());
     }
 
     public void testElementAttributes() {
-        XmlElement e = new XmlElement("div");
+        XmlFactory doc = new XmlFactory();
+        XmlElement e = doc.newElement("div");
         assertNull(e.getAttribute("toto"));
         e.setAttribute("toto", "abc");
         assertEquals("abc", e.getAttribute("toto"));
     }
 
     public void testElementChildren() {
-        XmlElement e = new XmlElement("div");
+        XmlFactory doc = new XmlFactory();
+        XmlElement e = doc.newElement("div");
         List<XmlNode> children = e.getChildren();
         assertNotNull(children);
         assertTrue(children.isEmpty());
@@ -62,12 +66,12 @@ public class XmlTest extends TestCase {
         assertNotNull(iterator);
         assertFalse(iterator.hasNext());
 
-        XmlElement c = new XmlElement("p");
+        XmlElement c = doc.newElement("p");
         assertNull(c.getParent());
         e.addChild(c);
         assertEquals(e, c.getParent());
 
-        XmlText t = new XmlText("Hello");
+        XmlText t = doc.newText("Hello");
         assertNull(t.getParent());
         e.addChild(t, 0);
         assertEquals(e, t.getParent());
@@ -79,14 +83,15 @@ public class XmlTest extends TestCase {
     }
 
     public void testElementSerialization() {
-        XmlElement html = new XmlElement("html");
-        XmlElement head = new XmlElement("head");
-        XmlElement body = new XmlElement("body");
+        XmlFactory doc = new XmlFactory();
+        XmlElement html = doc.newElement("html");
+        XmlElement head = doc.newElement("head");
+        XmlElement body = doc.newElement("body");
         html.addChild(head);
         html.addChild(body);
-        XmlElement p = new XmlElement("p");
+        XmlElement p = doc.newElement("p");
         body.addChild(p);
-        XmlText text = new XmlText("Hello, there!");
+        XmlText text = doc.newText("Hello, there!");
         p.addChild(text);
 
         testElementSerialization(html, "<html>"
@@ -116,7 +121,8 @@ public class XmlTest extends TestCase {
     }
 
     private void testEntitiesInXml(String xml, String control) {
-        XmlText node = new XmlText(xml);
+        XmlFactory doc = new XmlFactory();
+        XmlText node = doc.newText(xml);
         String str = node.toString();
         assertEquals(control, str);
     }

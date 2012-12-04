@@ -1,34 +1,32 @@
 package org.ubimix.model.html;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
-import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.ModelObject;
-import org.ubimix.model.selector.PathProcessor;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
+import org.ubimix.model.xml.XmlWrapper;
 
 /**
  * @author kotelnikov
  */
-public class HtmlArticle extends XmlElement {
+public class HtmlArticle extends XmlWrapper {
 
-    public static final IValueFactory<HtmlArticle> FACTORY = new AbstractXmlElementFactory<HtmlArticle>() {
+    public static final IValueFactory<HtmlArticle> FACTORY = new IValueFactory<HtmlArticle>() {
         @Override
-        protected HtmlArticle newXmlElement(
-            XmlElement parent,
-            Map<Object, Object> map) {
-            return new HtmlArticle(parent, map);
+        public HtmlArticle newValue(Object object) {
+            XmlElement e = null;
+            if (object instanceof XmlElement) {
+                e = (XmlElement) object;
+            }
+            return e != null ? new HtmlArticle(e) : null;
         }
     };
-
-    private static Map<String, PathProcessor> fPathProcessorCache = new HashMap<String, PathProcessor>();
 
     public static List<String> getImageUrls(XmlElement element) {
         return getLinks(element, "img", "src");
@@ -38,35 +36,29 @@ public class HtmlArticle extends XmlElement {
         XmlElement element,
         String tagName,
         final String attr) {
-        List<String> result = new ArrayList<String>();
-        List<XmlElement> references = element.getAllChildrenByName(
+        List<String> references = element.getAllChildrenByName(
             tagName,
-            new IValueFactory<XmlElement>() {
+            new IValueFactory<String>() {
                 @Override
-                public XmlElement newValue(Object object) {
+                public String newValue(Object object) {
                     XmlElement e = (XmlElement) object;
                     String value = e.getAttribute(attr);
                     if (value == null) {
                         return null;
                     }
-                    return e;
+                    String href = e.getAttribute(attr);
+                    return href;
                 }
             });
-        for (XmlElement reference : references) {
-            String href = reference.getAttribute(attr);
-            if (href != null) {
-                result.add(href);
-            }
-        }
-        return result;
+        return references;
     }
 
     public static List<String> getReferences(XmlElement element) {
         return getLinks(element, "a", "href");
     }
 
-    public HtmlArticle() {
-        super(HtmlTagDictionary.ARTICLE);
+    public HtmlArticle(XmlElement e) {
+        super(e);
         // XmlElement hgroup = new XmlElement(HtmlTagDictionary.HGROUP);
         // addChild(hgroup);
         // XmlElement h1 = new XmlElement(HtmlTagDictionary.H1);
@@ -75,31 +67,22 @@ public class HtmlArticle extends XmlElement {
         // addChild(new XmlElement(HtmlTagDictionary.FOOTER));
     }
 
-    public HtmlArticle(IHasValueMap object) {
-        super(object);
-    }
-
-    public HtmlArticle(XmlElement parent) {
-        this();
-        setParent(parent);
-    }
-
-    public HtmlArticle(XmlElement parent, Map<Object, Object> map) {
-        super(parent, map);
+    public HtmlArticle(XmlFactory factory) {
+        this(factory.newElement(HtmlTagDictionary.ARTICLE));
     }
 
     public HtmlArticle addArticle() {
-        HtmlArticle article = new HtmlArticle(this);
+        HtmlArticle article = new HtmlArticle(getFactory());
         addArticle(article);
         return article;
     }
 
     public void addArticle(HtmlArticle article) {
-        this.addChild(article);
+        fElement.addChild(article.fElement);
     }
 
     public List<HtmlArticle> getArticles() {
-        List<HtmlArticle> result = getChildrenByName(
+        List<HtmlArticle> result = fElement.getChildrenByName(
             HtmlTagDictionary.ARTICLE,
             HtmlArticle.FACTORY);
         result.remove(this);
@@ -119,7 +102,7 @@ public class HtmlArticle extends XmlElement {
     }
 
     public List<String> getImageUrls() {
-        return getImageUrls(this);
+        return getImageUrls(fElement);
     }
 
     public <T> List<T> getImageUrlsAs(IValueFactory<T> factory) {
@@ -140,31 +123,22 @@ public class HtmlArticle extends XmlElement {
         return result;
     }
 
-    protected XmlElement getOrCreate(XmlElement e, String childName) {
-        return getOrCreate(e, childName, XmlElement.FACTORY);
-    }
-
     protected <T extends XmlElement> T getOrCreate(
         XmlElement e,
         String childName,
         IValueFactory<T> factory) {
         T result = e.getChildByName(childName, factory);
         if (result == null) {
-            XmlElement child = new XmlElement(childName);
+            XmlFactory xmlFactory = e.getFactory();
+            XmlElement child = xmlFactory.newElement(childName);
             e.addChild(child);
             result = factory.newValue(child);
         }
         return result;
     }
 
-    @Override
-    protected PathProcessor getPathProcessor(String cssSelector) {
-        PathProcessor processor = fPathProcessorCache.get(cssSelector);
-        if (processor == null) {
-            processor = super.getPathProcessor(cssSelector);
-            fPathProcessorCache.put(cssSelector, processor);
-        }
-        return processor;
+    protected XmlElement getOrCreate(XmlWrapper e, String childName) {
+        return fElement.getOrCreateElement(childName, XmlElement.FACTORY);
     }
 
     public ModelObject getProperties() {
@@ -174,7 +148,7 @@ public class HtmlArticle extends XmlElement {
     }
 
     public List<String> getReferences() {
-        return getReferences(this);
+        return getReferences(fElement);
     }
 
     public <T> List<T> getReferencesAs(IValueFactory<T> factory) {
@@ -212,7 +186,7 @@ public class HtmlArticle extends XmlElement {
 
     public XmlElement getTitleElement() {
         XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
-        return getOrCreate(hgroup, HtmlTagDictionary.H1);
+        return XmlElement.getOrCreateElement(hgroup, HtmlTagDictionary.H1);
     }
 
     public void setContent(XmlElement contentXml) {
@@ -221,16 +195,11 @@ public class HtmlArticle extends XmlElement {
         section.addChild(contentXml);
     }
 
-    public void setProperties(ModelObject properties) {
-        XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
-        XmlElement e = new XmlElement(properties);
-        e.setName("properties");
-        hgroup.addChild(e);
-    }
-
     public void setTitle(String title) {
         XmlElement e = getTitleElement();
-        e.setChildren(new XmlText(title));
+        XmlFactory factory = getFactory();
+        XmlText child = factory.newText(title);
+        e.setChildren(child);
     }
 
 }

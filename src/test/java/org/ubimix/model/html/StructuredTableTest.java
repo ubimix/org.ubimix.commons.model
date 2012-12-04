@@ -11,13 +11,15 @@ import junit.framework.TestCase;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.html.StructuredNode.Value;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
-import org.ubimix.model.xml.XmlText;
 
 /**
  * @author kotelnikov
  */
 public class StructuredTableTest extends TestCase {
+
+    private XmlFactory fFactory = new XmlFactory();
 
     /**
      * @param name
@@ -162,9 +164,9 @@ public class StructuredTableTest extends TestCase {
     }
 
     private XmlElement toLine(String cellName, String... values) {
-        XmlElement row = new XmlElement("tr");
+        XmlElement row = fFactory.newElement("tr");
         for (String value : values) {
-            XmlElement cell = new XmlElement(cellName);
+            XmlElement cell = fFactory.newElement(cellName);
             row.addChild(cell);
             XmlNode node = toNode(value);
             cell.addChild(node);
@@ -180,13 +182,13 @@ public class StructuredTableTest extends TestCase {
         if (value.startsWith("<")) {
             result = HtmlDocument.parseFragment(value);
         } else {
-            result = new XmlText(value);
+            result = fFactory.newText(value);
         }
         return result;
     }
 
     private XmlElement toTable(XmlElement... rows) {
-        XmlElement table = new XmlElement("table");
+        XmlElement table = fFactory.newElement("table");
         table.addChildren(Arrays.<XmlNode> asList(rows));
         return table;
     }

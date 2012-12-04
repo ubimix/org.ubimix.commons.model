@@ -25,12 +25,8 @@ public class XmlCDATA extends XmlText {
         return str;
     }
 
-    public XmlCDATA(String content) {
-        this(null, content);
-    }
-
-    public XmlCDATA(XmlElement parent, String object) {
-        super(parent, object);
+    protected XmlCDATA(String content) {
+        super(content);
     }
 
     @Override

@@ -11,13 +11,14 @@ import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.html.HtmlParser;
 import org.ubimix.model.xml.XmlBuilder;
 import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlText;
+import org.ubimix.model.xml.XmlFactory;
 
 /**
  * @author kotelnikov
  */
 public class HtmlFormatterSandbox {
     public static void main(String[] args) {
+        final XmlFactory factory = new XmlFactory();
         final XmlElement formattedDoc = XmlElement.parse(""
             + "<html>\n"
             + "<head></head>\n"
@@ -33,7 +34,8 @@ public class HtmlFormatterSandbox {
                 super.dispatchToken(token);
                 IPointer begin = token.getBegin();
                 IPointer end = token.getEnd();
-                XmlElement span = new XmlElement("span")
+                XmlElement span = factory
+                    .newElement("span")
                     .setAttribute("id", "" + id[0])
                     .setAttribute("begin", formatPos(begin))
                     .setAttribute("end", formatPos(end));
@@ -48,7 +50,7 @@ public class HtmlFormatterSandbox {
                 }
                 span.setAttribute("class", name);
                 formatted.addChild(span);
-                span.addChild(new XmlText(token.getText()));
+                span.addChild(factory.newText(token.getText()));
                 id[0]++;
             }
 
@@ -61,7 +63,7 @@ public class HtmlFormatterSandbox {
                     + "]";
             }
         };
-        XmlBuilder builder = new XmlBuilder() {
+        XmlBuilder builder = new XmlBuilder(factory) {
             @Override
             public void beginElement(
                 String name,
@@ -102,7 +104,7 @@ public class HtmlFormatterSandbox {
             + "two", builder);
         XmlElement e = builder.getResult();
         XmlElement formattedBody = formattedDoc.select("body");
-        formattedBody.addChild(new XmlElement("hr"));
+        formattedBody.addChild(factory.newElement("hr"));
         formattedBody.addChildren(e.select("body"));
 
         System.out.println(formattedDoc);

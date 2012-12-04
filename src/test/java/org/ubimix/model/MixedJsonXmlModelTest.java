@@ -127,13 +127,14 @@ public class MixedJsonXmlModelTest extends TestCase {
         assertEquals(obj, objTest);
         assertEquals(xmlStr, xmlTest.toString());
         assertEquals(objStr, objTest.toString());
-        assertEquals(xmlTest, XmlElement.from(objTest));
+
+        assertEquals(xmlTest, XmlElement.FACTORY.newValue(objTest));
         assertEquals(objTest, ModelObject.from(xmlTest));
     }
 
     private String testObjToXml(String str) {
         ModelObject obj = ModelObject.parse(str);
-        XmlElement xml = new XmlElement(obj);
+        XmlElement xml = XmlElement.FACTORY.newValue(obj);
         testConversion(xml, obj);
         return xml.toString();
     }

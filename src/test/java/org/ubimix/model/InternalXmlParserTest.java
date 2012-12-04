@@ -9,6 +9,7 @@ import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.model.xml.XmlBuilder;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 
 /**
  * @author kotelnikov
@@ -118,7 +119,8 @@ public class InternalXmlParserTest extends TestCase {
     }
 
     private void testParser(String xml, String control) {
-        XmlBuilder builder = new XmlBuilder();
+        XmlFactory factory = new XmlFactory();
+        XmlBuilder builder = new XmlBuilder(factory);
         IXmlParser parser = newXmlParser();
         parser.parse(xml, builder);
         XmlElement element = builder.getResult();

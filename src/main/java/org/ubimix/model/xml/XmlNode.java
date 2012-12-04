@@ -150,6 +150,10 @@ public abstract class XmlNode {
         return first == second || (first != null && first.equals(second));
     }
 
+    public XmlFactory getFactory() {
+        return new XmlFactory();
+    }
+
     /**
      * FIXME: does not work really for non-element nodes
      * 

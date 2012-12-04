@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.ubimix.model.xml.XmlCDATA;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
 
@@ -21,6 +22,7 @@ public class TextNodeReducer extends AbstractTagProcessor {
         List<XmlNode> nodes = element.getChildren();
         List<XmlNode> result = new ArrayList<XmlNode>();
         StringBuilder buf = new StringBuilder();
+        XmlFactory factory = element.getFactory();
         int len = nodes.size();
         for (int i = 0; i < len; i++) {
             XmlNode node = nodes.get(i);
@@ -31,7 +33,7 @@ public class TextNodeReducer extends AbstractTagProcessor {
                 if (buf.length() > 0) {
                     String str = reduceText(buf.toString(), keepSpaces);
                     buf.delete(0, buf.length());
-                    XmlText text = new XmlText(str);
+                    XmlText text = factory.newText(str);
                     result.add(text);
                 }
                 result.add(node);
@@ -40,7 +42,7 @@ public class TextNodeReducer extends AbstractTagProcessor {
         if (buf.length() > 0) {
             String str = reduceText(buf.toString(), keepSpaces);
             buf.delete(0, buf.length());
-            XmlText text = new XmlText(str);
+            XmlText text = factory.newText(str);
             result.add(text);
         }
         element.setChildren(result);

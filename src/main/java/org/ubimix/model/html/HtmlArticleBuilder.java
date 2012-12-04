@@ -14,6 +14,7 @@ import org.ubimix.commons.graph.WalkerListener;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.cleaner.TagBurner;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
 
 /**
@@ -155,7 +156,8 @@ public class HtmlArticleBuilder {
     }
 
     public HtmlArticle buildArticle(XmlElement e) {
-        HtmlArticle result = new HtmlArticle();
+        XmlFactory factory = e.getFactory();
+        HtmlArticle result = new HtmlArticle(factory);
         buildArticle(e, result);
         return result;
     }

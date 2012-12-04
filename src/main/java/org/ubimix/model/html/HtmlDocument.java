@@ -11,6 +11,7 @@ import org.ubimix.commons.parser.html.HtmlParser;
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.model.xml.XmlBuilder;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 
 /**
  * @author kotelnikov
@@ -22,7 +23,8 @@ public class HtmlDocument {
     }
 
     public static XmlElement parse(ICharStream stream) {
-        XmlBuilder builder = new XmlBuilder();
+        XmlFactory factory = new XmlFactory();
+        XmlBuilder builder = new XmlBuilder(factory);
         IXmlParser parser = new HtmlParser();
         parser.parse(stream, builder);
         return builder.getResult();

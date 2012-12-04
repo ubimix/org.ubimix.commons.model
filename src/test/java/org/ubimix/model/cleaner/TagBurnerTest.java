@@ -9,12 +9,15 @@ import junit.framework.TestCase;
 
 import org.ubimix.model.html.HtmlDocument;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
 
 /**
  * @author kotelnikov
  */
 public class TagBurnerTest extends TestCase {
+
+    private XmlFactory fFactory = new XmlFactory();
 
     /**
      * @param name
@@ -73,7 +76,7 @@ public class TagBurnerTest extends TestCase {
         XmlElement div = HtmlDocument.parseFragment(str);
         List<XmlNode> l = burner.handle(div, false);
         if (l.size() > 1) {
-            div = new XmlElement("div");
+            div = fFactory.newElement("div");
             div.setChildren(l);
             assertEquals(control, div.toString());
         } else if (l.size() == 1) {
@@ -287,7 +290,7 @@ public class TagBurnerTest extends TestCase {
         XmlElement div = XmlElement.parse(str);
         List<XmlNode> l = burner.handle(div, false);
         if (l.size() > 1) {
-            div = new XmlElement("div");
+            div = fFactory.newElement("div");
             div.setChildren(l);
             assertEquals(control, div.toString());
         } else if (l.size() == 1) {

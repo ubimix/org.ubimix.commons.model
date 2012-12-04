@@ -95,12 +95,15 @@ public class XmlBuilder extends XmlListener {
 
     protected Context fContext;
 
+    private XmlFactory fFactory;
+
     protected XmlElement fTopElement;
 
     /**
      * 
      */
-    public XmlBuilder() {
+    public XmlBuilder(XmlFactory factory) {
+        fFactory = factory;
     }
 
     @Override
@@ -137,13 +140,13 @@ public class XmlBuilder extends XmlListener {
     }
 
     protected XmlElement newXmlElement(String name) {
-        return new XmlElement(name);
+        return fFactory.newElement(name);
     }
 
     @Override
     public void onCDATA(String content) {
         if (fContext != null) {
-            XmlCDATA node = new XmlCDATA(content);
+            XmlCDATA node = fFactory.newCDATA(content);
             fContext.appendChild(node);
         }
     }
@@ -152,7 +155,7 @@ public class XmlBuilder extends XmlListener {
     public void onEntity(Entity entity) {
         if (fContext != null) {
             String text = entity.getChars();
-            XmlText node = new XmlText(text);
+            XmlText node = fFactory.newText(text);
             fContext.appendChild(node);
         }
     }
@@ -160,7 +163,7 @@ public class XmlBuilder extends XmlListener {
     @Override
     public void onText(String text) {
         if (fContext != null) {
-            XmlText node = new XmlText(text);
+            XmlText node = fFactory.newText(text);
             fContext.appendChild(node);
         }
     }

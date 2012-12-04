@@ -13,14 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.ubimix.commons.parser.CharStream;
-import org.ubimix.commons.parser.ICharStream;
-import org.ubimix.commons.parser.ITokenizer;
-import org.ubimix.commons.parser.html.XHTMLEntities;
-import org.ubimix.commons.parser.xml.EntityFactory;
-import org.ubimix.commons.parser.xml.IXmlParser;
-import org.ubimix.commons.parser.xml.XMLTokenizer;
-import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
@@ -38,43 +30,20 @@ public class XmlElement extends XmlNode
     Iterable<XmlNode>,
     IHasValueMap {
 
-    public static abstract class AbstractXmlElementFactory<T extends XmlElement>
-        implements
-        IValueFactory<T> {
-        @Override
-        public T newValue(Object object) {
-            XmlElement parent = null;
-            Map<Object, Object> map = null;
-            if (object instanceof IHasValueMap) {
-                map = ((IHasValueMap) object).getMap();
-                if (object instanceof XmlNode) {
-                    parent = ((XmlNode) object).getParent();
-                }
-            } else if (object instanceof Map<?, ?>) {
-                map = cast(object);
-            }
-            return map != null ? newXmlElement(parent, map) : null;
-        }
-
-        protected abstract T newXmlElement(
-            XmlElement parent,
-            Map<Object, Object> map);
-    }
-
     /**
      * Creates and returns {@link XmlElement} instance wrapping the specified
      * java value.
      */
-    public static final IValueFactory<XmlElement> FACTORY = new AbstractXmlElementFactory<XmlElement>() {
+    public static final IValueFactory<XmlElement> FACTORY = new IValueFactory<XmlElement>() {
         @Override
-        protected XmlElement newXmlElement(
-            XmlElement parent,
-            Map<Object, Object> map) {
-            return new XmlElement(parent, map);
+        public XmlElement newValue(Object object) {
+            if (!(object instanceof XmlElement)) {
+                return null;
+            }
+            XmlElement e = (XmlElement) object;
+            return e;
         }
     };
-
-    private static IXmlParser fParser;
 
     private static final String KEY_CHILDREN = "~";
 
@@ -112,22 +81,22 @@ public class XmlElement extends XmlNode
         return (T) value;
     }
 
-    public static XmlElement from(IHasValueMap object) {
-        if (object instanceof XmlElement) {
-            return cast(object);
+    public static XmlElement getOrCreateElement(XmlElement e, String name) {
+        XmlElement child = e.getChildByName(name);
+        if (child == null) {
+            XmlFactory factory = e.getFactory();
+            child = factory.newElement(name);
+            e.addChild(child);
         }
-        return new XmlElement(object);
+        return child;
     }
 
-    public static IXmlParser getParser() {
-        if (fParser == null) {
-            EntityFactory entityFactory = new EntityFactory();
-            new XHTMLEntities(entityFactory);
-            ITokenizer tokenizer = XMLTokenizer
-                .getFullXMLTokenizer(entityFactory);
-            fParser = new XmlParser(tokenizer);
-        }
-        return fParser;
+    public static <T> T getOrCreateElement(
+        XmlElement e,
+        String name,
+        IValueFactory<T> factory) {
+        XmlElement r = getOrCreateElement(e, name);
+        return r != null ? factory.newValue(r) : null;
     }
 
     private static boolean isExcludedAttributeName(String key) {
@@ -144,7 +113,7 @@ public class XmlElement extends XmlNode
         return (value instanceof Map<?, ?>) || (value instanceof List<?>);
     }
 
-    private static <T extends XmlElement> void loadChildrenByName(
+    private static <T> void loadChildrenByName(
         XmlElement element,
         String tagName,
         List<T> result,
@@ -167,38 +136,18 @@ public class XmlElement extends XmlNode
         }
     }
 
-    public static XmlElement parse(ICharStream stream) {
-        XmlBuilder builder = new XmlBuilder();
-        IXmlParser parser = getParser();
-        parser.parse(stream, builder);
-        return builder.getResult();
-    }
-
     public static XmlElement parse(String xml) {
-        ICharStream stream = new CharStream(xml);
-        return parse(stream);
+        return new XmlFactory().parse(xml);
     }
 
-    public static void setParser(IXmlParser parser) {
-        fParser = parser;
-    }
-
-    public XmlElement(IHasValueMap object) {
-        this(null, object.getMap());
-        if (object instanceof XmlNode) {
-            XmlNode node = (XmlNode) object;
-            setParent(node.getParent());
-        }
-    }
-
-    public XmlElement(String name) {
+    protected XmlElement(String name) {
         this(null, null);
         if (!"umx:object".equals(name)) {
             setName(name);
         }
     }
 
-    public XmlElement(XmlElement parent, Map<Object, Object> map) {
+    protected XmlElement(XmlElement parent, Map<Object, Object> map) {
         super(parent, map);
     }
 
@@ -243,11 +192,7 @@ public class XmlElement extends XmlNode
         return this;
     }
 
-    public List<XmlElement> getAllChildrenByName(String tagName) {
-        return getAllChildrenByName(tagName, FACTORY);
-    }
-
-    public <T extends XmlElement> List<T> getAllChildrenByName(
+    public <T> List<T> getAllChildrenByName(
         String tagName,
         IValueFactory<T> factory) {
         List<T> result = new ArrayList<T>();
@@ -406,7 +351,7 @@ public class XmlElement extends XmlNode
         return getChildrenByName(tagName, XmlElement.FACTORY);
     }
 
-    public <T extends XmlElement> List<T> getChildrenByName(
+    public <T> List<T> getChildrenByName(
         String tagName,
         IValueFactory<T> factory) {
         List<T> result = new ArrayList<T>();
@@ -435,7 +380,7 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    public <T extends XmlElement> List<T> getChildrenByPath(
+    public <T> List<T> getChildrenByPath(
         IValueFactory<T> factory,
         String... path) {
         List<T> result = new ArrayList<T>();
@@ -549,13 +494,8 @@ public class XmlElement extends XmlNode
         return getOrCreateElement(this, name);
     }
 
-    public XmlElement getOrCreateElement(XmlElement e, String name) {
-        XmlElement child = e.getChildByName(name);
-        if (child == null) {
-            child = new XmlElement(name);
-            addChild(child);
-        }
-        return child;
+    public <T> T getOrCreateElement(String name, IValueFactory<T> factory) {
+        return getOrCreateElement(this, name, factory);
     }
 
     protected PathProcessor getPathProcessor(String cssSelector) {
@@ -632,7 +572,9 @@ public class XmlElement extends XmlNode
     }
 
     public XmlCDATA newCDATA(String object) {
-        XmlCDATA cdata = new XmlCDATA(this, object);
+        XmlFactory factory = getFactory();
+        XmlCDATA cdata = factory.newCDATA(object);
+        cdata.setParent(this);
         return cdata;
     }
 
@@ -698,7 +640,9 @@ public class XmlElement extends XmlNode
     }
 
     public XmlText newText(String content) {
-        XmlText text = new XmlText(this, content);
+        XmlFactory factory = getFactory();
+        XmlText text = factory.newText(content);
+        text.setParent(this);
         return text;
     }
 

@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
@@ -70,7 +71,9 @@ public class HtmlListNodeProcessor extends AbstractTagProcessor {
 
     private void wrapNodesInListItem(List<XmlNode> result, List<XmlNode> nodes) {
         if (!nodes.isEmpty()) {
-            XmlElement li = new XmlElement(HtmlTagDictionary.LI);
+            XmlNode node = nodes.get(0);
+            XmlFactory factory = node.getFactory();
+            XmlElement li = factory.newElement(HtmlTagDictionary.LI);
             li.setChildren(nodes);
             result.add(li);
             nodes.clear();

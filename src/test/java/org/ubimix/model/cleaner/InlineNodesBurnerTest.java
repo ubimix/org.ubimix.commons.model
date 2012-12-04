@@ -10,13 +10,15 @@ import junit.framework.TestCase;
 
 import org.ubimix.model.html.HtmlDocument;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
-import org.ubimix.model.xml.XmlText;
 
 /**
  * @author kotelnikov
  */
 public class InlineNodesBurnerTest extends TestCase {
+
+    private XmlFactory fFactory = new XmlFactory();
 
     /**
      * @param name
@@ -32,7 +34,7 @@ public class InlineNodesBurnerTest extends TestCase {
             if (str.startsWith("<")) {
                 node = HtmlDocument.parseFragment(str);
             } else {
-                node = new XmlText(str);
+                node = fFactory.newText(str);
             }
             result.add(node);
         }
@@ -44,7 +46,7 @@ public class InlineNodesBurnerTest extends TestCase {
         boolean keepSpaces,
         List<XmlNode> list,
         String... controls) {
-        XmlElement div = new XmlElement("div");
+        XmlElement div = fFactory.newElement("div");
         div.setChildren(list);
 
         List<XmlNode> l = processor.handle(div, keepSpaces);
