@@ -14,6 +14,7 @@ import org.ubimix.model.selector.IPathSelector;
 import org.ubimix.model.selector.PathProcessor;
 import org.ubimix.model.selector.utils.TreeNodeProvider;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 
 /**
  * @author kotelnikov
@@ -69,7 +70,8 @@ public abstract class AbstractPathProcessorTest extends TestCase {
         final boolean collect,
         IPathSelector selector,
         String... controls) {
-        XmlElement node = XmlElement.parse(xml);
+        XmlFactory factory = new XmlFactory();
+        XmlElement node = factory.parse(xml);
         INodeProvider provider = XmlElement.XML_TREE_NODE_PROVIDER;
         test(node, collect, provider, selector, controls);
     }

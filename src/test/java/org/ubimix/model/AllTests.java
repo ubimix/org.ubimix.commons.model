@@ -5,6 +5,7 @@ import junit.framework.TestSuite;
 
 import org.ubimix.model.cleaner.InlineNodesBurnerTest;
 import org.ubimix.model.cleaner.TagBurnerTest;
+import org.ubimix.model.conversion.ConverterTest;
 import org.ubimix.model.html.HtmlArticleBuilderTest;
 import org.ubimix.model.html.HtmlDocumentTest;
 import org.ubimix.model.html.StructuredNodesBindingTest;
@@ -20,6 +21,7 @@ public class AllTests {
         TestSuite suite = new TestSuite(AllTests.class.getName());
         // $JUnit-BEGIN$
         suite.addTestSuite(CssSelectProcessorTest.class);
+        suite.addTestSuite(ConverterTest.class);
         suite.addTestSuite(MixedJsonXmlModelTest.class);
         suite.addTestSuite(ModelObjectTest.class);
         suite.addTestSuite(PathProcessorTest.class);

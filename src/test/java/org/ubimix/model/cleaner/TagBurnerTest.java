@@ -287,7 +287,8 @@ public class TagBurnerTest extends TestCase {
 
     private void testTagBurner(String str, String control) {
         TagBurner burner = new TagBurner();
-        XmlElement div = XmlElement.parse(str);
+        XmlFactory factory = new XmlFactory();
+        XmlElement div = factory.parse(str);
         List<XmlNode> l = burner.handle(div, false);
         if (l.size() > 1) {
             div = fFactory.newElement("div");

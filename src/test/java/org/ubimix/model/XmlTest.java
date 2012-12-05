@@ -11,8 +11,8 @@ import junit.framework.TestCase;
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.commons.parser.xml.utils.XmlSerializer;
-import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlNode;
 import org.ubimix.model.xml.XmlText;
 
@@ -109,7 +109,7 @@ public class XmlTest extends TestCase {
 
     private void testElementSerialization(XmlElement html, String control) {
         XmlSerializer serializer = new XmlSerializer();
-        html.accept(serializer);
+        html.accept(serializer, true);
         String str = serializer.toString();
         assertEquals(control, str);
     }

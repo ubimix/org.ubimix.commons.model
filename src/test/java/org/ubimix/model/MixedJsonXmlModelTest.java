@@ -6,6 +6,7 @@ package org.ubimix.model;
 import junit.framework.TestCase;
 
 import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.XmlFactory;
 
 /**
  * @author kotelnikov
@@ -23,7 +24,8 @@ public class MixedJsonXmlModelTest extends TestCase {
         }
 
         public MyDocument setContent(String content) {
-            XmlElement element = XmlElement.parse(content);
+            XmlFactory factory = new XmlFactory();
+            XmlElement element = factory.parse(content);
             return setContent(element);
         }
 
@@ -121,7 +123,7 @@ public class MixedJsonXmlModelTest extends TestCase {
     protected void testConversion(XmlElement xml, ModelObject obj) {
         String xmlStr = xml.toString();
         String objStr = obj.toString();
-        XmlElement xmlTest = XmlElement.parse(xmlStr);
+        XmlElement xmlTest = xml.getFactory().parse(xmlStr);
         ModelObject objTest = ModelObject.parse(objStr);
         assertEquals(xml, xmlTest);
         assertEquals(obj, objTest);
@@ -140,7 +142,8 @@ public class MixedJsonXmlModelTest extends TestCase {
     }
 
     private String testXmlToObj(String str) {
-        XmlElement xml = XmlElement.parse(str);
+        XmlFactory factory = new XmlFactory();
+        XmlElement xml = factory.parse(str);
         ModelObject obj = ModelObject.from(xml);
         testConversion(xml, obj);
         return obj.toString();

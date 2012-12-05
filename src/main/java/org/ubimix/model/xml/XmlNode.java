@@ -23,13 +23,16 @@ public abstract class XmlNode {
      */
     public static class XmlVisitorWithListener implements IXmlVisitor {
 
+        private boolean fDeep;
+
         private IXmlListener fListener;
 
         /**
          * 
          */
-        public XmlVisitorWithListener(IXmlListener listener) {
+        public XmlVisitorWithListener(IXmlListener listener, boolean deep) {
             fListener = listener;
+            fDeep = deep;
         }
 
         @Override
@@ -46,8 +49,10 @@ public abstract class XmlNode {
             Map<String, String> attributes = element.getAttributes();
             fListener.beginElement(name, attributes, declaredNamespaces);
             visitElementProperties(element);
-            for (XmlNode child : element) {
-                child.accept(this);
+            if (fDeep) {
+                for (XmlNode child : element) {
+                    child.accept(this);
+                }
             }
             fListener.endElement(name, attributes, declaredNamespaces);
         }
@@ -86,7 +91,7 @@ public abstract class XmlNode {
         XmlSerializer listener = new XmlSerializer();
         listener.setSortAttributes(sortAttributes);
         for (XmlNode node : nodes) {
-            node.accept(listener);
+            node.accept(listener, true);
         }
         return listener.toString();
     }
@@ -97,7 +102,7 @@ public abstract class XmlNode {
         XmlSerializer listener = new XmlSerializer();
         listener.setSortAttributes(sortAttributes);
         for (XmlNode node : nodes) {
-            node.accept(listener);
+            node.accept(listener, true);
         }
         return listener.toString();
     }
@@ -105,7 +110,7 @@ public abstract class XmlNode {
     public static <T extends XmlNode> String toText(Iterable<T> nodes) {
         TextSerializer listener = new TextSerializer();
         for (XmlNode node : nodes) {
-            node.accept(listener);
+            node.accept(listener, true);
         }
         return listener.toString();
     }
@@ -113,7 +118,7 @@ public abstract class XmlNode {
     public static <T extends XmlNode> String toText(T... nodes) {
         TextSerializer listener = new TextSerializer();
         for (XmlNode node : nodes) {
-            node.accept(listener);
+            node.accept(listener, true);
         }
         return listener.toString();
     }
@@ -127,8 +132,10 @@ public abstract class XmlNode {
         fObject = object;
     }
 
-    public void accept(IXmlListener listener) {
-        XmlVisitorWithListener visitor = new XmlVisitorWithListener(listener);
+    public void accept(IXmlListener listener, boolean deep) {
+        XmlVisitorWithListener visitor = new XmlVisitorWithListener(
+            listener,
+            deep);
         accept(visitor);
     }
 
@@ -237,13 +244,13 @@ public abstract class XmlNode {
     public String toString(boolean sortAttributes) {
         XmlSerializer listener = new XmlSerializer();
         listener.setSortAttributes(sortAttributes);
-        accept(listener);
+        accept(listener, true);
         return listener.toString();
     }
 
     public String toText() {
         TextSerializer listener = new TextSerializer();
-        accept(listener);
+        accept(listener, true);
         return listener.toString();
     }
 

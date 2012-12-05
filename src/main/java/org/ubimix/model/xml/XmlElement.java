@@ -16,6 +16,7 @@ import java.util.Set;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
+import org.ubimix.model.conversion.Converter;
 import org.ubimix.model.selector.IPathNodeCollector;
 import org.ubimix.model.selector.IPathSelector;
 import org.ubimix.model.selector.PathProcessor;
@@ -35,19 +36,32 @@ public class XmlElement extends XmlNode
      * java value.
      */
     public static final IValueFactory<XmlElement> FACTORY = new IValueFactory<XmlElement>() {
+        private XmlFactory fXmlFactory = new XmlFactory();
+
         @Override
         public XmlElement newValue(Object object) {
+            XmlElement result = null;
             if (!(object instanceof XmlElement)) {
-                return null;
+                if (object instanceof IHasValueMap) {
+                    IHasValueMap m = (IHasValueMap) object;
+                    result = Converter.convertJsonToXml(m, fXmlFactory);
+                } else if (object instanceof Map<?, ?>) {
+                    Map<Object, Object> map = (Map<Object, Object>) object;
+                    result = new XmlElement(null, map);
+                } else {
+                    result = Converter.convertJavaToXml(object, fXmlFactory);
+                }
+
+            } else {
+                result = (XmlElement) object;
             }
-            XmlElement e = (XmlElement) object;
-            return e;
+            return result;
         }
     };
 
-    private static final String KEY_CHILDREN = "~";
+    public static final String KEY_CHILDREN = "~";
 
-    private static final String KEY_NAME = "!";
+    public static final String KEY_NAME = "!";
 
     public static final String NS = "xmlns";
 
@@ -136,12 +150,8 @@ public class XmlElement extends XmlNode
         }
     }
 
-    public static XmlElement parse(String xml) {
-        return new XmlFactory().parse(xml);
-    }
-
     protected XmlElement(String name) {
-        this(null, null);
+        super(null, null);
         if (!"umx:object".equals(name)) {
             setName(name);
         }
@@ -458,9 +468,8 @@ public class XmlElement extends XmlNode
     public String getName() {
         Map<Object, Object> map = getMap();
         Object value = map.get(KEY_NAME);
-        String name = value != null
-            ? TreePresenter.toString(value)
-            : "umx:object";
+        String name = value != null && !"".equals(value) ? TreePresenter
+            .toString(value) : "umx:object";
         return name;
     }
 
@@ -601,25 +610,10 @@ public class XmlElement extends XmlNode
 
     @Override
     public XmlElement newCopy(boolean depth) {
-        Map<Object, Object> thisMap = getMap();
-        Map<Object, Object> map;
-        if (depth) {
-            map = TreePresenter.copy(thisMap);
-        } else {
-            map = new LinkedHashMap<Object, Object>();
-            for (Map.Entry<Object, Object> entry : thisMap.entrySet()) {
-                Object key = entry.getKey();
-                if (KEY_CHILDREN.equals(key)) {
-                    continue;
-                }
-                // Copy all non-object fields
-                Object value = entry.getValue();
-                if (!isExcludedAttributeValue(value)) {
-                    map.put(key, value);
-                }
-            }
-        }
-        XmlElement result = new XmlElement(null, map);
+        XmlFactory factory = getFactory();
+        XmlBuilder builder = new XmlBuilder(factory);
+        accept(builder, depth);
+        XmlElement result = builder.getResult();
         return result;
     }
 
@@ -627,11 +621,15 @@ public class XmlElement extends XmlNode
         if (obj == null) {
             obj = newObject();
         }
-        return new XmlElement(this, obj);
+        XmlElement result = FACTORY.newValue(obj);
+        result.setParent(this);
+        return result;
     }
 
     public XmlElement newElement(String name) {
-        return newElement(newObject()).setName(name);
+        XmlElement element = getFactory().newElement(name);
+        element.setParent(this);
+        return element;
     }
 
     @Override

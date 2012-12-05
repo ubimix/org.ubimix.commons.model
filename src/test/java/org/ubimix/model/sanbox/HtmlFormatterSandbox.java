@@ -19,7 +19,7 @@ import org.ubimix.model.xml.XmlFactory;
 public class HtmlFormatterSandbox {
     public static void main(String[] args) {
         final XmlFactory factory = new XmlFactory();
-        final XmlElement formattedDoc = XmlElement.parse(""
+        final XmlElement formattedDoc = factory.parse(""
             + "<html>\n"
             + "<head></head>\n"
             + "<body>\n"
