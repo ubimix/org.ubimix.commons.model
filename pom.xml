@@ -10,7 +10,7 @@
     <groupId>org.ubimix.commons</groupId>
     <artifactId>org.ubimix.commons.model</artifactId>
     <packaging>bundle</packaging>
-    <version>0.1.3</version>
+    <version>0.1.4</version>
     <name>${project.artifactId}</name>
     <dependencies>
         <dependency>

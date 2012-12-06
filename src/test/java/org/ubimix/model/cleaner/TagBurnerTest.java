@@ -12,6 +12,7 @@ import org.ubimix.model.xml.IXmlElement;
 import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.IXmlNode;
 import org.ubimix.model.xml.XmlFactory;
+import org.ubimix.model.xml.XmlUtils;
 
 /**
  * @author kotelnikov
@@ -97,13 +98,13 @@ public class TagBurnerTest extends TestCase {
             "<div id='x'><p> a </p><p> b </p><p> c </p></div>");
         testTagBurner(
             "<div><div id='x'> a </div><div> b </div> c </div></div>",
-            "<div><p id='x'> a </p><p> b </p><p> c </p></div>");
+            "<p id='x'> a </p><p> b </p><p> c </p>");
         testTagBurner(
             "<div><div id='x'><div id='y'><div id='z'> a </div></div></div><div> b </div> c </div></div>",
-            "<div><div id='x'><div id='y'><p id='z'> a </p></div></div><p> b </p><p> c </p></div>");
+            "<div id='x'><div id='y'><p id='z'> a </p></div></div><p> b </p><p> c </p>");
         testTagBurner(
             "<div><div id='x'><div><div id='z'> a </div></div></div><div> b </div> c </div></div>",
-            "<div><div id='x'><p id='z'> a </p></div><p> b </p><p> c </p></div>");
+            "<div id='x'><p id='z'> a </p></div><p> b </p><p> c </p>");
 
         testTagBurner(
             "<div><p id='1'>a<p>b</p><p>c</p></p></div>",
@@ -150,7 +151,7 @@ public class TagBurnerTest extends TestCase {
                 + "<li><p>after</p></li>"
                 + "</ul>");
 
-        testTagBurner("<div><ul></ul></div>", "<div></div>");
+        testTagBurner("<div><ul></ul></div>", "");
         testTagBurner("<div><ul>A</ul></div>", "<ul><li>A</li></ul>");
         testTagBurner("<div><ul><li>A</li></ul></div>", "<ul><li>A</li></ul>");
         testTagBurner(
@@ -161,12 +162,7 @@ public class TagBurnerTest extends TestCase {
             "<ul><li><p> a </p><p> b </p><p> c </p></li></ul>");
         testTagBurner(
             "<div>before<ul><li>         A          </li></ul>after</div>",
-            ""
-                + "<div>"
-                + "<p>before</p>"
-                + "<ul><li> A </li></ul>"
-                + "<p>after</p>"
-                + "</div>");
+            "" + "<p>before</p>" + "<ul><li> A </li></ul>" + "<p>after</p>");
         testTagBurner(
             "<div><ul><ul><li> a <div> b </div> c </li></ul></ul></div>",
             "<ul><li><ul><li><p> a </p><p> b </p><p> c </p></li></ul></li></ul>");
@@ -189,37 +185,35 @@ public class TagBurnerTest extends TestCase {
             + "    -tt\n"
             + "          ed"
             + "</pre>after</div>", ""
-            + "<div>"
             + "<p>before</p>"
             + "<pre>\n"
             + " pre-\n"
             + "      -forma-\n"
             + "    -tt\n"
             + "          ed</pre>"
-            + "<p>after</p>"
-            + "</div>");
+            + "<p>after</p>");
 
         testTagBurner(""
             + "<div>  a  <pre>\n"
             + "   b \n"
             + "  <div>    c     </div>\n"
             + "  </pre>  c \n"
-            + "  </div>", "<div><p> a </p><pre>\n"
+            + "  </div>", "<p> a </p><pre>\n"
             + "   b \n"
             + "  <div>    c     </div>\n"
-            + "  </pre><p> c </p></div>");
+            + "  </pre><p> c </p>");
     }
 
     public void testTagBurner() {
         testTagBurner(
             "<div>  a  <div>   b   </div>  c   </div>",
-            "<div><p> a </p><p> b </p><p> c </p></div>");
+            "<p> a </p><p> b </p><p> c </p>");
         testTagBurner(
             "<div><span>  a  <div>   b   </div>  c   </span></div>",
-            "<div><p> a </p><p> b </p><p> c </p></div>");
+            "<p> a </p><p> b </p><p> c </p>");
         testTagBurner(
             "<div>\na\n<p>\nb\n</p>\nc\n</div>",
-            "<div><p> a </p><p> b </p><p> c </p></div>");
+            "<p> a </p><p> b </p><p> c </p>");
         testTagBurner("<div><div>   b   </div></div>", "<p> b </p>");
         testTagBurner("<div>   <div>    b    </div>   </div>", "<p> b </p>");
         testTagBurner("<div>   b   </div>", "<p> b </p>");
@@ -240,20 +234,20 @@ public class TagBurnerTest extends TestCase {
             "<p> a b c </p>");
         testTagBurner(
             "<div>    a    <div>    b     </div>    c    </div>",
-            "<div><p> a </p><p> b </p><p> c </p></div>");
+            "<p> a </p><p> b </p><p> c </p>");
         testTagBurner(
             "<div><div> a  <div>    b    </div> c  </div></div>",
-            "<div><p> a </p><p> b </p><p> c </p></div>");
+            "<p> a </p><p> b </p><p> c </p>");
         testTagBurner(
             "<div> a  <div>    b    </div> c  </div>",
-            "<div><p> a </p><p> b </p><p> c </p></div>");
+            "<p> a </p><p> b </p><p> c </p>");
         testTagBurner(""
             + "<div>"
             + "<div>A</div>"
             + "<div>B <p>C</p>"
             + "</div>"
             + "</div>"
-            + "", "<div><p>A</p><p>B </p><p>C</p></div>");
+            + "", "<p>A</p><p>B </p><p>C</p>");
         testTagBurner(""
             + "<div>"
             + "<div><div>A</div>"
@@ -261,7 +255,7 @@ public class TagBurnerTest extends TestCase {
             + "</div>"
             + "</div>"
             + "</div>"
-            + "", "<div><p>A</p><p>B </p><p>C</p></div>");
+            + "", "<p>A</p><p>B </p><p>C</p>");
         testTagBurner(""
             + "<div>"
             + "<div><div>A</div>"
@@ -269,7 +263,7 @@ public class TagBurnerTest extends TestCase {
             + "</div>"
             + "</div>D"
             + "</div>"
-            + "", "<div><p>A</p><p>B</p><p>C</p><p>D</p></div>");
+            + "", "<p>A</p><p>B</p><p>C</p><p>D</p>");
         testTagBurner(""
             + "<div>"
             + "<div>"
@@ -281,13 +275,11 @@ public class TagBurnerTest extends TestCase {
             + "Text"
             + "</div>"
             + "", ""
-            + "<div>"
             + "<h1>Title</h1>"
             + "<p>Subtitle</p>"
             + "<p><img src='http://foo.bar/toto.jpg'></img></p>"
             + "<p>Image description</p>"
-            + "<p>Text</p>"
-            + "</div>");
+            + "<p>Text</p>");
     }
 
     private void testTagBurner(String str, String control) {
@@ -295,14 +287,18 @@ public class TagBurnerTest extends TestCase {
         IXmlFactory factory = newXmlFactory();
         IXmlElement div = factory.parse(str);
         List<IXmlNode> l = burner.handle(div, false);
-        if (l.size() > 1) {
-            div = fFactory.newElement("div");
-            div.setChildren(l);
-            assertEquals(control, div.toString());
-        } else if (l.size() == 1) {
-            IXmlNode e = l.get(0);
-            assertTrue(e instanceof IXmlElement);
-            assertEquals(control, e.toString());
+        String test = XmlUtils.toString(l, true);
+        if (!control.equals(test)) {
+            System.out.println("============================================");
+            System.out.println(control);
+            System.out.println(div);
+            System.out.println("-----------");
+        }
+        try {
+            assertEquals(control, test);
+        } catch (Error e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 

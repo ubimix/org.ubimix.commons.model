@@ -3,17 +3,17 @@ Bundle-ClassPath: .
 Bundle-SymbolicName: org.ubimix.model
 Bundle-Name: org.ubimix.model
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-Version: 0.1.3
+Bundle-Version: 0.1.4
 Bundle-ManifestVersion: 2
 Bundle-Description: Data Model
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0
-Export-Package: org.ubimix.model;version="0.1.3",
- org.ubimix.model.cleaner;version="0.1.3",
- org.ubimix.model.html;version="0.1.3",
- org.ubimix.model.selector;version="0.1.3",
- org.ubimix.model.selector.utils;version="0.1.3",
- org.ubimix.model.xml;version="0.1.3",
- org.ubimix.model.xml.server;version="0.1.3"
+Export-Package: org.ubimix.model;version="0.1.4",
+ org.ubimix.model.cleaner;version="0.1.4",
+ org.ubimix.model.html;version="0.1.4",
+ org.ubimix.model.selector;version="0.1.4",
+ org.ubimix.model.selector.utils;version="0.1.4",
+ org.ubimix.model.xml;version="0.1.4",
+ org.ubimix.model.xml.server;version="0.1.4"
 Import-Package: javax.xml.parsers;resolution:=optional,
  org.ubimix.commons.graph;version="1.0.0",
  org.ubimix.commons.parser;version="1.0.0",
