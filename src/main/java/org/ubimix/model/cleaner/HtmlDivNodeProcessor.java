@@ -7,8 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -22,10 +22,10 @@ public class HtmlDivNodeProcessor extends AbstractTagProcessor {
     }
 
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
-        List<XmlNode> children = element.getChildren();
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
+        List<IXmlNode> children = element.getChildren();
         int len = children.size();
-        List<XmlNode> result = null;
+        List<IXmlNode> result = null;
         if (len == 0) {
             if (!hasId(element)) {
                 result = children;
@@ -37,14 +37,14 @@ public class HtmlDivNodeProcessor extends AbstractTagProcessor {
             } else {
                 len = children.size();
                 if (len == 1) {
-                    XmlElement child = (XmlElement) children.get(0);
+                    IXmlElement child = (IXmlElement) children.get(0);
                     if (hasId(element)) {
                         if (!hasId(child)) {
                             // Transfert the ID from the parent to the child
                             String id = element
                                 .getAttribute(HtmlTagDictionary.ATTR_ID);
                             child.setAttribute(HtmlTagDictionary.ATTR_ID, id);
-                            result = Arrays.<XmlNode> asList(child);
+                            result = Arrays.<IXmlNode> asList(child);
                         }
                     } else {
                         result = children;
@@ -56,16 +56,16 @@ public class HtmlDivNodeProcessor extends AbstractTagProcessor {
             }
         }
         if (result == null) {
-            result = Arrays.<XmlNode> asList(element);
+            result = Arrays.<IXmlNode> asList(element);
         }
         return result;
     }
 
-    private boolean inlineOnlyNodes(List<XmlNode> children) {
+    private boolean inlineOnlyNodes(List<IXmlNode> children) {
         boolean result = true;
-        for (XmlNode child : children) {
-            if (child instanceof XmlElement) {
-                XmlElement e = (XmlElement) child;
+        for (IXmlNode child : children) {
+            if (child instanceof IXmlElement) {
+                IXmlElement e = (IXmlElement) child;
                 String name = getHtmlName(e);
                 result = HtmlTagDictionary.isInlineElement(name);
                 if (!result) {

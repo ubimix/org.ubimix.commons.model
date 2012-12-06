@@ -9,24 +9,27 @@ import org.ubimix.commons.parser.ICharStream;
 import org.ubimix.commons.parser.ICharStream.IPointer;
 import org.ubimix.commons.parser.StreamToken;
 import org.ubimix.commons.parser.html.HtmlParser;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.XmlBuilder;
-import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlFactory;
+import org.ubimix.model.xml.XmlPathProcessor;
 
 /**
  * @author kotelnikov
  */
 public class HtmlFormatterSandbox {
     public static void main(String[] args) {
-        final XmlFactory factory = new XmlFactory();
-        final XmlElement formattedDoc = factory.parse(""
+        final IXmlFactory factory = XmlFactory.getInstance();
+        final IXmlElement formattedDoc = factory.parse(""
             + "<html>\n"
             + "<head></head>\n"
             + "<body>\n"
             + "<pre class='doc'></pre>\n"
             + "</body>\n"
             + "</html>");
-        final XmlElement formatted = formattedDoc.select("pre");
+        final IXmlElement formatted = new XmlPathProcessor("pre")
+            .select(formattedDoc);
         final int[] id = { 0 };
         final HtmlParser parser = new HtmlParser() {
             @Override
@@ -34,7 +37,7 @@ public class HtmlFormatterSandbox {
                 super.dispatchToken(token);
                 IPointer begin = token.getBegin();
                 IPointer end = token.getEnd();
-                XmlElement span = factory
+                IXmlElement span = factory
                     .newElement("span")
                     .setAttribute("id", "" + id[0])
                     .setAttribute("begin", formatPos(begin))
@@ -70,7 +73,7 @@ public class HtmlFormatterSandbox {
                 Map<String, String> attributes,
                 Map<String, String> namespaces) {
                 super.beginElement(name, attributes, namespaces);
-                XmlElement e = fContext.getActiveElement();
+                IXmlElement e = fContext.getActiveElement();
                 if (e != null) {
                     e.setAttribute("startTokenId", id[0] + "");
                 }
@@ -81,7 +84,7 @@ public class HtmlFormatterSandbox {
                 String name,
                 Map<String, String> attributes,
                 Map<String, String> namespaces) {
-                XmlElement e = fContext != null
+                IXmlElement e = fContext != null
                     ? fContext.getActiveElement()
                     : null;
                 if (e != null) {
@@ -102,10 +105,11 @@ public class HtmlFormatterSandbox {
             + "\n"
             + "<li>item \n"
             + "two", builder);
-        XmlElement e = builder.getResult();
-        XmlElement formattedBody = formattedDoc.select("body");
+        IXmlElement e = builder.getResult();
+        XmlPathProcessor p = new XmlPathProcessor("body");
+        IXmlElement formattedBody = p.select(formattedDoc);
         formattedBody.addChild(factory.newElement("hr"));
-        formattedBody.addChildren(e.select("body"));
+        formattedBody.addChildren(p.select(e));
 
         System.out.println(formattedDoc);
     }

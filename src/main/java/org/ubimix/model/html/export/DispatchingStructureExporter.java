@@ -2,7 +2,7 @@ package org.ubimix.model.html.export;
 
 import org.ubimix.model.html.StructuredNode;
 import org.ubimix.model.html.StructuredNodesBinding;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * This object delegates calls between registered type-specific structure
@@ -38,7 +38,7 @@ public class DispatchingStructureExporter
     @Override
     protected Class<? extends StructuredNode> getKey(
         ExportContext context,
-        XmlElement element,
+        IXmlElement element,
         Class<? extends StructuredNode> prevType) {
         Class<? extends StructuredNode> result = null;
         if (prevType != null) {

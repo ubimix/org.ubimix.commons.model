@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.IValueFactory;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -18,15 +18,15 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
 
     public static final IValueFactory<StructuredTree> FACTORY = newStructuredTreeFactory(Value.FACTORY);
 
-    protected static List<XmlElement> getLists(XmlElement element) {
-        List<XmlElement> result = new ArrayList<XmlElement>();
+    protected static List<IXmlElement> getLists(IXmlElement element) {
+        List<IXmlElement> result = new ArrayList<IXmlElement>();
         String name = element.getName();
         if (HtmlTagDictionary.isList(name)) {
             result.add(element);
         } else {
-            for (XmlNode node : element) {
-                if (node instanceof XmlElement) {
-                    XmlElement e = (XmlElement) node;
+            for (IXmlNode node : element) {
+                if (node instanceof IXmlElement) {
+                    IXmlElement e = (IXmlElement) node;
                     name = e.getName();
                     if (HtmlTagDictionary.isList(name)) {
                         result.add(e);
@@ -47,7 +47,7 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
         return new IValueFactory<StructuredTree>() {
             @Override
             public StructuredTree newValue(Object object) {
-                return new StructuredTree((XmlElement) object, factory);
+                return new StructuredTree((IXmlElement) object, factory);
             }
         };
     }
@@ -61,7 +61,7 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
      * @return a {@link StructuredNode} wrapper for the first list found in the
      *         specified list of XML nodes
      */
-    public static StructuredTree search(Iterable<XmlNode> list) {
+    public static StructuredTree search(Iterable<IXmlNode> list) {
         return search(list, Value.FACTORY);
     }
 
@@ -76,7 +76,7 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
      *         specified list of XML nodes
      */
     public static <T extends Value> StructuredTree search(
-        Iterable<XmlNode> list,
+        Iterable<IXmlNode> list,
         IValueFactory<T> factory) {
         return wrapFirstElement(
             list,
@@ -90,18 +90,18 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
      * returns a {@link StructuredTree} wrapper around it. This method returns
      * <code>null</code> if no lists were found.
      * 
-     * @param content the list of XML nodes (or an {@link XmlElement})
+     * @param content the list of XML nodes (or an {@link IXmlElement})
      * @param valueFactory a factory used to create values
      * @return a {@link StructuredTree} wrapper around a list
      */
     public static <T extends Value> StructuredTree searchTreeRecursively(
-        Iterable<XmlNode> content,
+        Iterable<IXmlNode> content,
         IValueFactory<T> valueFactory) {
         StructuredTree tree = StructuredTree.search(content, valueFactory);
         if (tree == null) {
-            for (XmlNode node : content) {
-                if (node instanceof XmlElement) {
-                    XmlElement e = (XmlElement) node;
+            for (IXmlNode node : content) {
+                if (node instanceof IXmlElement) {
+                    IXmlElement e = (IXmlElement) node;
                     tree = searchTreeRecursively(e, valueFactory);
                     if (tree != null) {
                         break;
@@ -131,28 +131,28 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
     /**
      * Creates a new tree node.
      * 
+     * @param element the element corresponding to this tree item
+     * @param factory a factory used to create values
+     */
+    public StructuredTree(
+        IXmlElement element,
+        IValueFactory<? extends Value> factory) {
+        this(null, element, factory);
+    }
+
+    /**
+     * Creates a new tree node.
+     * 
      * @param parent a parent node; could be <code>null</code>..
      * @param element the element corresponding to this tree item
      * @param factory a factory used to create values
      */
     public StructuredTree(
         StructuredTree parent,
-        XmlElement element,
+        IXmlElement element,
         IValueFactory<? extends Value> factory) {
         super(element, factory);
         fParent = parent;
-    }
-
-    /**
-     * Creates a new tree node.
-     * 
-     * @param element the element corresponding to this tree item
-     * @param factory a factory used to create values
-     */
-    public StructuredTree(
-        XmlElement element,
-        IValueFactory<? extends Value> factory) {
-        this(null, element, factory);
     }
 
     /**
@@ -227,11 +227,11 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
     public List<StructuredTree> getSubtrees() {
         if (fChildren == null) {
             fChildren = new ArrayList<StructuredTree>();
-            List<XmlElement> lists = getLists(fElement);
-            for (XmlElement list : lists) {
-                for (XmlNode node : list) {
-                    if (node instanceof XmlElement) {
-                        XmlElement e = (XmlElement) node;
+            List<IXmlElement> lists = getLists(fElement);
+            for (IXmlElement list : lists) {
+                for (IXmlNode node : list) {
+                    if (node instanceof IXmlElement) {
+                        IXmlElement e = (IXmlElement) node;
                         String name = e.getName();
                         if (HtmlTagDictionary.isListItem(name)) {
                             StructuredTree child = newChildTree(e);
@@ -257,13 +257,13 @@ public class StructuredTree extends StructuredNode.StructuredNodeContainer {
     }
 
     @Override
-    protected boolean isExcludedElement(XmlElement e) {
+    protected boolean isExcludedElement(IXmlElement e) {
         String name = e.getName();
         return HtmlTagDictionary.isList(name)
             || HtmlTagDictionary.isListItem(name);
     }
 
-    protected StructuredTree newChildTree(XmlElement e) {
+    protected StructuredTree newChildTree(IXmlElement e) {
         return new StructuredTree(this, e, getValueFactory());
     }
 

@@ -4,9 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
+/**
+ * @author kotelnikov
+ */
 public class DispatchingTagProcessor extends AbstractTagProcessor {
 
     private ITagProcessor fDefaultProcessor;
@@ -22,10 +25,10 @@ public class DispatchingTagProcessor extends AbstractTagProcessor {
     }
 
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
         String name = getHtmlName(element);
         ITagProcessor processor = getProcessor(name);
-        List<XmlNode> list = processor.handle(element, keepSpaces);
+        List<IXmlNode> list = processor.handle(element, keepSpaces);
         return list;
     }
 
@@ -39,9 +42,7 @@ public class DispatchingTagProcessor extends AbstractTagProcessor {
         return this;
     }
 
-    public DispatchingTagProcessor register(
-        String tag,
-        ITagProcessor processor) {
+    public DispatchingTagProcessor register(String tag, ITagProcessor processor) {
         fProcessors.put(tag, processor);
         processor.setParent(this);
         return this;

@@ -6,10 +6,10 @@ package org.ubimix.model.xml;
 /**
  * @author kotelnikov
  */
-public class XmlText extends XmlNode {
+public class XmlText extends XmlNode implements IXmlText {
 
-    protected XmlText(String content) {
-        super(null, content);
+    protected XmlText(IXmlFactory factory, String content) {
+        super(factory, null, content);
     }
 
     @Override
@@ -17,6 +17,10 @@ public class XmlText extends XmlNode {
         visitor.visit(this);
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlText#getContent()
+     */
+    @Override
     public String getContent() {
         String str = (String) getObject();
         str = unwrapContent(str);
@@ -24,13 +28,13 @@ public class XmlText extends XmlNode {
     }
 
     @Override
-    public XmlText newCopy(boolean depth) {
-        return new XmlText(getContent());
+    protected Object newObject() {
+        return "";
     }
 
     @Override
-    protected Object newObject() {
-        return "";
+    public void setContent(String content) {
+        setObject(content);
     }
 
     protected String unwrapContent(String str) {

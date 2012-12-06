@@ -13,9 +13,10 @@ import org.ubimix.commons.graph.TreeBuilder;
 import org.ubimix.commons.graph.WalkerListener;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.cleaner.TagBurner;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlNode;
+import org.ubimix.model.xml.XmlUtils;
 
 /**
  * @author kotelnikov
@@ -46,14 +47,14 @@ public class HtmlArticleBuilder {
 
         private HtmlArticle fArticle;
 
-        private XmlElement fNode;
+        private IXmlElement fNode;
 
         private NodeContext fParent;
 
         public NodeContext(
             NodeContext parent,
             HtmlArticle article,
-            XmlElement node) {
+            IXmlElement node) {
             fNode = node;
             fArticle = article;
             fParent = parent;
@@ -75,7 +76,7 @@ public class HtmlArticleBuilder {
             return fParent;
         }
 
-        public XmlElement getXmlElement() {
+        public IXmlElement getXmlElement() {
             return fNode;
         }
 
@@ -85,12 +86,12 @@ public class HtmlArticleBuilder {
         .getName());
 
     public static void burnContent(TagBurner burner, HtmlArticle article) {
-        XmlElement section = article.getSection();
-        List<XmlNode> newContent = new ArrayList<XmlNode>();
-        for (XmlNode node : section) {
-            if (node instanceof XmlElement) {
-                XmlElement e = (XmlElement) node;
-                List<XmlNode> list = burner.handle(e, false);
+        IXmlElement section = article.getSection();
+        List<IXmlNode> newContent = new ArrayList<IXmlNode>();
+        for (IXmlNode node : section) {
+            if (node instanceof IXmlElement) {
+                IXmlElement e = (IXmlElement) node;
+                List<IXmlNode> list = burner.handle(e, false);
                 newContent.addAll(list);
             } else {
                 newContent.add(node);
@@ -103,13 +104,13 @@ public class HtmlArticleBuilder {
         }
     }
 
-    private static String getHTMLName(XmlElement e) {
+    private static String getHTMLName(IXmlElement e) {
         return e.getName();
     }
 
-    private Comparator<XmlElement> fComparator = new Comparator<XmlElement>() {
+    private Comparator<IXmlElement> fComparator = new Comparator<IXmlElement>() {
         @Override
-        public int compare(XmlElement o1, XmlElement o2) {
+        public int compare(IXmlElement o1, IXmlElement o2) {
             String name1 = getHTMLName(o1);
             String name2 = getHTMLName(o2);
             return -name1.compareTo(name2);
@@ -118,14 +119,14 @@ public class HtmlArticleBuilder {
 
     private NodeContext fCurrentContext;
 
-    private WalkerListener<XmlElement> fListener = new WalkerListener<XmlElement>() {
+    private WalkerListener<IXmlElement> fListener = new WalkerListener<IXmlElement>() {
 
         @Override
-        public void onBegin(XmlElement parent, XmlElement node) {
+        public void onBegin(IXmlElement parent, IXmlElement node) {
             try {
                 HtmlArticle parentArticle = fSectionStack.peek();
                 HtmlArticle article = parentArticle.addArticle();
-                XmlElement titleElement = article.getTitleElement();
+                IXmlElement titleElement = article.getTitleElement();
                 titleElement.addChildren(node);
                 String id = node.getAttribute("id");
                 if (id != null) {
@@ -138,31 +139,30 @@ public class HtmlArticleBuilder {
         }
 
         @Override
-        public void onEnd(XmlElement parent, XmlElement node) {
+        public void onEnd(IXmlElement parent, IXmlElement node) {
             fSectionStack.pop();
         }
     };
 
     private Stack<HtmlArticle> fSectionStack = new Stack<HtmlArticle>();
 
-    private TreeBuilder<XmlElement> fTreeBuilder = new TreeBuilder<XmlElement>(
+    private TreeBuilder<IXmlElement> fTreeBuilder = new TreeBuilder<IXmlElement>(
         fListener);
 
-    protected <T extends XmlNode> T append(XmlElement element, T child) {
-        @SuppressWarnings("unchecked")
-        T clone = (T) child.newCopy(false);
+    protected <T extends IXmlNode> T append(IXmlElement element, T child) {
+        T clone = XmlUtils.newCopy(child, false);
         element.addChild(clone);
         return clone;
     }
 
-    public HtmlArticle buildArticle(XmlElement e) {
-        XmlFactory factory = e.getFactory();
+    public HtmlArticle buildArticle(IXmlElement e) {
+        IXmlFactory factory = e.getFactory();
         HtmlArticle result = new HtmlArticle(factory);
         buildArticle(e, result);
         return result;
     }
 
-    public HtmlArticle buildArticle(XmlElement element, HtmlArticle article) {
+    public HtmlArticle buildArticle(IXmlElement element, HtmlArticle article) {
         fSectionStack.push(article);
         doVisit(element);
         fTreeBuilder.close();
@@ -170,7 +170,7 @@ public class HtmlArticleBuilder {
     }
 
     public HtmlArticle buildArticle(
-        XmlElement element,
+        IXmlElement element,
         HtmlArticle article,
         TagBurner burner) {
         buildArticle(element, article);
@@ -180,28 +180,28 @@ public class HtmlArticleBuilder {
         return article;
     }
 
-    private void doVisit(XmlElement e) {
+    private void doVisit(IXmlElement e) {
         if ((fCurrentContext == null || fCurrentContext.acceptTitles())
             && isTitle(e)) {
             fTreeBuilder.align(e, fComparator);
         } else {
             HtmlArticle currentArticle = fSectionStack.peek();
-            XmlElement parent = null;
+            IXmlElement parent = null;
             if (fCurrentContext == null
                 || !currentArticle.equals(fCurrentContext.getCurrentArticle())) {
                 parent = currentArticle.getSection();
             } else {
                 parent = fCurrentContext.getXmlElement();
             }
-            XmlElement clone = append(parent, e);
+            IXmlElement clone = append(parent, e);
             fCurrentContext = new NodeContext(
                 fCurrentContext,
                 currentArticle,
                 clone);
             try {
-                for (XmlNode child : e) {
-                    if (child instanceof XmlElement) {
-                        doVisit((XmlElement) child);
+                for (IXmlNode child : e) {
+                    if (child instanceof IXmlElement) {
+                        doVisit((IXmlElement) child);
                     } else {
                         append(clone, child);
                     }
@@ -220,7 +220,7 @@ public class HtmlArticleBuilder {
         return new RuntimeException(msg, t);
     }
 
-    protected boolean isTitle(XmlElement e) {
+    protected boolean isTitle(IXmlElement e) {
         String name = getHTMLName(e);
         boolean isTitle = "h1".equals(name)
             || "h2".equals(name)

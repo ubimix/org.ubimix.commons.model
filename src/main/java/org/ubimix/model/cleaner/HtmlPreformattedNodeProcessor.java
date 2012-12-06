@@ -6,8 +6,8 @@ package org.ubimix.model.cleaner;
 import java.util.Arrays;
 import java.util.List;
 
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -21,8 +21,8 @@ public class HtmlPreformattedNodeProcessor extends AbstractTagProcessor {
     }
 
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
-        return Arrays.<XmlNode> asList(element);
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
+        return Arrays.<IXmlNode> asList(element);
     }
 
 }

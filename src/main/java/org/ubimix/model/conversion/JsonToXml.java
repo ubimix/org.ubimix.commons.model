@@ -1,47 +1,68 @@
 package org.ubimix.model.conversion;
 
 import org.ubimix.commons.parser.json.JsonListener;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
-import org.ubimix.model.xml.XmlText;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlJson;
+import org.ubimix.model.xml.IXmlNode;
+import org.ubimix.model.xml.IXmlText;
 
 /**
  * @author kotelnikov
  */
-public class JsonToXml extends JsonListener {
+public class JsonToXml extends JsonListener implements IXmlJson {
 
     private static class ElementContext {
 
-        private XmlElement fElement;
+        private IXmlElement fElement;
 
         private JsonToXml.ElementContext fParent;
 
         private String fProperty;
 
-        public ElementContext(JsonToXml.ElementContext parent, XmlElement e) {
+        public ElementContext(JsonToXml.ElementContext parent, IXmlElement e) {
             fParent = parent;
             fElement = e;
         }
 
-        public void addContent(XmlNode e) {
+        public void addAttribute(String value) {
+            if (fProperty != null) {
+                String nsPrefix = null;
+                if (fProperty.startsWith(IXmlElement.NS_PREFIX)) {
+                    nsPrefix = fProperty.substring(IXmlElement.NS_PREFIX
+                        .length());
+                } else if (IXmlElement.NS.equals(fProperty)) {
+                    nsPrefix = "";
+                }
+                if (nsPrefix != null) {
+                    fElement.setNamespace(nsPrefix, value);
+                } else {
+                    fElement.setAttribute(fProperty, value);
+                }
+            }
+        }
+
+        public void addContent(IXmlNode e) {
             fElement.addChild(e);
         }
 
-        public void addProperty(XmlNode e) {
-            fElement.addPropertyField(fProperty, e);
+        public void addProperty(IXmlNode e) {
+            IXmlElement property = e.getFactory().newElement("umx:property");
+            property.setAttribute("name", fProperty);
+            property.addChild(e);
+            fElement.addChild(property);
         }
 
-        public XmlElement getXmlElement() {
+        public IXmlElement getXmlElement() {
             return fElement;
         }
 
         public boolean isContentProperty() {
-            return XmlElement.KEY_CHILDREN.equals(fProperty);
+            return KEY_CHILDREN.equals(fProperty);
         }
 
         public boolean isNameProperty() {
-            return XmlElement.KEY_NAME.equals(fProperty);
+            return KEY_NAME.equals(fProperty);
         }
 
         public JsonToXml.ElementContext pop() {
@@ -59,13 +80,13 @@ public class JsonToXml extends JsonListener {
 
     private StringBuilder fBuf;
 
-    private XmlFactory fFactory;
+    private IXmlFactory fFactory;
 
-    private XmlElement fResult;
+    private IXmlElement fResult;
 
     private JsonToXml.ElementContext fTop;
 
-    public JsonToXml(XmlFactory factory) {
+    public JsonToXml(IXmlFactory factory) {
         fFactory = factory;
     }
 
@@ -77,7 +98,7 @@ public class JsonToXml extends JsonListener {
     @Override
     public void beginObject() {
         flushText();
-        XmlElement e = fFactory.newElement(null);
+        IXmlElement e = fFactory.newElement(null);
         fTop = new ElementContext(fTop, e);
     }
 
@@ -92,7 +113,7 @@ public class JsonToXml extends JsonListener {
         flushText();
         JsonToXml.ElementContext prev = fTop;
         fTop = fTop.pop();
-        XmlElement e = prev.getXmlElement();
+        IXmlElement e = prev.getXmlElement();
         if (fTop != null) {
             if (fTop.isContentProperty()) {
                 fTop.addContent(e);
@@ -116,17 +137,17 @@ public class JsonToXml extends JsonListener {
             if (fTop.isNameProperty()) {
                 fTop.setXmlName(value);
             } else {
-                XmlText e = fFactory.newText(value);
                 if (fTop.isContentProperty()) {
+                    IXmlText e = fFactory.newText(value);
                     fTop.addContent(e);
                 } else {
-                    fTop.addProperty(e);
+                    fTop.addAttribute(value);
                 }
             }
         }
     }
 
-    public XmlElement getResultElement() {
+    public IXmlElement getResultElement() {
         return fResult;
     }
 

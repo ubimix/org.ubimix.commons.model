@@ -17,15 +17,13 @@ public class XmlBuilder extends XmlListener {
 
         private Map<String, String> fAttributes;
 
-        private XmlElement fElement;
+        private IXmlElement fElement;
 
         private String fName;
 
         private Map<String, String> fNamespaces;
 
         private Context fParent;
-
-        private String fPropertyName;
 
         public Context(
             Context parent,
@@ -39,52 +37,28 @@ public class XmlBuilder extends XmlListener {
             init();
         }
 
-        public void appendChild(XmlNode node) {
-            XmlElement containerElement = getActiveElement();
+        public void appendChild(IXmlNode node) {
+            IXmlElement containerElement = getActiveElement();
             if (containerElement != null) {
-                String propertyName = getPropertyName();
-                if (propertyName == null) {
-                    containerElement.addChild(node);
-                } else {
-                    containerElement.addPropertyField(propertyName, node);
-                }
+                containerElement.addChild(node);
             }
         }
 
-        public XmlElement getActiveElement() {
-            XmlElement result = fElement;
+        public IXmlElement getActiveElement() {
+            IXmlElement result = fElement;
             if (result == null) {
                 result = fParent != null ? fParent.getActiveElement() : null;
             }
             return result;
         }
 
-        private String getPropertyName() {
-            return fPropertyName;
-        }
-
         protected void init() {
-            if (isPropertyContext()) {
-                fPropertyName = fAttributes.get("name");
-            } else if (!isListContext()) {
-                fElement = newXmlElement(fName)
-                    .setAttributes(fAttributes)
-                    .setNamespaces(fNamespaces);
-                if (fParent != null) {
-                    fParent.appendChild(fElement);
-                }
+            fElement = newXmlElement(fName)
+                .setAttributes(fAttributes)
+                .setNamespaces(fNamespaces);
+            if (fParent != null) {
+                fParent.appendChild(fElement);
             }
-            if (fPropertyName == null && fParent != null) {
-                fPropertyName = fParent.getPropertyName();
-            }
-        }
-
-        protected boolean isListContext() {
-            return "umx:list".equals(fName);
-        }
-
-        protected boolean isPropertyContext() {
-            return "umx:property".equals(fName);
         }
 
         public Context pop() {
@@ -95,14 +69,18 @@ public class XmlBuilder extends XmlListener {
 
     protected Context fContext;
 
-    private XmlFactory fFactory;
+    private IXmlFactory fFactory;
 
-    protected XmlElement fTopElement;
+    protected IXmlElement fTopElement;
+
+    public XmlBuilder() {
+        this(XmlFactory.getInstance());
+    }
 
     /**
      * 
      */
-    public XmlBuilder(XmlFactory factory) {
+    public XmlBuilder(IXmlFactory factory) {
         fFactory = factory;
     }
 
@@ -131,7 +109,7 @@ public class XmlBuilder extends XmlListener {
         }
     }
 
-    public XmlElement getResult() {
+    public IXmlElement getResult() {
         return fTopElement;
     }
 
@@ -139,14 +117,14 @@ public class XmlBuilder extends XmlListener {
         return "umx:list".equals(name);
     }
 
-    protected XmlElement newXmlElement(String name) {
+    protected IXmlElement newXmlElement(String name) {
         return fFactory.newElement(name);
     }
 
     @Override
     public void onCDATA(String content) {
         if (fContext != null) {
-            XmlCDATA node = fFactory.newCDATA(content);
+            IXmlCDATA node = fFactory.newCDATA(content);
             fContext.appendChild(node);
         }
     }
@@ -155,7 +133,7 @@ public class XmlBuilder extends XmlListener {
     public void onEntity(Entity entity) {
         if (fContext != null) {
             String text = entity.getChars();
-            XmlText node = fFactory.newText(text);
+            IXmlText node = fFactory.newText(text);
             fContext.appendChild(node);
         }
     }
@@ -163,7 +141,7 @@ public class XmlBuilder extends XmlListener {
     @Override
     public void onText(String text) {
         if (fContext != null) {
-            XmlText node = fFactory.newText(text);
+            IXmlText node = fFactory.newText(text);
             fContext.appendChild(node);
         }
     }

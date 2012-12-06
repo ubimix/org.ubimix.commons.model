@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * This object delegates calls between registered type-specific element
@@ -78,10 +78,10 @@ public abstract class AbstractDispatchingExporter<T>
 
     /**
      * @see org.ubimix.model.html.export.IXmlElementExporter#export(org.ubimix.model.html.export.IXmlElementExporter.ExportContext,
-     *      org.ubimix.model.xml.XmlElement)
+     *      IXmlElement)
      */
     @Override
-    public boolean export(ExportContext context, XmlElement element) {
+    public boolean export(ExportContext context, IXmlElement element) {
         boolean result = false;
         T key = getKey(context, element, null);
         while (key != null) {
@@ -113,7 +113,7 @@ public abstract class AbstractDispatchingExporter<T>
      */
     protected abstract T getKey(
         ExportContext context,
-        XmlElement element,
+        IXmlElement element,
         T parentKey);
 
     /**

@@ -9,53 +9,55 @@ import org.ubimix.commons.parser.UnboundedCharStream;
 import org.ubimix.commons.parser.UnboundedCharStream.ICharLoader;
 import org.ubimix.commons.parser.html.HtmlParser;
 import org.ubimix.commons.parser.xml.IXmlParser;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.XmlBuilder;
-import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlFactory;
+import org.ubimix.model.xml.XmlUtils;
 
 /**
  * @author kotelnikov
  */
 public class HtmlDocument {
 
-    public static XmlElement parse(ICharLoader stream) {
+    public static IXmlElement parse(ICharLoader stream) {
         return parse(new UnboundedCharStream(stream));
     }
 
-    public static XmlElement parse(ICharStream stream) {
-        XmlFactory factory = new XmlFactory();
+    public static IXmlElement parse(ICharStream stream) {
+        IXmlFactory factory = XmlFactory.getInstance();
         XmlBuilder builder = new XmlBuilder(factory);
         IXmlParser parser = new HtmlParser();
         parser.parse(stream, builder);
         return builder.getResult();
     }
 
-    public static XmlElement parse(String html) {
+    public static IXmlElement parse(String html) {
         ICharStream stream = new CharStream(html);
         return parse(stream);
     }
 
-    public static XmlElement parseFragment(ICharLoader stream) {
+    public static IXmlElement parseFragment(ICharLoader stream) {
         return toFragment(parse(stream));
     }
 
-    public static XmlElement parseFragment(ICharStream stream) {
+    public static IXmlElement parseFragment(ICharStream stream) {
         return toFragment(parse(stream));
     }
 
-    public static XmlElement parseFragment(String html) {
+    public static IXmlElement parseFragment(String html) {
         return toFragment(parse(html));
     }
 
-    private static XmlElement toFragment(XmlElement doc) {
+    private static IXmlElement toFragment(IXmlElement doc) {
         if (doc == null) {
             return null;
         }
-        XmlElement body = doc.getChildByName("body");
+        IXmlElement body = XmlUtils.getChildByName(doc, "body");
         if (body == null) {
             return null;
         }
-        XmlElement result = body.getChildElement();
+        IXmlElement result = XmlUtils.getFirstChildElement(body);
         return result;
     }
 

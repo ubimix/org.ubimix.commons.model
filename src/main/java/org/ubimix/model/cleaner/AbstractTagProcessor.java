@@ -3,7 +3,7 @@ package org.ubimix.model.cleaner;
 import java.util.Map;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 public abstract class AbstractTagProcessor implements ITagProcessor {
 
@@ -23,7 +23,7 @@ public abstract class AbstractTagProcessor implements ITagProcessor {
 
     protected ITagProcessor fParentProcessor;
 
-    protected String getHtmlName(XmlElement e) {
+    protected String getHtmlName(IXmlElement e) {
         return e.getName().toLowerCase();
     }
 
@@ -42,7 +42,7 @@ public abstract class AbstractTagProcessor implements ITagProcessor {
         return processor;
     }
 
-    protected boolean hasId(XmlElement element) {
+    protected boolean hasId(IXmlElement element) {
         String id = element.getAttribute(HtmlTagDictionary.ATTR_ID);
         return id != null;
     }
@@ -97,7 +97,7 @@ public abstract class AbstractTagProcessor implements ITagProcessor {
         return buf.toString();
     }
 
-    protected void removeUnusedAttributes(XmlElement e) {
+    protected void removeUnusedAttributes(IXmlElement e) {
         Map<String, String> attributes = e.getAttributes();
         for (Map.Entry<String, String> attr : attributes.entrySet()) {
             String name = attr.getKey();

@@ -8,7 +8,8 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.ubimix.model.ModelObject;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.XmlFactory;
 
 /**
@@ -18,6 +19,10 @@ public class ConverterTest extends TestCase {
 
     public ConverterTest(String name) {
         super(name);
+    }
+
+    protected IXmlFactory newXmlFactory() {
+        return XmlFactory.getInstance();
     }
 
     public void test() throws Exception {
@@ -46,8 +51,8 @@ public class ConverterTest extends TestCase {
     }
 
     private void test(String xml, String json) {
-        XmlFactory factory = new XmlFactory();
-        XmlElement e = factory.parse(xml);
+        IXmlFactory factory = newXmlFactory();
+        IXmlElement e = factory.parse(xml);
         ModelObject o = ModelObject.parse(json);
 
         // XmlToJson
@@ -55,8 +60,8 @@ public class ConverterTest extends TestCase {
         assertEquals(o + "", testObject + "");
 
         // JsonToXml
-        XmlElement testElement = Converter.convertJsonToXml(o, factory);
-        assertEquals(e, testElement);
+        IXmlElement testElement = Converter.convertJsonToXml(o, factory);
+        assertEquals(e + "", testElement + "");
     }
 
     public void testConvertion() {
@@ -88,10 +93,10 @@ public class ConverterTest extends TestCase {
             + "}";
         ModelObject obj = ModelObject.parse(json);
         Map<Object, Object> map = obj.getMap();
-        XmlFactory xmlFactory = new XmlFactory();
+        IXmlFactory xmlFactory = newXmlFactory();
 
-        XmlElement first = Converter.convertJsonToXml(obj, xmlFactory);
-        XmlElement second = Converter.convertJavaToXml(map, xmlFactory);
+        IXmlElement first = Converter.convertJsonToXml(obj, xmlFactory);
+        IXmlElement second = Converter.convertJavaToXml(map, xmlFactory);
         assertEquals(first, second);
     }
 

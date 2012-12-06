@@ -3,7 +3,7 @@
  */
 package org.ubimix.model.html.export;
 
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * This class exports delegates export operations to element-specific exporters.
@@ -25,7 +25,7 @@ public class DispatchingSimpleExporter
     @Override
     protected String getKey(
         ExportContext context,
-        XmlElement element,
+        IXmlElement element,
         String parentKey) {
         String result = null;
         if (parentKey == null) {

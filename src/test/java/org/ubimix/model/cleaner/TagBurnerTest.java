@@ -8,22 +8,27 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.model.html.HtmlDocument;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlNode;
 import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
 
 /**
  * @author kotelnikov
  */
 public class TagBurnerTest extends TestCase {
 
-    private XmlFactory fFactory = new XmlFactory();
+    private IXmlFactory fFactory = newXmlFactory();
 
     /**
      * @param name
      */
     public TagBurnerTest(String name) {
         super(name);
+    }
+
+    protected IXmlFactory newXmlFactory() {
+        return XmlFactory.getInstance();
     }
 
     public void testHtmlLists() {
@@ -73,15 +78,15 @@ public class TagBurnerTest extends TestCase {
 
     private void testHtmlTagBurner(String str, String control) {
         TagBurner burner = new TagBurner();
-        XmlElement div = HtmlDocument.parseFragment(str);
-        List<XmlNode> l = burner.handle(div, false);
+        IXmlElement div = HtmlDocument.parseFragment(str);
+        List<IXmlNode> l = burner.handle(div, false);
         if (l.size() > 1) {
             div = fFactory.newElement("div");
             div.setChildren(l);
             assertEquals(control, div.toString());
         } else if (l.size() == 1) {
-            XmlNode e = l.get(0);
-            assertTrue(e instanceof XmlElement);
+            IXmlNode e = l.get(0);
+            assertTrue(e instanceof IXmlElement);
             assertEquals(control, e.toString());
         }
     }
@@ -287,16 +292,16 @@ public class TagBurnerTest extends TestCase {
 
     private void testTagBurner(String str, String control) {
         TagBurner burner = new TagBurner();
-        XmlFactory factory = new XmlFactory();
-        XmlElement div = factory.parse(str);
-        List<XmlNode> l = burner.handle(div, false);
+        IXmlFactory factory = newXmlFactory();
+        IXmlElement div = factory.parse(str);
+        List<IXmlNode> l = burner.handle(div, false);
         if (l.size() > 1) {
             div = fFactory.newElement("div");
             div.setChildren(l);
             assertEquals(control, div.toString());
         } else if (l.size() == 1) {
-            XmlNode e = l.get(0);
-            assertTrue(e instanceof XmlElement);
+            IXmlNode e = l.get(0);
+            assertTrue(e instanceof IXmlElement);
             assertEquals(control, e.toString());
         }
     }

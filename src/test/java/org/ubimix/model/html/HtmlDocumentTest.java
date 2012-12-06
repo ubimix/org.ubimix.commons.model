@@ -7,7 +7,8 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.XmlPathProcessor;
 
 /**
  * @author kotelnikov
@@ -22,7 +23,7 @@ public class HtmlDocumentTest extends TestCase {
     }
 
     private void test(String str, String control) {
-        XmlElement xml = HtmlDocument.parse(str);
+        IXmlElement xml = HtmlDocument.parse(str);
         assertEquals(control, xml.toString());
     }
 
@@ -77,12 +78,12 @@ public class HtmlDocumentTest extends TestCase {
     }
 
     private void testSelect(String html, String select, String... controls) {
-        XmlElement e = HtmlDocument.parse(html);
-        List<XmlElement> list = e.selectAll(select);
+        IXmlElement e = HtmlDocument.parse(html);
+        List<IXmlElement> list = new XmlPathProcessor(select).selectAll(e);
         assertEquals(controls.length, list.size());
         int i = 0;
         for (String control : controls) {
-            XmlElement s = list.get(i++);
+            IXmlElement s = list.get(i++);
             assertNotNull(s);
             assertEquals(control, s.toString());
         }

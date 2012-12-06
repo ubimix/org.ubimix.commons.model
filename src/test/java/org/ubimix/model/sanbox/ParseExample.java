@@ -13,15 +13,16 @@ import java.net.URL;
 import java.util.List;
 
 import org.ubimix.model.html.HtmlDocument;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
+import org.ubimix.model.xml.XmlUtils;
 
 /**
  * @author kotelnikov
  */
-public class ParseExample {
+public class ParseExample extends XmlUtils {
 
-    public static XmlElement load(InputStream input) throws IOException {
+    public static IXmlElement load(InputStream input) throws IOException {
         String str = null;
         try {
             byte[] buf = new byte[1024 * 10];
@@ -35,7 +36,7 @@ public class ParseExample {
             input.close();
         }
 
-        XmlElement doc = null;
+        IXmlElement doc = null;
         int count = 50;
         long delta = 0;
         for (int i = 0; i < count + 1; i++) {
@@ -53,7 +54,7 @@ public class ParseExample {
         return doc;
     }
 
-    public static XmlElement load(String url) throws IOException {
+    public static IXmlElement load(String url) throws IOException {
         InputStream input = new URL(url).openStream();
         return load(input);
     }
@@ -74,42 +75,42 @@ public class ParseExample {
     }
 
     private static void printDocument(String url) throws IOException {
-        XmlElement e = load(url);
+        IXmlElement e = load(url);
         System.out.println(e);
     }
 
     public static void site1() throws IOException {
         String url = "http://tema.livejournal.com/";
-        XmlElement doc = load(url);
+        IXmlElement doc = load(url);
         System.out.println(doc);
 
-        List<XmlElement> list = doc.selectAll("tr[valign=TOP]");
-        for (XmlElement entry : list) {
-            XmlElement div = entry.select("td > div[style='text-align:left']");
-            XmlElement a = div.select("a");
+        List<IXmlElement> list = selectAll(doc, "tr[valign=TOP]");
+        for (IXmlElement entry : list) {
+            IXmlElement div = select(entry, "td > div[style='text-align:left']");
+            IXmlElement a = select(div, "a");
             if (a == null) {
                 continue;
             }
             a.remove();
             System.out.println("===============================");
-            System.out.println("Title : " + a.toText());
-            System.out.println("Content: " + div);
+            System.out.println("Title : " + XmlUtils.toText(a));
+            System.out.println("Content: " + XmlUtils.toText(div));
         }
     }
 
     public static void site2() throws IOException {
         String url = "http://www.ardeche.cci.fr/";
-        XmlElement doc = load(url);
-        List<XmlElement> list = doc.selectAll("#list_actu_in ul > li");
-        for (XmlElement entry : list) {
-            XmlElement a = entry.select("a");
+        IXmlElement doc = load(url);
+        List<IXmlElement> list = selectAll(doc, "#list_actu_in ul > li");
+        for (IXmlElement entry : list) {
+            IXmlElement a = select(entry, "a");
             String href = a.getAttribute("href");
             a.remove();
-            XmlElement h3 = entry.select("h3");
-            String title = h3.toText();
+            IXmlElement h3 = select(entry, "h3");
+            String title = XmlUtils.toText(h3);
             h3.remove();
-            String content = entry
-                .toString(true, false)
+            String content = XmlUtils
+                .toString(entry, true, false)
                 .replaceAll("<br></br>", "")
                 .replaceAll("[\\s\\r\\n]+", " ")
                 .trim();
@@ -124,21 +125,21 @@ public class ParseExample {
     public static void site3() throws IOException {
         File file = new File(
             "/home/kotelnikov/dev/workspaces/ubimix/org.ubimix.model/tmp/WikipediaFrance.html");
-        XmlElement doc = load(new FileInputStream(file));
+        IXmlElement doc = load(new FileInputStream(file));
 
-        XmlElement main = doc.select("#mw-content-text");
+        IXmlElement main = select(doc, "#mw-content-text");
 
-        List<XmlElement> headers = main.selectAll("[umx|tag^=h]");
+        List<IXmlElement> headers = selectAll(main, "[umx|tag^=h]");
 
-        for (XmlElement header : headers) {
+        for (IXmlElement header : headers) {
             // Element span = header.select("span[id]").first();
-            XmlElement span = header.select("[id]");
+            IXmlElement span = select(header, "[id]");
             if (span != null) {
-                List<XmlNode> children = span.getChildren();
+                List<IXmlNode> children = span.getChildren();
                 header.removeChildren();
                 int len = children.size();
                 for (int i = 0; i < len; i++) {
-                    XmlNode node = children.get(i);
+                    IXmlNode node = children.get(i);
                     header.addChild(node);
                 }
                 header.setAttribute("id", span.getAttribute("id"));
@@ -146,11 +147,11 @@ public class ParseExample {
             System.out.println(header);
         }
 
-        List<XmlElement> boxes = main.selectAll("div.thumb");
+        List<IXmlElement> boxes = selectAll(main, "div.thumb");
         int counter = 0;
-        for (XmlElement box : boxes) {
-            List<XmlElement> divs = box.selectAll("div.magnify");
-            for (XmlElement div : divs) {
+        for (IXmlElement box : boxes) {
+            List<IXmlElement> divs = selectAll(box, "div.magnify");
+            for (IXmlElement div : divs) {
                 div.remove();
             }
             System.out.println("==============["

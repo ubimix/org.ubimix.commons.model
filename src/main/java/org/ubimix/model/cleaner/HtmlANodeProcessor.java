@@ -7,8 +7,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -21,17 +21,17 @@ public class HtmlANodeProcessor extends AbstractTagProcessor {
     public HtmlANodeProcessor() {
     }
 
-    private XmlElement getNextBlockElement(XmlElement element) {
-        XmlElement result = null;
-        XmlElement parent = element.getParent();
+    private IXmlElement getNextBlockElement(IXmlElement element) {
+        IXmlElement result = null;
+        IXmlElement parent = element.getParent();
         if (parent != null) {
-            List<XmlNode> children = parent.getChildren();
+            List<IXmlNode> children = parent.getChildren();
             int count = children.size();
             int startPos = -1;
             for (int i = 0; i < count; i++) {
-                XmlNode child = children.get(i);
-                if (child instanceof XmlElement) {
-                    XmlElement e = (XmlElement) child;
+                IXmlNode child = children.get(i);
+                if (child instanceof IXmlElement) {
+                    IXmlElement e = (IXmlElement) child;
                     if (startPos < 0) {
                         if (element.getMap() == e.getMap()) {
                             startPos = i;
@@ -58,16 +58,16 @@ public class HtmlANodeProcessor extends AbstractTagProcessor {
     }
 
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
         String href = element.getAttribute("href");
-        List<XmlNode> result = null;
+        List<IXmlNode> result = null;
         if (href == null || "".equals(href) || "#".equals(href)) {
             String id = element.getAttribute("id");
             if (id == null) {
                 id = element.getAttribute("name");
             }
             if (id != null) {
-                XmlElement block = getNextBlockElement(element);
+                IXmlElement block = getNextBlockElement(element);
                 boolean ok = false;
                 if (block != null && !hasId(block)) {
                     block.setAttribute("id", id);
@@ -82,7 +82,7 @@ public class HtmlANodeProcessor extends AbstractTagProcessor {
             }
         }
         if (result == null) {
-            result = Arrays.<XmlNode> asList(element);
+            result = Arrays.<IXmlNode> asList(element);
         }
         return result;
     }

@@ -6,10 +6,11 @@ import java.util.List;
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.ModelObject;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
-import org.ubimix.model.xml.XmlText;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlNode;
+import org.ubimix.model.xml.IXmlText;
+import org.ubimix.model.xml.XmlUtils;
 import org.ubimix.model.xml.XmlWrapper;
 
 /**
@@ -20,28 +21,29 @@ public class HtmlArticle extends XmlWrapper {
     public static final IValueFactory<HtmlArticle> FACTORY = new IValueFactory<HtmlArticle>() {
         @Override
         public HtmlArticle newValue(Object object) {
-            XmlElement e = null;
-            if (object instanceof XmlElement) {
-                e = (XmlElement) object;
+            IXmlElement e = null;
+            if (object instanceof IXmlElement) {
+                e = (IXmlElement) object;
             }
             return e != null ? new HtmlArticle(e) : null;
         }
     };
 
-    public static List<String> getImageUrls(XmlElement element) {
+    public static List<String> getImageUrls(IXmlElement element) {
         return getLinks(element, "img", "src");
     }
 
     public static List<String> getLinks(
-        XmlElement element,
+        IXmlElement element,
         String tagName,
         final String attr) {
-        List<String> references = element.getAllChildrenByName(
+        List<String> references = XmlUtils.getAllChildrenByName(
+            element,
             tagName,
             new IValueFactory<String>() {
                 @Override
                 public String newValue(Object object) {
-                    XmlElement e = (XmlElement) object;
+                    IXmlElement e = (IXmlElement) object;
                     String value = e.getAttribute(attr);
                     if (value == null) {
                         return null;
@@ -53,11 +55,11 @@ public class HtmlArticle extends XmlWrapper {
         return references;
     }
 
-    public static List<String> getReferences(XmlElement element) {
+    public static List<String> getReferences(IXmlElement element) {
         return getLinks(element, "a", "href");
     }
 
-    public HtmlArticle(XmlElement e) {
+    public HtmlArticle(IXmlElement e) {
         super(e);
         // XmlElement hgroup = new XmlElement(HtmlTagDictionary.HGROUP);
         // addChild(hgroup);
@@ -67,7 +69,7 @@ public class HtmlArticle extends XmlWrapper {
         // addChild(new XmlElement(HtmlTagDictionary.FOOTER));
     }
 
-    public HtmlArticle(XmlFactory factory) {
+    public HtmlArticle(IXmlFactory factory) {
         this(factory.newElement(HtmlTagDictionary.ARTICLE));
     }
 
@@ -82,14 +84,15 @@ public class HtmlArticle extends XmlWrapper {
     }
 
     public List<HtmlArticle> getArticles() {
-        List<HtmlArticle> result = fElement.getChildrenByName(
+        List<HtmlArticle> result = XmlUtils.getChildrenByName(
+            fElement,
             HtmlTagDictionary.ARTICLE,
             HtmlArticle.FACTORY);
         result.remove(this);
         return result;
     }
 
-    public List<XmlNode> getContent() {
+    public List<IXmlNode> getContent() {
         return getSection().getChildren();
     }
 
@@ -123,27 +126,9 @@ public class HtmlArticle extends XmlWrapper {
         return result;
     }
 
-    protected <T extends XmlElement> T getOrCreate(
-        XmlElement e,
-        String childName,
-        IValueFactory<T> factory) {
-        T result = e.getChildByName(childName, factory);
-        if (result == null) {
-            XmlFactory xmlFactory = e.getFactory();
-            XmlElement child = xmlFactory.newElement(childName);
-            e.addChild(child);
-            result = factory.newValue(child);
-        }
-        return result;
-    }
-
-    protected XmlElement getOrCreate(XmlWrapper e, String childName) {
-        return fElement.getOrCreateElement(childName, XmlElement.FACTORY);
-    }
-
     public ModelObject getProperties() {
-        XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
-        XmlElement e = hgroup.select("properties");
+        IXmlElement hgroup = getOrCreateElement(HtmlTagDictionary.HGROUP);
+        IXmlElement e = select(hgroup, "properties");
         return e != null ? ModelObject.FACTORY.newValue(e) : new ModelObject();
     }
 
@@ -156,20 +141,20 @@ public class HtmlArticle extends XmlWrapper {
         return getLinksAs(refs, factory);
     }
 
-    public XmlElement getSection() {
-        return getOrCreate(this, HtmlTagDictionary.SECTION);
+    public IXmlElement getSection() {
+        return getOrCreateElement(HtmlTagDictionary.SECTION);
     }
 
     private String getSerializedContent(boolean html) {
         StringBuilder buf = new StringBuilder();
-        for (XmlNode node : getSection()) {
+        for (IXmlNode node : getSection()) {
             String str;
-            if (node instanceof XmlElement) {
-                XmlElement e = (XmlElement) node;
+            if (node instanceof IXmlElement) {
+                IXmlElement e = (IXmlElement) node;
                 if (html) {
                     str = e.toString();
                 } else {
-                    str = e.toText();
+                    str = XmlUtils.toText(e);
                 }
             } else {
                 str = node.toString();
@@ -180,25 +165,25 @@ public class HtmlArticle extends XmlWrapper {
     }
 
     public String getTitle() {
-        XmlElement title = getTitleElement();
-        return title.toText();
+        IXmlElement title = getTitleElement();
+        return XmlUtils.toText(title);
     }
 
-    public XmlElement getTitleElement() {
-        XmlElement hgroup = getOrCreate(this, HtmlTagDictionary.HGROUP);
-        return XmlElement.getOrCreateElement(hgroup, HtmlTagDictionary.H1);
+    public IXmlElement getTitleElement() {
+        IXmlElement hgroup = getOrCreateElement(HtmlTagDictionary.HGROUP);
+        return getOrCreateElement(hgroup, HtmlTagDictionary.H1);
     }
 
-    public void setContent(XmlElement contentXml) {
-        XmlElement section = getSection();
+    public void setContent(IXmlElement contentXml) {
+        IXmlElement section = getSection();
         section.removeChildren();
         section.addChild(contentXml);
     }
 
     public void setTitle(String title) {
-        XmlElement e = getTitleElement();
-        XmlFactory factory = getFactory();
-        XmlText child = factory.newText(title);
+        IXmlElement e = getTitleElement();
+        IXmlFactory factory = getFactory();
+        IXmlText child = factory.newText(title);
         e.setChildren(child);
     }
 

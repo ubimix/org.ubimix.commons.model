@@ -2,7 +2,7 @@ package org.ubimix.model.html.export;
 
 import org.ubimix.commons.parser.xml.IXmlListener;
 import org.ubimix.model.html.StructuredNodesBinding;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * A common interface for XML exporters used to recursively call
@@ -65,7 +65,7 @@ public interface IXmlElementExporter {
          * @return <code>true</code> if the specified element was successfully
          *         exported
          */
-        public boolean export(XmlElement element) {
+        public boolean export(IXmlElement element) {
             return fTopExporter.export(this, element);
         }
 
@@ -110,6 +110,8 @@ public interface IXmlElementExporter {
      * @param element the element to export
      * @return <code>true</code> if the specified node was successfully exported
      */
-    boolean export(IXmlElementExporter.ExportContext context, XmlElement element);
+    boolean export(
+        IXmlElementExporter.ExportContext context,
+        IXmlElement element);
 
 }

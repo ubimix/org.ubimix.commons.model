@@ -11,7 +11,7 @@ import org.ubimix.model.IValueFactory;
 import org.ubimix.model.html.StructuredNode.Value;
 import org.ubimix.model.html.StructuredNodesBinding.DispatchingStructureBinder;
 import org.ubimix.model.html.StructuredNodesBinding.IStructureBinder;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * @author kotelnikov
@@ -19,7 +19,7 @@ import org.ubimix.model.xml.XmlElement;
 public class StructuredNodesBindingTest extends TestCase {
 
     public static class Reference extends Value {
-        public Reference(XmlElement element) {
+        public Reference(IXmlElement element) {
             super(element);
         }
     }
@@ -27,20 +27,20 @@ public class StructuredNodesBindingTest extends TestCase {
     public static class TocTree extends StructuredTree {
 
         public TocTree(
-            StructuredTree parent,
-            XmlElement element,
-            IValueFactory<? extends Value> factory) {
-            super(parent, element, factory);
-        }
-
-        public TocTree(
-            XmlElement element,
+            IXmlElement element,
             IValueFactory<? extends Value> factory) {
             super(null, element, factory);
         }
 
+        public TocTree(
+            StructuredTree parent,
+            IXmlElement element,
+            IValueFactory<? extends Value> factory) {
+            super(parent, element, factory);
+        }
+
         @Override
-        protected StructuredTree newChildTree(XmlElement e) {
+        protected StructuredTree newChildTree(IXmlElement e) {
             return new TocTree(this, e, getValueFactory());
         }
 
@@ -75,13 +75,13 @@ public class StructuredNodesBindingTest extends TestCase {
             + "<p>Third paragraph.</p>\n"
             + "<p>Paragraph with a <a href='./page.html'>reference</a>."
             + "<p>Fourth paragraph.</p>\n";
-        XmlElement e = HtmlDocument.parse(content);
+        IXmlElement e = HtmlDocument.parse(content);
         DispatchingStructureBinder binder = new DispatchingStructureBinder();
         binder.addBinder("a", new IStructureBinder() {
             @Override
             public StructuredNode bind(
                 StructuredNodesBinding binding,
-                XmlElement e) {
+                IXmlElement e) {
                 binding.bindStructuredNodes(e);
                 return new Reference(e);
             }
@@ -90,7 +90,7 @@ public class StructuredNodesBindingTest extends TestCase {
             @Override
             public StructuredNode bind(
                 StructuredNodesBinding binding,
-                XmlElement e) {
+                IXmlElement e) {
                 return new StructuredTable(e, binding.getValueFactory());
             }
         });
@@ -98,7 +98,7 @@ public class StructuredNodesBindingTest extends TestCase {
             @Override
             public StructuredNode bind(
                 StructuredNodesBinding binding,
-                XmlElement e) {
+                IXmlElement e) {
                 TocTree prev = binding.getStructuredNode(TocTree.class);
                 if (prev != null) {
                     return null;
@@ -110,7 +110,7 @@ public class StructuredNodesBindingTest extends TestCase {
             @Override
             public StructuredNode bind(
                 StructuredNodesBinding binding,
-                XmlElement e) {
+                IXmlElement e) {
                 return new StructuredTree(e, binding.getValueFactory());
             }
         }, "ul", "ol");
@@ -149,7 +149,7 @@ public class StructuredNodesBindingTest extends TestCase {
             .getStructuredNodes(Reference.class);
         assertEquals(1, references.size());
         Reference ref = references.get(0);
-        XmlElement a = ref.getReferenceElement();
+        IXmlElement a = ref.getReferenceElement();
         assertNotNull(a);
         assertEquals("./page.html", a.getAttribute("href"));
     }

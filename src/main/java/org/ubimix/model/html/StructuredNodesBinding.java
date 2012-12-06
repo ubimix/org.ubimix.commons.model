@@ -7,8 +7,8 @@ import java.util.Map;
 
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.html.StructuredNode.Value;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * This class is used to associate "structured nodes" with XML elements and
@@ -69,7 +69,7 @@ public class StructuredNodesBinding {
         }
 
         @Override
-        public StructuredNode bind(StructuredNodesBinding binding, XmlElement e) {
+        public StructuredNode bind(StructuredNodesBinding binding, IXmlElement e) {
             StructuredNode result = null;
             String name = checkTagName(e.getName());
             List<IStructureBinder> list = fMap.get(name);
@@ -115,7 +115,7 @@ public class StructuredNodesBinding {
          * @param e an XML element
          * @return a structured node corresponding to the specified XML element
          */
-        StructuredNode bind(StructuredNodesBinding binding, XmlElement e);
+        StructuredNode bind(StructuredNodesBinding binding, IXmlElement e);
 
     }
 
@@ -172,7 +172,7 @@ public class StructuredNodesBinding {
     public StructuredNodesBinding(
         IValueFactory<? extends Value> factory,
         IStructureBinder binder,
-        XmlElement element) {
+        IXmlElement element) {
         this(factory, binder);
         bindStructuredNodes(element);
     }
@@ -180,20 +180,20 @@ public class StructuredNodesBinding {
     /**
      * Recursively binds structured nodes to XML elements. All bound structured
      * nodes are stored in an internal map and could be retrieved using the
-     * {@link #getStructuredNode(XmlElement)} or
-     * {@link #getStructuredNode(XmlElement, Class)} methods.
+     * {@link #getStructuredNode(IXmlElement)} or
+     * {@link #getStructuredNode(IXmlElement, Class)} methods.
      * 
      * @param content container of XML nodes to associate with structured nodes
      */
-    public void bindStructuredNodes(Iterable<XmlNode> content) {
+    public void bindStructuredNodes(Iterable<IXmlNode> content) {
         if (fBinder == null) {
             return;
         }
-        for (XmlNode node : content) {
-            if (!(node instanceof XmlElement)) {
+        for (IXmlNode node : content) {
+            if (!(node instanceof IXmlElement)) {
                 continue;
             }
-            XmlElement e = (XmlElement) node;
+            IXmlElement e = (IXmlElement) node;
             StructuredNode s = fBinder.bind(this, e);
             if (s != null) {
                 String id = newId();
@@ -231,7 +231,7 @@ public class StructuredNodesBinding {
      * @param e an XML element to check
      * @return a structured node associated with the given element
      */
-    public StructuredNode getStructuredNode(XmlElement e) {
+    public StructuredNode getStructuredNode(IXmlElement e) {
         StructuredNode result = null;
         String id = getStructuredNodeId(e);
         if (id != null) {
@@ -247,7 +247,7 @@ public class StructuredNodesBinding {
      * @param e an XML element to check
      * @return an identifier of a structured node
      */
-    public String getStructuredNodeId(XmlElement e) {
+    public String getStructuredNodeId(IXmlElement e) {
         String id = e.getAttribute(ATTR_BINDING_ID);
         return id;
     }

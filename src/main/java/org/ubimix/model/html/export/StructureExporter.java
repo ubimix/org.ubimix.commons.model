@@ -2,12 +2,12 @@ package org.ubimix.model.html.export;
 
 import org.ubimix.model.html.StructuredNode;
 import org.ubimix.model.html.StructuredNodesBinding;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * This is a common parent class for XML nodes associated with structured nodes.
  * It calls a
- * {@link #export(IXmlElementExporter.ExportContext, XmlElement, StructuredNode)}
+ * {@link #export(IXmlElementExporter.ExportContext, IXmlElement, StructuredNode)}
  * protected method which should be implemented in sub-classes.
  * 
  * @author kotelnikov
@@ -15,7 +15,7 @@ import org.ubimix.model.xml.XmlElement;
 public abstract class StructureExporter implements IXmlElementExporter {
 
     @Override
-    public boolean export(ExportContext context, XmlElement element) {
+    public boolean export(ExportContext context, IXmlElement element) {
         boolean result = false;
         StructuredNodesBinding binding = context.getBinding();
         StructuredNode structure = binding.getStructuredNode(element);
@@ -37,7 +37,7 @@ public abstract class StructureExporter implements IXmlElementExporter {
      */
     protected abstract boolean export(
         ExportContext context,
-        XmlElement element,
+        IXmlElement element,
         StructuredNode structure);
 
 }

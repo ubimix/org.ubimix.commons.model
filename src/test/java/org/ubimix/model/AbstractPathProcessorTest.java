@@ -13,8 +13,10 @@ import org.ubimix.model.selector.IPathNodeCollector;
 import org.ubimix.model.selector.IPathSelector;
 import org.ubimix.model.selector.PathProcessor;
 import org.ubimix.model.selector.utils.TreeNodeProvider;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.XmlFactory;
+import org.ubimix.model.xml.XmlPathProcessor;
 
 /**
  * @author kotelnikov
@@ -70,10 +72,24 @@ public abstract class AbstractPathProcessorTest extends TestCase {
         final boolean collect,
         IPathSelector selector,
         String... controls) {
-        XmlFactory factory = new XmlFactory();
-        XmlElement node = factory.parse(xml);
-        INodeProvider provider = XmlElement.XML_TREE_NODE_PROVIDER;
-        test(node, collect, provider, selector, controls);
+        IXmlFactory factory = XmlFactory.getInstance();
+        IXmlElement node = factory.parse(xml);
+        PathProcessor processor = new XmlPathProcessor(selector);
+        final List<Object> results = new ArrayList<Object>();
+        processor.select(node, new IPathNodeCollector() {
+            @Override
+            public boolean setResult(Object node) {
+                results.add(node);
+                return collect;
+            }
+        });
+        assertEquals(controls.length, results.size());
+        int i = 0;
+        for (String str : controls) {
+            Object testNode = results.get(i++);
+            assertNotNull(testNode);
+            assertEquals(str, testNode.toString());
+        }
     }
 
     protected void testXml(

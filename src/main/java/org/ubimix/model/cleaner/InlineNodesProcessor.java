@@ -5,10 +5,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
-import org.ubimix.model.xml.XmlText;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlNode;
+import org.ubimix.model.xml.IXmlText;
 
 /**
  * This node processor splits a sequence of inline tags separated by line breaks
@@ -18,13 +18,13 @@ import org.ubimix.model.xml.XmlText;
  */
 public class InlineNodesProcessor extends AbstractTagProcessor {
 
-    private List<XmlNode> fInlineNodes = new ArrayList<XmlNode>();
+    private List<IXmlNode> fInlineNodes = new ArrayList<IXmlNode>();
 
-    private List<XmlNode> fLineBreaks = new ArrayList<XmlNode>();
+    private List<IXmlNode> fLineBreaks = new ArrayList<IXmlNode>();
 
-    private List<XmlNode> fResult = new ArrayList<XmlNode>();
+    private List<IXmlNode> fResult = new ArrayList<IXmlNode>();
 
-    private List<XmlNode> fSpaces = new ArrayList<XmlNode>();
+    private List<IXmlNode> fSpaces = new ArrayList<IXmlNode>();
 
     private boolean fTransformBrToParagraph;
 
@@ -65,14 +65,14 @@ public class InlineNodesProcessor extends AbstractTagProcessor {
     }
 
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces1) {
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces1) {
         try {
-            List<XmlNode> nodes = element.getChildren();
+            List<IXmlNode> nodes = element.getChildren();
             int len = nodes.size();
             for (int i = 0; i < len; i++) {
-                XmlNode node = nodes.get(i);
-                if (node instanceof XmlText) {
-                    XmlText text = (XmlText) node;
+                IXmlNode node = nodes.get(i);
+                if (node instanceof IXmlText) {
+                    IXmlText text = (IXmlText) node;
                     String str = reduceText(text.getContent(), keepSpaces1);
                     if (str.length() == 0) {
                         // Skip empty text nodes
@@ -88,8 +88,8 @@ public class InlineNodesProcessor extends AbstractTagProcessor {
                         flushLineBreaks();
                         fInlineNodes.add(text);
                     }
-                } else if (node instanceof XmlElement) {
-                    XmlElement e = (XmlElement) node;
+                } else if (node instanceof IXmlElement) {
+                    IXmlElement e = (IXmlElement) node;
                     String name = getHtmlName(e);
                     if (HtmlTagDictionary.isLineBreak(name)) {
                         fLineBreaks.add(e);
@@ -114,7 +114,7 @@ public class InlineNodesProcessor extends AbstractTagProcessor {
                 wrapInlineNodesInParagraph();
             }
             element.setChildren(fResult);
-            return Arrays.<XmlNode> asList(element);
+            return Arrays.<IXmlNode> asList(element);
         } finally {
             clear();
         }
@@ -131,8 +131,8 @@ public class InlineNodesProcessor extends AbstractTagProcessor {
 
     private void wrapInlineNodesInParagraph() {
         if (fInlineNodes.size() > 0) {
-            XmlFactory factory = fInlineNodes.get(0).getFactory();
-            XmlElement paragraph = factory.newElement(HtmlTagDictionary.P);
+            IXmlFactory factory = fInlineNodes.get(0).getFactory();
+            IXmlElement paragraph = factory.newElement(HtmlTagDictionary.P);
             fResult.add(paragraph);
             paragraph.addChildren(fInlineNodes);
             fInlineNodes.clear();

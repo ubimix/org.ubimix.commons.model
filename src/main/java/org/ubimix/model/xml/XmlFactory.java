@@ -15,9 +15,18 @@ import org.ubimix.commons.parser.xml.XmlParser;
 /**
  * @author kotelnikov
  */
-public class XmlFactory {
+public class XmlFactory implements IXmlFactory {
+
+    private static IXmlFactory fInstance;
 
     private static IXmlParser fParser;
+
+    public static IXmlFactory getInstance() {
+        if (fInstance == null) {
+            fInstance = new XmlFactory();
+        }
+        return fInstance;
+    }
 
     public static IXmlParser getParser() {
         if (fParser == null) {
@@ -40,26 +49,46 @@ public class XmlFactory {
     public XmlFactory() {
     }
 
-    public XmlCDATA newCDATA(String content) {
-        return new XmlCDATA(content);
+    /**
+     * @see org.ubimix.model.xml.IXmlFactory#newCDATA(java.lang.String)
+     */
+    @Override
+    public IXmlCDATA newCDATA(String content) {
+        return new XmlCDATA(this, content);
     }
 
-    public XmlElement newElement(String name) {
-        return new XmlElement(name);
+    /**
+     * @see org.ubimix.model.xml.IXmlFactory#newElement(java.lang.String)
+     */
+    @Override
+    public IXmlElement newElement(String name) {
+        return new XmlElement(this, name);
     }
 
-    public XmlText newText(String string) {
-        return new XmlText(string);
+    /**
+     * @see org.ubimix.model.xml.IXmlFactory#newText(java.lang.String)
+     */
+    @Override
+    public IXmlText newText(String string) {
+        return new XmlText(this, string);
     }
 
-    public XmlElement parse(ICharStream stream) {
+    /**
+     * @see org.ubimix.model.xml.IXmlFactory#parse(org.ubimix.commons.parser.ICharStream)
+     */
+    @Override
+    public IXmlElement parse(ICharStream stream) {
         XmlBuilder builder = new XmlBuilder(this);
         IXmlParser parser = getParser();
         parser.parse(stream, builder);
         return builder.getResult();
     }
 
-    public XmlElement parse(String xml) {
+    /**
+     * @see org.ubimix.model.xml.IXmlFactory#parse(java.lang.String)
+     */
+    @Override
+    public IXmlElement parse(String xml) {
         ICharStream stream = new CharStream(xml);
         return parse(stream);
     }

@@ -3,7 +3,7 @@ package org.ubimix.model.xml;
 /**
  * @author kotelnikov
  */
-public class XmlCDATA extends XmlText {
+public class XmlCDATA extends XmlText implements IXmlCDATA {
 
     public static final String CDATA_PREFIX = "<![CDATA[";
 
@@ -25,18 +25,13 @@ public class XmlCDATA extends XmlText {
         return str;
     }
 
-    protected XmlCDATA(String content) {
-        super(content);
+    protected XmlCDATA(IXmlFactory factory, String content) {
+        super(factory, content);
     }
 
     @Override
     public void accept(IXmlVisitor visitor) {
         visitor.visit(this);
-    }
-
-    @Override
-    public XmlCDATA newCopy(boolean depth) {
-        return new XmlCDATA(getContent());
     }
 
     @Override

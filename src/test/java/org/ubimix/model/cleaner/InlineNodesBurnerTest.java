@@ -9,16 +9,17 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.model.html.HtmlDocument;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlNode;
 import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
 
 /**
  * @author kotelnikov
  */
 public class InlineNodesBurnerTest extends TestCase {
 
-    private XmlFactory fFactory = new XmlFactory();
+    private IXmlFactory fFactory = newXmlFactory();
 
     /**
      * @param name
@@ -27,10 +28,10 @@ public class InlineNodesBurnerTest extends TestCase {
         super(name);
     }
 
-    private List<XmlNode> list(String... strings) {
-        List<XmlNode> result = new ArrayList<XmlNode>();
+    private List<IXmlNode> list(String... strings) {
+        List<IXmlNode> result = new ArrayList<IXmlNode>();
         for (String str : strings) {
-            XmlNode node = null;
+            IXmlNode node = null;
             if (str.startsWith("<")) {
                 node = HtmlDocument.parseFragment(str);
             } else {
@@ -41,23 +42,27 @@ public class InlineNodesBurnerTest extends TestCase {
         return result;
     }
 
+    protected IXmlFactory newXmlFactory() {
+        return XmlFactory.getInstance();
+    }
+
     private void testHandler(
         ITagProcessor processor,
         boolean keepSpaces,
-        List<XmlNode> list,
+        List<IXmlNode> list,
         String... controls) {
-        XmlElement div = fFactory.newElement("div");
+        IXmlElement div = fFactory.newElement("div");
         div.setChildren(list);
 
-        List<XmlNode> l = processor.handle(div, keepSpaces);
+        List<IXmlNode> l = processor.handle(div, keepSpaces);
         assertEquals(1, l.size());
-        XmlNode e = l.get(0);
-        assertTrue(e instanceof XmlElement);
-        List<XmlNode> result = ((XmlElement) e).getChildren();
+        IXmlNode e = l.get(0);
+        assertTrue(e instanceof IXmlElement);
+        List<IXmlNode> result = ((IXmlElement) e).getChildren();
         assertEquals(controls.length, result.size());
         int i = 0;
         for (String str : controls) {
-            XmlNode node = result.get(i++);
+            IXmlNode node = result.get(i++);
             assertNotNull(node);
             assertEquals(str, node.toString());
         }
@@ -307,7 +312,7 @@ public class InlineNodesBurnerTest extends TestCase {
     }
 
     private void testInlineNodesProcessor(
-        List<XmlNode> list,
+        List<IXmlNode> list,
         String... controls) {
         testHandler(new InlineNodesProcessor(false), false, list, controls);
     }
@@ -362,7 +367,7 @@ public class InlineNodesBurnerTest extends TestCase {
 
     private void testTextNodeReducer(
         boolean keepSpaces,
-        List<XmlNode> list,
+        List<IXmlNode> list,
         String... controls) {
         testHandler(new TextNodeReducer(), keepSpaces, list, controls);
     }

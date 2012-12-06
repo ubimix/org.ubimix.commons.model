@@ -7,9 +7,11 @@ import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XmlParser;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.XmlBuilder;
-import org.ubimix.model.xml.XmlElement;
 import org.ubimix.model.xml.XmlFactory;
+import org.ubimix.model.xml.XmlUtils;
 
 /**
  * @author kotelnikov
@@ -119,22 +121,24 @@ public class InternalXmlParserTest extends TestCase {
     }
 
     private void testParser(String xml, String control) {
-        XmlFactory factory = new XmlFactory();
+        IXmlFactory factory = XmlFactory.getInstance();
         XmlBuilder builder = new XmlBuilder(factory);
         IXmlParser parser = newXmlParser();
         parser.parse(xml, builder);
-        XmlElement element = builder.getResult();
+        IXmlElement element = builder.getResult();
         if ("".equals(control)) {
             assertNull(element);
         } else {
             assertNotNull(element);
-            String str = element.toString(true);
+            String str = XmlUtils.toStringRecursively(element, true);
             assertEquals(control, str);
 
             builder.reset();
             parser.parse(str, builder);
-            XmlElement newElement = builder.getResult();
-            assertEquals(control, newElement.toString(true));
+            IXmlElement newElement = builder.getResult();
+            assertEquals(
+                control,
+                XmlUtils.toStringRecursively(newElement, true));
         }
     }
 

@@ -11,7 +11,8 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.model.ModelObject;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.XmlUtils;
 
 /**
  * @author kotelnikov
@@ -578,7 +579,7 @@ public class HtmlArticleBuilderTest extends TestCase {
     protected void testHierarchyBuilder(String xml, String control)
         throws IOException {
         HtmlArticleBuilder builder = new HtmlArticleBuilder();
-        XmlElement w = HtmlDocument.parseFragment(xml);
+        IXmlElement w = HtmlDocument.parseFragment(xml);
         HtmlArticle article = builder.buildArticle(w);
         ModelObject o = toModelObject(article);
         ModelObject controlJson = ModelObject.parse(control);
@@ -589,8 +590,8 @@ public class HtmlArticleBuilderTest extends TestCase {
 
     private void toModel(ModelObject obj, HtmlArticle article) {
         obj.setValue("title", article.getTitle());
-        XmlElement content = article.getSection();
-        obj.setValue("content", content.toString(false, false));
+        IXmlElement content = article.getSection();
+        obj.setValue("content", XmlUtils.toString(content, false, false));
         List<ModelObject> children = new ArrayList<ModelObject>();
         for (HtmlArticle entry : article.getArticles()) {
             ModelObject childObj = new ModelObject();

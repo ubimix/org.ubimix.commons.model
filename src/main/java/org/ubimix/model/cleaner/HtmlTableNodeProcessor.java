@@ -6,8 +6,8 @@ package org.ubimix.model.cleaner;
 import java.util.Arrays;
 import java.util.List;
 
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -21,12 +21,12 @@ public class HtmlTableNodeProcessor extends AbstractTagProcessor {
     }
 
     /**
-     * @see org.ubimix.model.cleaner.ITagProcessor#handle(org.ubimix.model.xml.XmlElement,
+     * @see org.ubimix.model.cleaner.ITagProcessor#handle(IXmlElement,
      *      boolean)
      */
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
-        return Arrays.<XmlNode> asList(element);
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
+        return Arrays.<IXmlNode> asList(element);
     }
 
 }

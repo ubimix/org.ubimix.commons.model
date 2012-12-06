@@ -9,8 +9,8 @@ import java.util.Set;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.IValueFactory;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -31,17 +31,17 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         return new IValueFactory<StructuredTable>() {
             @Override
             public StructuredTable newValue(Object object) {
-                return new StructuredTable((XmlElement) object, valueFactory);
+                return new StructuredTable((IXmlElement) object, valueFactory);
             }
         };
     }
 
-    public static StructuredTable search(Iterable<XmlNode> list) {
+    public static StructuredTable search(Iterable<IXmlNode> list) {
         return search(list, Value.FACTORY);
     }
 
     public static <T extends Value> StructuredTable search(
-        Iterable<XmlNode> list,
+        Iterable<IXmlNode> list,
         final IValueFactory<? extends Value> valueFactory) {
         StructuredTable table = wrapFirstElement(
             list,
@@ -54,13 +54,13 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
     }
 
     public static <T extends Value> StructuredTable searchTableRecursively(
-        Iterable<XmlNode> content,
+        Iterable<IXmlNode> content,
         IValueFactory<? extends Value> valueFactory,
         String... headers) {
         StructuredTable result = null;
-        for (XmlNode node : content) {
-            if (node instanceof XmlElement) {
-                XmlElement e = (XmlElement) node;
+        for (IXmlNode node : content) {
+            if (node instanceof IXmlElement) {
+                IXmlElement e = (IXmlElement) node;
                 String name = e.getName();
                 if (HtmlTagDictionary.isTableElement(name)) {
                     StructuredTable table = new StructuredTable(e, valueFactory);
@@ -78,7 +78,7 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         return result;
     }
 
-    private List<List<XmlElement>> fCells;
+    private List<List<IXmlElement>> fCells;
 
     private Map<Integer, String> fColumnIndexToName;
 
@@ -89,7 +89,7 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
     private int fTableWidth = -1;
 
     public StructuredTable(
-        XmlElement element,
+        IXmlElement element,
         IValueFactory<? extends Value> factory) {
         super(element, factory);
     }
@@ -99,11 +99,11 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
             fColumnNames = new ArrayList<String>();
             fColumnNameToIndex = new HashMap<String, Integer>();
             fColumnIndexToName = new HashMap<Integer, String>();
-            List<List<XmlElement>> cells = getCells();
+            List<List<IXmlElement>> cells = getCells();
             if (!cells.isEmpty()) {
-                List<XmlElement> firstLine = cells.get(0);
+                List<IXmlElement> firstLine = cells.get(0);
                 for (int i = 0; i < firstLine.size(); i++) {
-                    XmlElement e = firstLine.get(i);
+                    IXmlElement e = firstLine.get(i);
                     String name = e.getName();
                     if (HtmlTagDictionary.TH.equals(name)) {
                         String str = cleanColumnName(newValue(e).getAsText());
@@ -146,7 +146,7 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
     }
 
     public <T extends Value> T getCell(int row, int col) {
-        XmlElement e = getCellElement(row, col);
+        IXmlElement e = getCellElement(row, col);
         return newValue(e);
     }
 
@@ -181,32 +181,32 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         return value;
     }
 
-    public XmlElement getCellElement(int row, int col) {
+    public IXmlElement getCellElement(int row, int col) {
         if (row < 0 || col < 0) {
             return null;
         }
-        XmlElement result = null;
-        List<XmlElement> line = getRowElements(row);
+        IXmlElement result = null;
+        List<IXmlElement> line = getRowElements(row);
         if (line != null) {
             result = col < line.size() ? line.get(col) : null;
         }
         return result;
     }
 
-    private List<List<XmlElement>> getCells() {
+    private List<List<IXmlElement>> getCells() {
         if (fCells == null) {
-            fCells = new ArrayList<List<XmlElement>>();
-            List<XmlElement> rows = fElement
-                .getChildrenByName(HtmlTagDictionary.TR);
+            fCells = new ArrayList<List<IXmlElement>>();
+            List<IXmlElement> rows = getChildrenByName(
+                fElement,
+                HtmlTagDictionary.TR);
             if (rows.isEmpty()) {
-                XmlElement tbody = fElement
-                    .getChildByName(HtmlTagDictionary.TBODY);
+                IXmlElement tbody = getChildByName(HtmlTagDictionary.TBODY);
                 if (tbody != null) {
-                    rows = tbody.getChildrenByName(HtmlTagDictionary.TR);
+                    rows = getChildrenByName(tbody, HtmlTagDictionary.TR);
                 }
             }
-            for (XmlElement row : rows) {
-                List<XmlElement> elements = row.getChildrenByNames(CELL_NAMES);
+            for (IXmlElement row : rows) {
+                List<IXmlElement> elements = getChildrenByNames(row, CELL_NAMES);
                 fCells.add(elements);
             }
         }
@@ -231,7 +231,7 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         return getColumn(columnIndex);
     }
 
-    public List<XmlElement> getColumnElements(int column) {
+    public List<IXmlElement> getColumnElements(int column) {
         if (column < 0) {
             return null;
         }
@@ -239,10 +239,10 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
         if (column >= width) {
             return null;
         }
-        List<XmlElement> result = new ArrayList<XmlElement>();
-        List<List<XmlElement>> cells = getCells();
-        for (List<XmlElement> row : cells) {
-            XmlElement cell = column < row.size() ? row.get(column) : null;
+        List<IXmlElement> result = new ArrayList<IXmlElement>();
+        List<List<IXmlElement>> cells = getCells();
+        for (List<IXmlElement> row : cells) {
+            IXmlElement cell = column < row.size() ? row.get(column) : null;
             result.add(cell);
         }
         return result;
@@ -261,15 +261,15 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
     }
 
     public int getHeight() {
-        List<List<XmlElement>> cells = getCells();
+        List<List<IXmlElement>> cells = getCells();
         return cells.size();
     }
 
     public <T extends Value> List<T> getRow(int row) {
         List<T> result = new ArrayList<T>();
-        List<XmlElement> elements = getRowElements(row);
+        List<IXmlElement> elements = getRowElements(row);
         if (elements != null) {
-            for (XmlElement e : elements) {
+            for (IXmlElement e : elements) {
                 T value = newValue(e);
                 result.add(value);
             }
@@ -295,11 +295,11 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
      * @param row the row number
      * @return a list of all elements of the specified row
      */
-    public List<XmlElement> getRowElements(int row) {
+    public List<IXmlElement> getRowElements(int row) {
         if (row < 0) {
             return null;
         }
-        List<List<XmlElement>> cells = getCells();
+        List<List<IXmlElement>> cells = getCells();
         return row >= cells.size() ? null : cells.get(row);
     }
 
@@ -311,10 +311,10 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
     public int getRowIndex(int column, String columnValue) {
         int result = -1;
         if (column >= 0) {
-            List<List<XmlElement>> cells = getCells();
+            List<List<IXmlElement>> cells = getCells();
             for (int row = 0; row < cells.size(); row++) {
-                List<XmlElement> line = cells.get(row);
-                XmlElement e = column < line.size() ? line.get(column) : null;
+                List<IXmlElement> line = cells.get(row);
+                IXmlElement e = column < line.size() ? line.get(column) : null;
                 Value value = newValue(e);
                 String textValue = value.getAsText();
                 if (columnValue.equals(textValue)) {
@@ -327,15 +327,15 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
     }
 
     public int getRowNumber() {
-        List<List<XmlElement>> cells = getCells();
+        List<List<IXmlElement>> cells = getCells();
         return cells.size();
     }
 
     public int getWidth() {
         if (fTableWidth < 0) {
-            List<List<XmlElement>> cells = getCells();
+            List<List<IXmlElement>> cells = getCells();
             fTableWidth = 0;
-            for (List<XmlElement> row : cells) {
+            for (List<IXmlElement> row : cells) {
                 int count = row.size();
                 if (count > fTableWidth) {
                     fTableWidth = count;

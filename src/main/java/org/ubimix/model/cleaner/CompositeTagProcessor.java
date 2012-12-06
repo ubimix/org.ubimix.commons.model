@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -21,17 +21,17 @@ public class CompositeTagProcessor extends AbstractTagProcessor {
     }
 
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
-        List<XmlNode> list = Arrays.<XmlNode> asList(element);
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
+        List<IXmlNode> list = Arrays.<IXmlNode> asList(element);
         for (ITagProcessor processor : fProcessors) {
             if (list.isEmpty()) {
                 break;
             }
-            List<XmlNode> result = new ArrayList<XmlNode>();
-            for (XmlNode node : list) {
-                if (node instanceof XmlElement) {
-                    XmlElement e = (XmlElement) node;
-                    List<XmlNode> r = processor.handle(e, keepSpaces);
+            List<IXmlNode> result = new ArrayList<IXmlNode>();
+            for (IXmlNode node : list) {
+                if (node instanceof IXmlElement) {
+                    IXmlElement e = (IXmlElement) node;
+                    List<IXmlNode> r = processor.handle(e, keepSpaces);
                     result.addAll(r);
                 } else {
                     result.add(node);

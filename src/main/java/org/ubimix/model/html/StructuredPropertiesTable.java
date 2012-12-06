@@ -4,7 +4,7 @@
 package org.ubimix.model.html;
 
 import org.ubimix.model.IValueFactory;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * @author kotelnikov
@@ -16,7 +16,7 @@ public class StructuredPropertiesTable extends StructuredTable {
     private int fValueColumnId = 1;
 
     public StructuredPropertiesTable(
-        XmlElement element,
+        IXmlElement element,
         IValueFactory<? extends Value> factory) {
         super(element, factory);
     }

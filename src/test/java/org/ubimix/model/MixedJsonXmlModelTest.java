@@ -5,7 +5,8 @@ package org.ubimix.model;
 
 import junit.framework.TestCase;
 
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.XmlFactory;
 
 /**
@@ -15,23 +16,23 @@ public class MixedJsonXmlModelTest extends TestCase {
 
     public static class MyDocument extends ModelObject {
 
-        public XmlElement getContent() {
-            return getValue("content", XmlElement.FACTORY);
+        public IXmlElement getContent() {
+            return getValue("content", IXmlElement.FACTORY);
         }
 
         public String getTitle() {
             return getString("title");
         }
 
-        public MyDocument setContent(String content) {
-            XmlFactory factory = new XmlFactory();
-            XmlElement element = factory.parse(content);
-            return setContent(element);
-        }
-
-        public MyDocument setContent(XmlElement content) {
+        public MyDocument setContent(IXmlElement content) {
             setValue("content", content);
             return cast();
+        }
+
+        public MyDocument setContent(String content) {
+            IXmlFactory factory = XmlFactory.getInstance();
+            IXmlElement element = factory.parse(content);
+            return setContent(element);
         }
 
         public MyDocument setTitle(String title) {
@@ -57,7 +58,7 @@ public class MixedJsonXmlModelTest extends TestCase {
             + "</div>";
         doc.setContent(str);
         assertEquals("Hello, world", doc.getTitle());
-        XmlElement content = doc.getContent();
+        IXmlElement content = doc.getContent();
         assertNotNull(content);
         assertEquals(str, content.toString());
 
@@ -109,41 +110,30 @@ public class MixedJsonXmlModelTest extends TestCase {
         assertEquals(str, xmlStr);
     }
 
-    public void test2() {
-        ModelTestFeed f = new ModelTestFeed();
-        ModelObject obj = f.getFeed();
-        String xmlStr = testObjToXml(obj.toString());
-        String objStr = testXmlToObj(xmlStr);
-
-        String first = obj.toString(true, 2);
-        String second = ModelObject.parse(objStr).toString(true, 2);
-        assertEquals(first, second);
-    }
-
-    protected void testConversion(XmlElement xml, ModelObject obj) {
+    protected void testConversion(IXmlElement xml, ModelObject obj) {
         String xmlStr = xml.toString();
         String objStr = obj.toString();
-        XmlElement xmlTest = xml.getFactory().parse(xmlStr);
+        IXmlElement xmlTest = xml.getFactory().parse(xmlStr);
         ModelObject objTest = ModelObject.parse(objStr);
         assertEquals(xml, xmlTest);
         assertEquals(obj, objTest);
         assertEquals(xmlStr, xmlTest.toString());
         assertEquals(objStr, objTest.toString());
 
-        assertEquals(xmlTest, XmlElement.FACTORY.newValue(objTest));
-        assertEquals(objTest, ModelObject.from(xmlTest));
+        assertEquals(xmlTest, IXmlElement.FACTORY.newValue(objTest));
+        assertEquals(objTest + "", "" + ModelObject.from(xmlTest));
     }
 
     private String testObjToXml(String str) {
         ModelObject obj = ModelObject.parse(str);
-        XmlElement xml = XmlElement.FACTORY.newValue(obj);
+        IXmlElement xml = IXmlElement.FACTORY.newValue(obj);
         testConversion(xml, obj);
         return xml.toString();
     }
 
     private String testXmlToObj(String str) {
-        XmlFactory factory = new XmlFactory();
-        XmlElement xml = factory.parse(str);
+        IXmlFactory factory = XmlFactory.getInstance();
+        IXmlElement xml = factory.parse(str);
         ModelObject obj = ModelObject.from(xml);
         testConversion(xml, obj);
         return obj.toString();

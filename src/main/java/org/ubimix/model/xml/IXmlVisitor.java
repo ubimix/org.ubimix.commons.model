@@ -19,28 +19,28 @@ public interface IXmlVisitor {
         }
 
         /**
-         * @see org.ubimix.model.xml.IXmlVisitor#visit(org.ubimix.model.xml.XmlCDATA)
+         * @see org.ubimix.model.xml.IXmlVisitor#visit(IXmlCDATA)
          */
-        public void visit(XmlCDATA cdata) {
+        public void visit(IXmlCDATA cdata) {
         }
 
         /**
          * @see org.ubimix.model.xml.IXmlVisitor#visit(org.ubimix.model.xml.XmlElement)
          */
-        public void visit(XmlElement element) {
+        public void visit(IXmlElement element) {
         }
 
         /**
          * @see org.ubimix.model.xml.IXmlVisitor#visit(org.ubimix.model.xml.XmlText)
          */
-        public void visit(XmlText text) {
+        public void visit(IXmlText text) {
         }
 
     }
 
-    void visit(XmlCDATA cdata);
+    void visit(IXmlCDATA cdata);
 
-    void visit(XmlElement element);
+    void visit(IXmlElement element);
 
-    void visit(XmlText text);
+    void visit(IXmlText text);
 }

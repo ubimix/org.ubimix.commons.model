@@ -3,9 +3,7 @@
  */
 package org.ubimix.model.xml;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -16,101 +14,21 @@ import java.util.Set;
 import org.ubimix.model.IHasValueMap;
 import org.ubimix.model.IValueFactory;
 import org.ubimix.model.TreePresenter;
-import org.ubimix.model.conversion.Converter;
-import org.ubimix.model.selector.IPathNodeCollector;
-import org.ubimix.model.selector.IPathSelector;
-import org.ubimix.model.selector.PathProcessor;
-import org.ubimix.model.selector.utils.CssPathSelectorBuilder;
-import org.ubimix.model.selector.utils.TreeNodeProvider;
 
 /**
  * @author kotelnikov
  */
 public class XmlElement extends XmlNode
     implements
-    Iterable<XmlNode>,
-    IHasValueMap {
-
-    /**
-     * Creates and returns {@link XmlElement} instance wrapping the specified
-     * java value.
-     */
-    public static final IValueFactory<XmlElement> FACTORY = new IValueFactory<XmlElement>() {
-        private XmlFactory fXmlFactory = new XmlFactory();
-
-        @Override
-        public XmlElement newValue(Object object) {
-            XmlElement result = null;
-            if (!(object instanceof XmlElement)) {
-                if (object instanceof IHasValueMap) {
-                    IHasValueMap m = (IHasValueMap) object;
-                    result = Converter.convertJsonToXml(m, fXmlFactory);
-                } else if (object instanceof Map<?, ?>) {
-                    Map<Object, Object> map = (Map<Object, Object>) object;
-                    result = new XmlElement(null, map);
-                } else {
-                    result = Converter.convertJavaToXml(object, fXmlFactory);
-                }
-
-            } else {
-                result = (XmlElement) object;
-            }
-            return result;
-        }
-    };
-
-    public static final String KEY_CHILDREN = "~";
-
-    public static final String KEY_NAME = "!";
-
-    public static final String NS = "xmlns";
-
-    public static final String NS_PREFIX = "xmlns:";
+    IHasValueMap,
+    IXmlElement,
+    IXmlJson {
 
     public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN);
-
-    public static TreeNodeProvider XML_TREE_NODE_PROVIDER = new TreeNodeProvider(
-        XmlElement.TREE_ACCESSOR) {
-        @Override
-        protected IValueFactory<?> getChildNodeFactory(IHasValueMap element) {
-            return ((XmlElement) element).getNodeFactory();
-        }
-    };
-
-    protected static void addDeclaredNamespaces(
-        Map<String, String> namespaces,
-        Map<String, String> declaredNamespaces) {
-        for (String prefix : declaredNamespaces.keySet()) {
-            if (!namespaces.containsKey(prefix)) {
-                String ns = declaredNamespaces.get(prefix);
-                if (!namespaces.containsValue(ns)) {
-                    namespaces.put(prefix, ns);
-                }
-            }
-        }
-    }
 
     @SuppressWarnings("unchecked")
     protected static <T> T cast(Object value) {
         return (T) value;
-    }
-
-    public static XmlElement getOrCreateElement(XmlElement e, String name) {
-        XmlElement child = e.getChildByName(name);
-        if (child == null) {
-            XmlFactory factory = e.getFactory();
-            child = factory.newElement(name);
-            e.addChild(child);
-        }
-        return child;
-    }
-
-    public static <T> T getOrCreateElement(
-        XmlElement e,
-        String name,
-        IValueFactory<T> factory) {
-        XmlElement r = getOrCreateElement(e, name);
-        return r != null ? factory.newValue(r) : null;
     }
 
     private static boolean isExcludedAttributeName(String key) {
@@ -127,54 +45,45 @@ public class XmlElement extends XmlNode
         return (value instanceof Map<?, ?>) || (value instanceof List<?>);
     }
 
-    private static <T> void loadChildrenByName(
-        XmlElement element,
-        String tagName,
-        List<T> result,
-        IValueFactory<T> factory,
-        boolean recursive) {
-        for (XmlNode node : element) {
-            if (!(node instanceof XmlElement)) {
-                continue;
-            }
-            XmlElement e = (XmlElement) node;
-            if (tagName.equals(e.getName())) {
-                T resultNode = factory.newValue(e);
-                if (resultNode != null) {
-                    result.add(resultNode);
-                }
-            }
-            if (recursive) {
-                loadChildrenByName(e, tagName, result, factory, recursive);
-            }
-        }
+    protected XmlElement(
+        IXmlFactory factory,
+        IXmlElement parent,
+        Map<Object, Object> map) {
+        super(factory, parent, map);
     }
 
-    protected XmlElement(String name) {
-        super(null, null);
+    protected XmlElement(IXmlFactory xmlFactory, String name) {
+        super(xmlFactory, null, null);
         if (!"umx:object".equals(name)) {
             setName(name);
         }
     }
 
-    protected XmlElement(XmlElement parent, Map<Object, Object> map) {
-        super(parent, map);
-    }
-
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#accept(org.ubimix.model.xml.IXmlVisitor)
+     */
     @Override
     public void accept(IXmlVisitor visitor) {
         visitor.visit(this);
     }
 
-    public void addChild(XmlNode node) {
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#addChild(IXmlNode)
+     */
+    @Override
+    public void addChild(IXmlNode node) {
         int len = getChildCount();
         addChild(node, len);
     }
 
-    public boolean addChild(XmlNode node, int pos) {
-        boolean result = addChildObject(node.getObject(), pos);
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#addChild(IXmlNode, int)
+     */
+    @Override
+    public boolean addChild(IXmlNode node, int pos) {
+        boolean result = addChildObject(getNodeObject(node), pos);
         if (result) {
-            node.setParent(this);
+            ((XmlNode) node).setParent(this);
         }
         return result;
     }
@@ -184,32 +93,32 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    public void addChildren(Iterable<? extends XmlNode> children) {
-        for (XmlNode child : children) {
-            addChild(child);
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#addChildren(Iterable)
+     */
+    @Override
+    public void addChildren(Iterable<? extends IXmlNode> children) {
+        for (IXmlNode child : children) {
+            if (child != null) {
+                addChild(child);
+            }
         }
     }
 
-    public void addPropertyField(String name, XmlNode value) {
-        TreePresenter p = new TreePresenter(name);
-        Map<Object, Object> map = getMap();
-        int len = p.getChildCount(map);
-        p.addChild(map, len, value.getObject());
-    }
-
-    public XmlElement addText(String str) {
-        addChild(new XmlText(str));
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#addText(java.lang.String)
+     */
+    @Override
+    public IXmlElement addText(String str) {
+        IXmlText text = getFactory().newText(str);
+        addChild(text);
         return this;
     }
 
-    public <T> List<T> getAllChildrenByName(
-        String tagName,
-        IValueFactory<T> factory) {
-        List<T> result = new ArrayList<T>();
-        loadChildrenByName(this, tagName, result, factory, true);
-        return result;
-    }
-
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getAttribute(java.lang.String)
+     */
+    @Override
     public String getAttribute(String key) {
         Map<Object, Object> map = getMap();
         Object value = map.get(key);
@@ -219,10 +128,18 @@ public class XmlElement extends XmlNode
         return TreePresenter.toString(value);
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getAttributeNames()
+     */
+    @Override
     public Set<String> getAttributeNames() {
         return getAttributes().keySet();
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getAttributes()
+     */
+    @Override
     public Map<String, String> getAttributes() {
         Map<String, String> result = new LinkedHashMap<String, String>();
         Map<Object, Object> map = getMap();
@@ -240,8 +157,12 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    public XmlNode getChild(int pos) {
-        XmlNode result = null;
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getChild(int)
+     */
+    @Override
+    public IXmlNode getChild(int pos) {
+        IXmlNode result = null;
         Object object = getChildObject(pos);
         if (object != null) {
             result = newChild(object);
@@ -249,190 +170,38 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    public XmlElement getChildByName(String name) {
-        XmlElement result = null;
-        for (XmlNode node : this) {
-            if (!(node instanceof XmlElement)) {
-                continue;
-            }
-            XmlElement e = (XmlElement) node;
-            if (name.equals(e.getName())) {
-                result = e;
-            }
-        }
-        return result;
-    }
-
-    public <T extends XmlElement> T getChildByName(
-        String tagName,
-        IValueFactory<T> factory) {
-        T result = null;
-        for (XmlNode node : this) {
-            if (!(node instanceof XmlElement)) {
-                continue;
-            }
-            XmlElement e = (XmlElement) node;
-            if (tagName.equals(e.getName())) {
-                result = factory.newValue(e);
-                if (result != null) {
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-
-    public XmlElement getChildByPath(
-        IValueFactory<XmlElement> factory,
-        String... path) {
-        XmlElement result = getChildByPath(path, 0, factory);
-        return result;
-    }
-
-    public XmlElement getChildByPath(String... path) {
-        return getChildByPath(XmlElement.FACTORY, path);
-    }
-
-    private <T> T getChildByPath(
-        String[] path,
-        int pos,
-        IValueFactory<T> factory) {
-        if (pos >= path.length) {
-            return null;
-        }
-        T result = null;
-        String tagName = path[pos];
-        for (XmlNode node : this) {
-            if (node instanceof XmlElement) {
-                XmlElement e = (XmlElement) node;
-                if (tagName.equals(e.getName())) {
-                    if (pos == path.length - 1) {
-                        result = factory.newValue(e);
-                    } else {
-                        result = getChildByPath(path, pos + 1, factory);
-                    }
-                }
-                if (result != null) {
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getChildCount()
+     */
+    @Override
     public int getChildCount() {
         return TREE_ACCESSOR.getChildCount(getMap());
-    }
-
-    public XmlElement getChildElement() {
-        XmlElement result = null;
-        for (XmlNode node : this) {
-            if (node instanceof XmlElement) {
-                result = (XmlElement) node;
-                break;
-            }
-        }
-        return result;
-    }
-
-    public List<XmlElement> getChildElements() {
-        List<XmlElement> result = new ArrayList<XmlElement>();
-        for (XmlNode node : this) {
-            if (node instanceof XmlElement) {
-                result.add((XmlElement) node);
-            }
-        }
-        return result;
     }
 
     protected Object getChildObject(int pos) {
         return TREE_ACCESSOR.getChildObject(getMap(), pos);
     }
 
-    public int getChildPosition(XmlNode node) {
-        return TREE_ACCESSOR.getChildPosition(getMap(), node.getObject());
-    }
-
-    public List<XmlNode> getChildren() {
-        return TREE_ACCESSOR.getChildren(getMap(), getNodeFactory());
-    }
-
-    public List<XmlElement> getChildrenByName(String tagName) {
-        return getChildrenByName(tagName, XmlElement.FACTORY);
-    }
-
-    public <T> List<T> getChildrenByName(
-        String tagName,
-        IValueFactory<T> factory) {
-        List<T> result = new ArrayList<T>();
-        loadChildrenByName(this, tagName, result, factory, false);
-        return result;
-    }
-
-    public List<XmlElement> getChildrenByNames(Collection<String> tagNames) {
-        return getChildrenByNames(tagNames, XmlElement.FACTORY);
-    }
-
-    public <T extends XmlElement> List<T> getChildrenByNames(
-        Collection<String> tagNames,
-        IValueFactory<T> factory) {
-        List<T> result = new ArrayList<T>();
-        for (XmlNode node : this) {
-            if (!(node instanceof XmlElement)) {
-                continue;
-            }
-            XmlElement e = (XmlElement) node;
-            if (tagNames.contains(e.getName())) {
-                T resultNode = factory.newValue(e);
-                result.add(resultNode);
-            }
-        }
-        return result;
-    }
-
-    public <T> List<T> getChildrenByPath(
-        IValueFactory<T> factory,
-        String... path) {
-        List<T> result = new ArrayList<T>();
-        getChildrenByPath(result, path, 0, factory);
-        return result;
-    }
-
-    private <T> void getChildrenByPath(
-        List<T> result,
-        String[] path,
-        int pos,
-        IValueFactory<T> factory) {
-        if (pos >= path.length) {
-            return;
-        }
-        String tagName = path[pos];
-        for (XmlNode node : this) {
-            if (node instanceof XmlElement) {
-                XmlElement e = (XmlElement) node;
-                if (tagName.equals(e.getName())) {
-                    if (pos == path.length - 1) {
-                        T resultNode = factory.newValue(e);
-                        result.add(resultNode);
-                    } else {
-                        getChildrenByPath(result, path, pos + 1, factory);
-                    }
-                }
-            }
-        }
-    }
-
-    public List<XmlElement> getChildrenByPath(String... path) {
-        return getChildrenByPath(XmlElement.FACTORY, path);
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getChildPosition(org.ubimix.model.xml.XmlNode)
+     */
+    @Override
+    public int getChildPosition(IXmlNode node) {
+        return TREE_ACCESSOR.getChildPosition(getMap(), getNodeObject(node));
     }
 
     /**
-     * Returns a map with prefixes and the corresponding namespaces defined
-     * directly in this element. The default namespace corresponds to an empty
-     * prefix ("").
-     * 
-     * @return a map with prefixes and the corresponding namespaces
+     * @see org.ubimix.model.xml.IXmlElement#getChildren()
      */
+    @Override
+    public List<IXmlNode> getChildren() {
+        return TREE_ACCESSOR.getChildren(getMap(), getNodeFactory());
+    }
+
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getDeclaredNamespaces()
+     */
+    @Override
     public Map<String, String> getDeclaredNamespaces() {
         Map<String, String> result = null;
         Map<Object, Object> map = getMap();
@@ -460,11 +229,18 @@ public class XmlElement extends XmlNode
         return result;
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getMap()
+     */
     @Override
     public Map<Object, Object> getMap() {
         return cast(getObject());
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#getName()
+     */
+    @Override
     public String getName() {
         Map<Object, Object> map = getMap();
         Object value = map.get(KEY_NAME);
@@ -473,126 +249,45 @@ public class XmlElement extends XmlNode
         return name;
     }
 
-    /**
-     * Returns a map with prefixes and the corresponding namespaces valid for
-     * this element. The default namespace corresponds to an empty prefix ("").
-     * 
-     * @return a map with prefixes and the corresponding namespaces
-     */
-    public Map<String, String> getNamespaces() {
-        Map<String, String> result = new LinkedHashMap<String, String>();
-        XmlElement e = this;
-        while (e != null) {
-            Map<String, String> declaredNamespaces = getDeclaredNamespaces();
-            addDeclaredNamespaces(result, declaredNamespaces);
-            e = e.getParent();
-        }
-        return result;
-    }
-
-    public IValueFactory<XmlNode> getNodeFactory() {
-        return new IValueFactory<XmlNode>() {
+    public IValueFactory<IXmlNode> getNodeFactory() {
+        return new IValueFactory<IXmlNode>() {
             @Override
-            public XmlNode newValue(Object object) {
+            public IXmlNode newValue(Object object) {
                 return newChild(object);
             }
         };
     }
 
-    public XmlElement getOrCreateElement(String name) {
-        return getOrCreateElement(this, name);
-    }
-
-    public <T> T getOrCreateElement(String name, IValueFactory<T> factory) {
-        return getOrCreateElement(this, name, factory);
-    }
-
-    protected PathProcessor getPathProcessor(String cssSelector) {
-        IPathSelector selector = CssPathSelectorBuilder.INSTANCE
-            .build(cssSelector);
-        PathProcessor pathProcessor = new PathProcessor(
-            XML_TREE_NODE_PROVIDER,
-            selector);
-        return pathProcessor;
-    }
-
-    public Map<String, XmlNode> getPropertyFields() {
-        Map<String, XmlNode> result = new LinkedHashMap<String, XmlNode>();
-        Map<Object, Object> map = getMap();
-        for (Map.Entry<Object, Object> entry : map.entrySet()) {
-            Object attr = entry.getKey();
-            String key = TreePresenter.toString(attr);
-            if (!isExcludedAttributeName(key)) {
-                Object value = entry.getValue();
-                if (isExcludedAttributeValue(value)) {
-                    XmlNode node = newChild(value);
-                    if (node instanceof XmlElement) {
-                        ((XmlElement) node).setParent(this);
-                    }
-                    result.put(key, node);
-                }
-            }
-        }
-        return result;
+    public Object getNodeObject(IXmlNode child) {
+        return ((XmlNode) child).getObject();
     }
 
     private boolean isEmpty(Object container) {
         return container == null || "".equals(container);
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#iterator()
+     */
     @Override
-    public Iterator<XmlNode> iterator() {
-        List<XmlNode> list = getChildren();
+    public Iterator<IXmlNode> iterator() {
+        List<IXmlNode> list = getChildren();
         return list.iterator();
     }
 
-    public String lookupNs(String prefix) {
-        String key = "".equals(prefix) ? NS : NS_PREFIX + prefix;
-        XmlElement e = this;
-        String result = null;
-        while (e != null && result == null) {
-            result = e.getAttribute(key);
-            e = e.getParent();
-        }
-        return result;
-    }
-
-    public String lookupNsPrefix(String namespace) {
-        XmlElement e = this;
-        String result = null;
-        while (e != null && result == null) {
-            Map<String, String> attrs = e.getAttributes();
-            for (Map.Entry<String, String> entry : attrs.entrySet()) {
-                String attr = entry.getKey();
-                String value = entry.getValue();
-                if (attr.startsWith(NS_PREFIX)) {
-                    if (namespace.equals(value)) {
-                        result = attr.substring(NS_PREFIX.length());
-                    }
-                } else if (attr.equals(NS)) {
-                    if (namespace.equals(value)) {
-                        result = value;
-                    }
-                }
-            }
-            e = e.getParent();
-        }
-        return result;
-    }
-
-    public XmlCDATA newCDATA(String object) {
-        XmlFactory factory = getFactory();
-        XmlCDATA cdata = factory.newCDATA(object);
-        cdata.setParent(this);
+    private IXmlCDATA newCDATA(String object) {
+        IXmlFactory factory = getFactory();
+        IXmlCDATA cdata = factory.newCDATA(object);
+        setParent(cdata);
         return cdata;
     }
 
-    private XmlNode newChild(Object o) {
-        XmlNode result = null;
+    private IXmlNode newChild(Object o) {
+        IXmlNode result = null;
         if (o instanceof List<?>) {
-            XmlElement e = newElement(newObject());
+            IXmlElement e = newElement(newObject());
             e.setName("umx:list");
-            e.addChildObject(o, 0);
+            ((XmlElement) e).addChildObject(o, 0);
             result = e;
         } else if (o instanceof Map<?, ?>) {
             Map<Object, Object> map = cast(o);
@@ -608,28 +303,13 @@ public class XmlElement extends XmlNode
         return result;
     }
 
-    @Override
-    public XmlElement newCopy(boolean depth) {
-        XmlFactory factory = getFactory();
-        XmlBuilder builder = new XmlBuilder(factory);
-        accept(builder, depth);
-        XmlElement result = builder.getResult();
-        return result;
-    }
-
-    private XmlElement newElement(Map<Object, Object> obj) {
+    private IXmlElement newElement(Map<Object, Object> obj) {
         if (obj == null) {
             obj = newObject();
         }
-        XmlElement result = FACTORY.newValue(obj);
-        result.setParent(this);
+        IXmlElement result = FACTORY.newValue(obj);
+        setParent(result);
         return result;
-    }
-
-    public XmlElement newElement(String name) {
-        XmlElement element = getFactory().newElement(name);
-        element.setParent(this);
-        return element;
     }
 
     @Override
@@ -637,14 +317,18 @@ public class XmlElement extends XmlNode
         return new LinkedHashMap<Object, Object>();
     }
 
-    public XmlText newText(String content) {
-        XmlFactory factory = getFactory();
-        XmlText text = factory.newText(content);
-        text.setParent(this);
+    private IXmlText newText(String content) {
+        IXmlFactory factory = getFactory();
+        IXmlText text = factory.newText(content);
+        setParent(text);
         return text;
     }
 
-    public XmlElement removeAttribute(String key) {
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#removeAttribute(java.lang.String)
+     */
+    @Override
+    public IXmlElement removeAttribute(String key) {
         if (isExcludedAttributeName(key)) {
             throw new IllegalArgumentException();
         }
@@ -653,59 +337,36 @@ public class XmlElement extends XmlNode
         return this;
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#removeChild(int)
+     */
+    @Override
     public boolean removeChild(int pos) {
         return TREE_ACCESSOR.removeChild(getMap(), pos);
     }
 
-    public boolean removeChild(XmlNode child) {
-        return TREE_ACCESSOR.removeChild(getMap(), child.getObject());
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#removeChild(org.ubimix.model.xml.XmlNode)
+     */
+    @Override
+    public boolean removeChild(IXmlNode child) {
+        return TREE_ACCESSOR.removeChild(getMap(), getNodeObject(child));
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#removeChildren()
+     */
+    @Override
     public void removeChildren() {
         TREE_ACCESSOR.removeChildren(getMap());
     }
 
-    public XmlElement select(String cssSelector) {
-        return select(cssSelector, XmlElement.FACTORY);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends XmlNode> T select(
-        String cssSelector,
-        final IValueFactory<T> factory) {
-        final Object[] results = { null };
-        PathProcessor processor = getPathProcessor(cssSelector);
-        processor.select(this, new IPathNodeCollector() {
-            @Override
-            public boolean setResult(Object node) {
-                results[0] = factory.newValue(node);
-                return false;
-            }
-        });
-        return (T) results[0];
-    }
-
-    public List<XmlElement> selectAll(String cssSelector) {
-        return selectAll(cssSelector, XmlElement.FACTORY);
-    }
-
-    public <T extends XmlNode> List<T> selectAll(
-        String cssSelector,
-        final IValueFactory<T> factory) {
-        final List<T> results = new ArrayList<T>();
-        PathProcessor processor = getPathProcessor(cssSelector);
-        processor.select(this, new IPathNodeCollector() {
-            @Override
-            public boolean setResult(Object node) {
-                T value = factory.newValue(node);
-                results.add(value);
-                return true;
-            }
-        });
-        return results;
-    }
-
-    public XmlElement setAttribute(String key, String value) {
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#setAttribute(java.lang.String,
+     *      java.lang.String)
+     */
+    @Override
+    public IXmlElement setAttribute(String key, String value) {
         if (isExcludedAttributeName(key)) {
             throw new IllegalArgumentException();
         }
@@ -714,22 +375,38 @@ public class XmlElement extends XmlNode
         return this;
     }
 
-    public XmlElement setAttributes(Map<String, String> attributes) {
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#setAttributes(java.util.Map)
+     */
+    @Override
+    public IXmlElement setAttributes(Map<String, String> attributes) {
         setValues(attributes, null);
         return this;
     }
 
-    public XmlElement setChildren(Iterable<XmlNode> children) {
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#setChildren(Iterable)
+     */
+    @Override
+    public IXmlElement setChildren(Iterable<IXmlNode> children) {
         removeChildren();
         addChildren(children);
         return this;
     }
 
-    public XmlElement setChildren(XmlNode... children) {
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#setChildren(IXmlNode[])
+     */
+    @Override
+    public IXmlElement setChildren(IXmlNode... children) {
         return setChildren(Arrays.asList(children));
     }
 
-    public XmlElement setName(String tagName) {
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#setName(java.lang.String)
+     */
+    @Override
+    public IXmlElement setName(String tagName) {
         Map<Object, Object> map = getMap();
         if (tagName != null) {
             map.put(KEY_NAME, tagName);
@@ -739,13 +416,36 @@ public class XmlElement extends XmlNode
         return this;
     }
 
-    public XmlElement setNamespaces(Map<String, String> attributes) {
+    @Override
+    public IXmlElement setNamespace(String nsPrefix, String nsUrl) {
+        String key = "".equals(nsPrefix) ? "xmlns" : "xmlns:" + nsPrefix;
+        Map<Object, Object> map = getMap();
+        map.put(key, nsUrl);
+        return this;
+    }
+
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#setNamespaces(java.util.Map)
+     */
+    @Override
+    public IXmlElement setNamespaces(Map<String, String> attributes) {
         setValues(attributes, "xmlns");
         return this;
     }
 
-    public XmlElement setText(String str) {
-        setChildren(new XmlText(str));
+    private void setParent(IXmlNode node) {
+        if (node instanceof XmlNode) {
+            ((XmlNode) node).setParent(this);
+        }
+    }
+
+    /**
+     * @see org.ubimix.model.xml.IXmlElement#setText(java.lang.String)
+     */
+    @Override
+    public IXmlElement setText(String str) {
+        IXmlText text = getFactory().newText(str);
+        setChildren(text);
         return this;
     }
 
@@ -764,14 +464,6 @@ public class XmlElement extends XmlNode
             }
             String value = attr.getValue();
             map.put(key, value);
-        }
-    }
-
-    public String toString(boolean sortAttributes, boolean includeElement) {
-        if (includeElement) {
-            return super.toString(sortAttributes);
-        } else {
-            return toString(this, sortAttributes);
         }
     }
 

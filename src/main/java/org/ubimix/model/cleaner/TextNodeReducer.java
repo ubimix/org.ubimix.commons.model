@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.ubimix.model.xml.XmlCDATA;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
-import org.ubimix.model.xml.XmlText;
+import org.ubimix.model.xml.IXmlCDATA;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlNode;
+import org.ubimix.model.xml.IXmlText;
 
 /**
  * This handler removes excessive empty spaces from text blocks.
@@ -18,22 +18,22 @@ import org.ubimix.model.xml.XmlText;
 public class TextNodeReducer extends AbstractTagProcessor {
 
     @Override
-    public List<XmlNode> handle(XmlElement element, boolean keepSpaces) {
-        List<XmlNode> nodes = element.getChildren();
-        List<XmlNode> result = new ArrayList<XmlNode>();
+    public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
+        List<IXmlNode> nodes = element.getChildren();
+        List<IXmlNode> result = new ArrayList<IXmlNode>();
         StringBuilder buf = new StringBuilder();
-        XmlFactory factory = element.getFactory();
+        IXmlFactory factory = element.getFactory();
         int len = nodes.size();
         for (int i = 0; i < len; i++) {
-            XmlNode node = nodes.get(i);
-            if ((node instanceof XmlText) && !(node instanceof XmlCDATA)) {
-                XmlText text = (XmlText) node;
+            IXmlNode node = nodes.get(i);
+            if ((node instanceof IXmlText) && !(node instanceof IXmlCDATA)) {
+                IXmlText text = (IXmlText) node;
                 buf.append(text.getContent());
             } else {
                 if (buf.length() > 0) {
                     String str = reduceText(buf.toString(), keepSpaces);
                     buf.delete(0, buf.length());
-                    XmlText text = factory.newText(str);
+                    IXmlText text = factory.newText(str);
                     result.add(text);
                 }
                 result.add(node);
@@ -42,11 +42,11 @@ public class TextNodeReducer extends AbstractTagProcessor {
         if (buf.length() > 0) {
             String str = reduceText(buf.toString(), keepSpaces);
             buf.delete(0, buf.length());
-            XmlText text = factory.newText(str);
+            IXmlText text = factory.newText(str);
             result.add(text);
         }
         element.setChildren(result);
-        return Arrays.<XmlNode> asList(element);
+        return Arrays.<IXmlNode> asList(element);
     }
 
 }

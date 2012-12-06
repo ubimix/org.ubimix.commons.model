@@ -3,10 +3,11 @@ package org.ubimix.model.html.export;
 import java.util.Map;
 
 import org.ubimix.commons.parser.xml.IXmlListener;
-import org.ubimix.model.xml.XmlCDATA;
-import org.ubimix.model.xml.XmlElement;
-import org.ubimix.model.xml.XmlNode;
-import org.ubimix.model.xml.XmlText;
+import org.ubimix.model.xml.IXmlCDATA;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
+import org.ubimix.model.xml.IXmlText;
+import org.ubimix.model.xml.XmlUtils;
 
 /**
  * This exporter simply calls methods of the {@link IXmlListener} object defined
@@ -19,14 +20,14 @@ public class SimpleXmlExporter implements IXmlElementExporter {
 
     /**
      * @see org.ubimix.model.html.export.IXmlElementExporter#export(org.ubimix.model.html.export.IXmlElementExporter.ExportContext,
-     *      org.ubimix.model.xml.XmlElement)
+     *      IXmlElement)
      */
     @Override
-    public boolean export(ExportContext context, XmlElement element) {
+    public boolean export(ExportContext context, IXmlElement element) {
         IXmlListener listener = context.getXmlListener();
         String tagName = element.getName();
         Map<String, String> attributes = element.getAttributes();
-        Map<String, String> namespaces = element.getNamespaces();
+        Map<String, String> namespaces = XmlUtils.getNamespaces(element);
         tagName = fixElementValues(
             context,
             element,
@@ -45,17 +46,17 @@ public class SimpleXmlExporter implements IXmlElementExporter {
      * @param context the export context
      * @param element the element to export
      */
-    protected void exportChildren(ExportContext context, XmlElement element) {
+    protected void exportChildren(ExportContext context, IXmlElement element) {
         IXmlListener listener = context.getXmlListener();
-        for (XmlNode node : element) {
-            if (node instanceof XmlElement) {
-                XmlElement e = (XmlElement) node;
+        for (IXmlNode node : element) {
+            if (node instanceof IXmlElement) {
+                IXmlElement e = (IXmlElement) node;
                 context.export(e);
-            } else if (node instanceof XmlCDATA) {
-                XmlCDATA cdata = (XmlCDATA) node;
+            } else if (node instanceof IXmlCDATA) {
+                IXmlCDATA cdata = (IXmlCDATA) node;
                 listener.onCDATA(cdata.getContent());
-            } else if (node instanceof XmlText) {
-                XmlText text = (XmlText) node;
+            } else if (node instanceof IXmlText) {
+                IXmlText text = (IXmlText) node;
                 listener.onText(text.getContent());
             }
         }
@@ -73,7 +74,7 @@ public class SimpleXmlExporter implements IXmlElementExporter {
      */
     protected String fixElementValues(
         ExportContext context,
-        XmlElement element,
+        IXmlElement element,
         String tagName,
         Map<String, String> attributes,
         Map<String, String> namespaces) {

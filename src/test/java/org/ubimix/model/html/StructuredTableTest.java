@@ -10,16 +10,17 @@ import junit.framework.TestCase;
 
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.html.StructuredNode.Value;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.IXmlNode;
 import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlNode;
 
 /**
  * @author kotelnikov
  */
 public class StructuredTableTest extends TestCase {
 
-    private XmlFactory fFactory = new XmlFactory();
+    private IXmlFactory fFactory = newXmlFactory();
 
     /**
      * @param name
@@ -29,16 +30,20 @@ public class StructuredTableTest extends TestCase {
     }
 
     private StructuredPropertiesTable getProperties(String html) {
-        XmlElement e = HtmlDocument.parseFragment(html);
+        IXmlElement e = HtmlDocument.parseFragment(html);
         return new StructuredPropertiesTable(e, Value.FACTORY);
     }
 
     private StructuredTable getTable(String html) {
-        XmlElement e = HtmlDocument.parseFragment(html);
+        IXmlElement e = HtmlDocument.parseFragment(html);
         return new StructuredTable(e, Value.FACTORY);
     }
 
-    private XmlElement tdRow(String... values) {
+    protected IXmlFactory newXmlFactory() {
+        return XmlFactory.getInstance();
+    }
+
+    private IXmlElement tdRow(String... values) {
         return toLine(HtmlTagDictionary.TD, values);
     }
 
@@ -142,15 +147,15 @@ public class StructuredTableTest extends TestCase {
             tdRow("a", "b"));
     }
 
-    private void testTableDimentions(int cols, XmlElement... rows) {
-        XmlElement table = toTable(rows);
+    private void testTableDimentions(int cols, IXmlElement... rows) {
+        IXmlElement table = toTable(rows);
         StructuredTable sTable = new StructuredTable(table, Value.FACTORY);
         assertEquals(cols, sTable.getWidth());
         assertEquals(rows.length, sTable.getHeight());
         for (int i = 0; i < cols; i++) {
             for (int j = 0; j < rows.length; j++) {
-                XmlElement row = rows[j];
-                XmlNode col = row.getChild(i);
+                IXmlElement row = rows[j];
+                IXmlNode col = row.getChild(i);
                 Value testCell = sTable.getCell(j, i);
                 assertNotNull(testCell);
                 assertEquals(col + "", testCell + "");
@@ -159,23 +164,23 @@ public class StructuredTableTest extends TestCase {
         }
     }
 
-    private XmlElement thRow(String... values) {
+    private IXmlElement thRow(String... values) {
         return toLine("th", values);
     }
 
-    private XmlElement toLine(String cellName, String... values) {
-        XmlElement row = fFactory.newElement("tr");
+    private IXmlElement toLine(String cellName, String... values) {
+        IXmlElement row = fFactory.newElement("tr");
         for (String value : values) {
-            XmlElement cell = fFactory.newElement(cellName);
+            IXmlElement cell = fFactory.newElement(cellName);
             row.addChild(cell);
-            XmlNode node = toNode(value);
+            IXmlNode node = toNode(value);
             cell.addChild(node);
         }
         return row;
     }
 
-    private XmlNode toNode(String value) {
-        XmlNode result = null;
+    private IXmlNode toNode(String value) {
+        IXmlNode result = null;
         if (value == null) {
             value = "";
         }
@@ -187,9 +192,9 @@ public class StructuredTableTest extends TestCase {
         return result;
     }
 
-    private XmlElement toTable(XmlElement... rows) {
-        XmlElement table = fFactory.newElement("table");
-        table.addChildren(Arrays.<XmlNode> asList(rows));
+    private IXmlElement toTable(IXmlElement... rows) {
+        IXmlElement table = fFactory.newElement("table");
+        table.addChildren(Arrays.<IXmlNode> asList(rows));
         return table;
     }
 

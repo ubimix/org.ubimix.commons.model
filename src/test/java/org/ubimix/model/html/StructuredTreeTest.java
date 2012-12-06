@@ -8,7 +8,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.model.html.StructuredNode.Value;
-import org.ubimix.model.xml.XmlElement;
+import org.ubimix.model.xml.IXmlElement;
 
 /**
  * @author kotelnikov
@@ -63,7 +63,7 @@ public class StructuredTreeTest extends TestCase {
     }
 
     private StructuredTree getTree(String html) {
-        XmlElement e = HtmlDocument.parseFragment(html);
+        IXmlElement e = HtmlDocument.parseFragment(html);
         return new StructuredTree(e, Value.FACTORY);
     }
 

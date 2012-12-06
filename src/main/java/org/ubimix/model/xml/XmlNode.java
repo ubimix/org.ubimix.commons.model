@@ -3,17 +3,14 @@
  */
 package org.ubimix.model.xml;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.ubimix.commons.parser.xml.IXmlListener;
-import org.ubimix.commons.parser.xml.utils.TextSerializer;
-import org.ubimix.commons.parser.xml.utils.XmlSerializer;
 
 /**
  * @author kotelnikov
  */
-public abstract class XmlNode {
+public abstract class XmlNode implements IXmlNode {
 
     /**
      * This visitor notifies an internal {@link IXmlListener} instance about
@@ -36,21 +33,20 @@ public abstract class XmlNode {
         }
 
         @Override
-        public void visit(XmlCDATA cdata) {
+        public void visit(IXmlCDATA cdata) {
             String str = cdata.getContent();
             fListener.onCDATA(str);
         }
 
         @Override
-        public void visit(XmlElement element) {
+        public void visit(IXmlElement element) {
             Map<String, String> declaredNamespaces = element
                 .getDeclaredNamespaces();
             String name = element.getName();
             Map<String, String> attributes = element.getAttributes();
             fListener.beginElement(name, attributes, declaredNamespaces);
-            visitElementProperties(element);
             if (fDeep) {
-                for (XmlNode child : element) {
+                for (IXmlNode child : element) {
                     child.accept(this);
                 }
             }
@@ -58,88 +54,24 @@ public abstract class XmlNode {
         }
 
         @Override
-        public void visit(XmlText text) {
+        public void visit(IXmlText text) {
             String str = text.getContent();
             fListener.onText(str);
         }
 
-        private void visitElementProperties(XmlElement element) {
-            Map<String, XmlNode> properties = element.getPropertyFields();
-            LinkedHashMap<String, String> propertyNamespaces = new LinkedHashMap<String, String>();
-            for (Map.Entry<String, XmlNode> entry : properties.entrySet()) {
-                LinkedHashMap<String, String> propertyAttributes = new LinkedHashMap<String, String>();
-                String propertyName = entry.getKey();
-                XmlNode propertyValue = entry.getValue();
-                propertyAttributes.put("name", propertyName);
-                fListener.beginElement(
-                    "umx:property",
-                    propertyAttributes,
-                    propertyNamespaces);
-                propertyValue.accept(this);
-                fListener.endElement(
-                    "umx:property",
-                    propertyAttributes,
-                    propertyNamespaces);
-            }
-
-        }
-    }
-
-    public static <T extends XmlNode> String toString(
-        boolean sortAttributes,
-        T... nodes) {
-        XmlSerializer listener = new XmlSerializer();
-        listener.setSortAttributes(sortAttributes);
-        for (XmlNode node : nodes) {
-            node.accept(listener, true);
-        }
-        return listener.toString();
-    }
-
-    public static <T extends XmlNode> String toString(
-        Iterable<T> nodes,
-        boolean sortAttributes) {
-        XmlSerializer listener = new XmlSerializer();
-        listener.setSortAttributes(sortAttributes);
-        for (XmlNode node : nodes) {
-            node.accept(listener, true);
-        }
-        return listener.toString();
-    }
-
-    public static <T extends XmlNode> String toText(Iterable<T> nodes) {
-        TextSerializer listener = new TextSerializer();
-        for (XmlNode node : nodes) {
-            node.accept(listener, true);
-        }
-        return listener.toString();
-    }
-
-    public static <T extends XmlNode> String toText(T... nodes) {
-        TextSerializer listener = new TextSerializer();
-        for (XmlNode node : nodes) {
-            node.accept(listener, true);
-        }
-        return listener.toString();
     }
 
     private Object fObject;
 
-    private XmlElement fParent;
+    private IXmlElement fParent;
 
-    protected XmlNode(XmlElement parent, Object object) {
+    private IXmlFactory fXmlFactory;
+
+    protected XmlNode(IXmlFactory factory, IXmlElement parent, Object object) {
+        fXmlFactory = factory;
         fParent = parent;
         fObject = object;
     }
-
-    public void accept(IXmlListener listener, boolean deep) {
-        XmlVisitorWithListener visitor = new XmlVisitorWithListener(
-            listener,
-            deep);
-        accept(visitor);
-    }
-
-    public abstract void accept(IXmlVisitor visitor);
 
     @Override
     public boolean equals(Object obj) {
@@ -157,16 +89,19 @@ public abstract class XmlNode {
         return first == second || (first != null && first.equals(second));
     }
 
-    public XmlFactory getFactory() {
-        return new XmlFactory();
+    /**
+     * @see org.ubimix.model.xml.IXmlNode#getFactory()
+     */
+    @Override
+    public IXmlFactory getFactory() {
+        return fXmlFactory;
     }
 
     /**
-     * FIXME: does not work really for non-element nodes
-     * 
-     * @return
+     * @see org.ubimix.model.xml.IXmlNode#getNextSibling()
      */
-    public XmlNode getNextSibling() {
+    @Override
+    public IXmlNode getNextSibling() {
         if (fParent == null) {
             return null;
         }
@@ -177,21 +112,26 @@ public abstract class XmlNode {
             : null;
     }
 
-    public Object getObject() {
+    protected Object getObject() {
         if (fObject == null) {
             fObject = newObject();
         }
         return fObject;
     }
 
-    public XmlElement getParent() {
+    /**
+     * @see org.ubimix.model.xml.IXmlNode#getParent()
+     */
+    @Override
+    public IXmlElement getParent() {
         return fParent;
     }
 
     /**
-     * FIXME: does not work really for non-element nodes
+     * @see org.ubimix.model.xml.IXmlNode#getPreviousSibling()
      */
-    public XmlNode getPreviousSibling() {
+    @Override
+    public IXmlNode getPreviousSibling() {
         if (fParent == null) {
             return null;
         }
@@ -205,17 +145,14 @@ public abstract class XmlNode {
         return fObject.hashCode();
     }
 
-    /**
-     * @param depth if this flag is <code>true</code> then this method should
-     *        also copy all children nodes
-     * @return a new copy of this node
-     */
-    public abstract XmlNode newCopy(boolean depth);
-
     protected abstract Object newObject();
 
+    /**
+     * @see org.ubimix.model.xml.IXmlNode#remove()
+     */
+    @Override
     public void remove() {
-        XmlElement parent = getParent();
+        IXmlElement parent = getParent();
         if (parent != null) {
             parent.removeChild(this);
         }
@@ -232,26 +169,20 @@ public abstract class XmlNode {
         }
     }
 
-    protected void setParent(XmlElement parent) {
+    protected void setObject(Object object) {
+        fObject = object;
+    }
+
+    protected void setParent(IXmlElement parent) {
         fParent = parent;
     }
 
+    /**
+     * @see org.ubimix.model.xml.IXmlNode#toString()
+     */
     @Override
     public String toString() {
-        return toString(false);
-    }
-
-    public String toString(boolean sortAttributes) {
-        XmlSerializer listener = new XmlSerializer();
-        listener.setSortAttributes(sortAttributes);
-        accept(listener, true);
-        return listener.toString();
-    }
-
-    public String toText() {
-        TextSerializer listener = new TextSerializer();
-        accept(listener, true);
-        return listener.toString();
+        return XmlUtils.toStringRecursively(this, false);
     }
 
 }
