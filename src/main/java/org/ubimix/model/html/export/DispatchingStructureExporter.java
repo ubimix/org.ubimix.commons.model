@@ -37,7 +37,7 @@ public class DispatchingStructureExporter
     @SuppressWarnings("unchecked")
     @Override
     protected Class<? extends StructuredNode> getKey(
-        ExportContext context,
+        XmlElementExportContext context,
         IXmlElement element,
         Class<? extends StructuredNode> prevType) {
         Class<? extends StructuredNode> result = null;

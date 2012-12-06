@@ -20,7 +20,7 @@ public interface IXmlElementExporter {
      * 
      * @author kotelnikov
      */
-    public static class ExportContext {
+    public static class XmlElementExportContext {
 
         /**
          * Binding containing mapping between XML elements and structured
@@ -47,7 +47,7 @@ public interface IXmlElementExporter {
          *        child elements
          * @param listener a listener to set
          */
-        public ExportContext(
+        public XmlElementExportContext(
             StructuredNodesBinding binding,
             IXmlElementExporter topExporter,
             IXmlListener listener) {
@@ -111,7 +111,7 @@ public interface IXmlElementExporter {
      * @return <code>true</code> if the specified node was successfully exported
      */
     boolean export(
-        IXmlElementExporter.ExportContext context,
+        IXmlElementExporter.XmlElementExportContext context,
         IXmlElement element);
 
 }

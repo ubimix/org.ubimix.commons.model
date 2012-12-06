@@ -77,11 +77,11 @@ public abstract class AbstractDispatchingExporter<T>
     }
 
     /**
-     * @see org.ubimix.model.html.export.IXmlElementExporter#export(org.ubimix.model.html.export.IXmlElementExporter.ExportContext,
+     * @see org.ubimix.model.html.export.IXmlElementExporter#export(org.ubimix.model.html.export.IXmlElementExporter.XmlElementExportContext,
      *      IXmlElement)
      */
     @Override
-    public boolean export(ExportContext context, IXmlElement element) {
+    public boolean export(XmlElementExportContext context, IXmlElement element) {
         boolean result = false;
         T key = getKey(context, element, null);
         while (key != null) {
@@ -112,7 +112,7 @@ public abstract class AbstractDispatchingExporter<T>
      * @return an exporter key for the specified element
      */
     protected abstract T getKey(
-        ExportContext context,
+        XmlElementExportContext context,
         IXmlElement element,
         T parentKey);
 

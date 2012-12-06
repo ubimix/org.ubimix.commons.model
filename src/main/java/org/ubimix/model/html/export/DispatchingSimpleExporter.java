@@ -24,7 +24,7 @@ public class DispatchingSimpleExporter
 
     @Override
     protected String getKey(
-        ExportContext context,
+        XmlElementExportContext context,
         IXmlElement element,
         String parentKey) {
         String result = null;

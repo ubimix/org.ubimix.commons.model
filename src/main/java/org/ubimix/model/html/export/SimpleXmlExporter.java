@@ -11,20 +11,19 @@ import org.ubimix.model.xml.XmlUtils;
 
 /**
  * This exporter simply calls methods of the {@link IXmlListener} object defined
- * in the {@link ExportContext}. For all child elements this class recursively
- * calls the top exporter from the context.
+ * in the {@link XmlElementExportContext}. For all child elements this class
+ * recursively calls the top exporter from the context.
  * 
  * @author kotelnikov
  */
 public class SimpleXmlExporter implements IXmlElementExporter {
 
     /**
-     * @see org.ubimix.model.html.export.IXmlElementExporter#export(org.ubimix.model.html.export.IXmlElementExporter.ExportContext,
+     * @see org.ubimix.model.html.export.IXmlElementExporter#export(org.ubimix.model.html.export.IXmlElementExporter.XmlElementExportContext,
      *      IXmlElement)
      */
     @Override
-    public boolean export(ExportContext context, IXmlElement element) {
-        IXmlListener listener = context.getXmlListener();
+    public boolean export(XmlElementExportContext context, IXmlElement element) {
         String tagName = element.getName();
         Map<String, String> attributes = element.getAttributes();
         Map<String, String> namespaces = XmlUtils.getNamespaces(element);
@@ -34,6 +33,7 @@ public class SimpleXmlExporter implements IXmlElementExporter {
             tagName,
             attributes,
             namespaces);
+        IXmlListener listener = context.getXmlListener();
         listener.beginElement(tagName, attributes, namespaces);
         exportChildren(context, element);
         listener.endElement(tagName, attributes, namespaces);
@@ -46,7 +46,9 @@ public class SimpleXmlExporter implements IXmlElementExporter {
      * @param context the export context
      * @param element the element to export
      */
-    protected void exportChildren(ExportContext context, IXmlElement element) {
+    protected void exportChildren(
+        XmlElementExportContext context,
+        IXmlElement element) {
         IXmlListener listener = context.getXmlListener();
         for (IXmlNode node : element) {
             if (node instanceof IXmlElement) {
@@ -73,7 +75,7 @@ public class SimpleXmlExporter implements IXmlElementExporter {
      * @return a new tag name
      */
     protected String fixElementValues(
-        ExportContext context,
+        XmlElementExportContext context,
         IXmlElement element,
         String tagName,
         Map<String, String> attributes,
