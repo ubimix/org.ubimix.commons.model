@@ -18,7 +18,8 @@ public interface IXmlElement extends IXmlNode, Iterable<IXmlNode>, IHasValueMap 
      * java value.
      */
     public static final IValueFactory<IXmlElement> FACTORY = new IValueFactory<IXmlElement>() {
-        private IXmlFactory fXmlFactory = new XmlFactory();
+
+        private IXmlFactory fXmlFactory = XmlFactory.getInstance();
 
         @Override
         public IXmlElement newValue(Object object) {
@@ -28,6 +29,7 @@ public interface IXmlElement extends IXmlNode, Iterable<IXmlNode>, IHasValueMap 
                     IHasValueMap m = (IHasValueMap) object;
                     result = Converter.convertJsonToXml(m, fXmlFactory);
                 } else if (object instanceof Map<?, ?>) {
+                    // FIXME : remove this code
                     Map<Object, Object> map = (Map<Object, Object>) object;
                     result = new XmlElement(fXmlFactory, null, map);
                 } else {

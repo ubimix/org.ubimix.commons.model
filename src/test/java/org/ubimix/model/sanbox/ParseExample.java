@@ -4,8 +4,6 @@
 package org.ubimix.model.sanbox;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -123,9 +121,7 @@ public class ParseExample extends XmlUtils {
     }
 
     public static void site3() throws IOException {
-        File file = new File(
-            "/home/kotelnikov/dev/workspaces/ubimix/org.ubimix.model/tmp/WikipediaFrance.html");
-        IXmlElement doc = load(new FileInputStream(file));
+        IXmlElement doc = load("http://fr.wikipedia.org/wiki/France");
 
         IXmlElement main = select(doc, "#mw-content-text");
 
