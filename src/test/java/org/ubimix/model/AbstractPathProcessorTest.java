@@ -12,6 +12,7 @@ import org.ubimix.model.selector.INodeProvider;
 import org.ubimix.model.selector.IPathNodeCollector;
 import org.ubimix.model.selector.IPathSelector;
 import org.ubimix.model.selector.PathProcessor;
+import org.ubimix.model.selector.utils.HtmlCssPathSelectorBuilder;
 import org.ubimix.model.selector.utils.TreeNodeProvider;
 import org.ubimix.model.xml.IXmlElement;
 import org.ubimix.model.xml.IXmlFactory;
@@ -25,6 +26,12 @@ public abstract class AbstractPathProcessorTest extends TestCase {
 
     public AbstractPathProcessorTest(String name) {
         super(name);
+    }
+
+    protected IPathSelector getCssSelector(String selector) {
+        HtmlCssPathSelectorBuilder b = new HtmlCssPathSelectorBuilder();
+        IPathSelector s = b.build(selector);
+        return s;
     }
 
     protected <T> void test(
@@ -97,5 +104,10 @@ public abstract class AbstractPathProcessorTest extends TestCase {
         IPathSelector selector,
         String... controls) {
         testXml(xml, true, selector, controls);
+    }
+
+    protected void testXml(String xml, String selector, String... controls) {
+        IPathSelector s = getCssSelector(selector);
+        testXml(xml, s, controls);
     }
 }

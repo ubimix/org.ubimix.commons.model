@@ -97,6 +97,7 @@ public class ConverterTest extends TestCase {
 
         IXmlElement first = Converter.convertJsonToXml(obj, xmlFactory);
         IXmlElement second = Converter.convertJavaToXml(map, xmlFactory);
+        assertEquals(first + "", second + "");
         assertEquals(first, second);
     }
 

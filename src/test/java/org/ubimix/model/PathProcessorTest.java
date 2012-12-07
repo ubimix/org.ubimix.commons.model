@@ -3,14 +3,7 @@
  */
 package org.ubimix.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.ubimix.model.selector.INodeSelector;
 import org.ubimix.model.selector.IPathSelector;
-import org.ubimix.model.selector.utils.MapNodeSelector;
-import org.ubimix.model.selector.utils.PathSelector;
-import org.ubimix.model.selector.utils.SkipSelector;
 
 /**
  * @author kotelnikov
@@ -24,10 +17,12 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
         super(name);
     }
 
-    public IPathSelector getPathSelector(String tagName, String... attrs) {
-        SkipSelector selector = MapNodeSelector.getDefaultTagSelector(tagName, attrs);
-        IPathSelector pathSelector = new PathSelector(selector);
-        return pathSelector;
+    public void test() {
+        String xml = "<h1 id='SR1877'><a href='http://www.sdcinfo.com/semio2011/?rubrique1873'>\n"
+            + "                                    <span class='logoplierT2'>Signes fonctionnels SR1877</span>\n"
+            + "                                    \n"
+            + "                                </a></h1>";
+        testXml(xml, "span[id]");
     }
 
     public void testEmbeddedNodeSelection() {
@@ -44,10 +39,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             + "</body>"
             + "</html>";
 
-        List<INodeSelector> list = new ArrayList<INodeSelector>();
-        list.add(MapNodeSelector.getDefaultTagSelector("div", "class", "xxx"));
-        list.add(MapNodeSelector.getDefaultTagSelector("span", "class", "nn"));
-        IPathSelector pathSelector = new PathSelector(list);
+        IPathSelector pathSelector = getCssSelector("div[class=xxx] span.nn");
         testXml(
             xml,
             true,
@@ -62,10 +54,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             "<span class='nn'>A <span class='nn'>B <span>C</span> D <span class='nn'>E</span> F</span> G</span>");
 
         //
-        list = new ArrayList<INodeSelector>();
-        list.add(MapNodeSelector.getDefaultTagSelector("div"));
-        list.add(MapNodeSelector.getDefaultTagSelector("span", "class", "nn"));
-        pathSelector = new PathSelector(list);
+        pathSelector = getCssSelector("div span[class='nn']");
         testXml(
             xml,
             true,
@@ -98,22 +87,22 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
         testXml(
             xml,
             true,
-            getPathSelector("div"),
+            getCssSelector("div"),
             "<div>before</div>",
             "<div class='xxx'>A <div class='xxx'>B</div> C</div>",
             "<div class='xxx'>B</div>",
             "<div>after</div>");
-        testXml(xml, false, getPathSelector("div"), "<div>before</div>");
+        testXml(xml, false, getCssSelector("div"), "<div>before</div>");
         testXml(
             xml,
             true,
-            getPathSelector("div", "class", "xxx"),
+            getCssSelector("div.xxx"),
             "<div class='xxx'>A <div class='xxx'>B</div> C</div>",
             "<div class='xxx'>B</div>");
         testXml(
             xml,
             false,
-            getPathSelector("div", "class", "xxx"),
+            getCssSelector("div.xxx"),
             "<div class='xxx'>A <div class='xxx'>B</div> C</div>");
 
     }
@@ -133,7 +122,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
 
         testXml(
             xml,
-            getPathSelector("p"),
+            getCssSelector("p"),
             "<p>before</p>",
             "<p class='xxx'>first</p>",
             "<p class='yyy'>second</p>",
@@ -141,17 +130,17 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             "<p>after</p>");
         testXml(
             xml,
-            getPathSelector("p", "class"),
+            getCssSelector("p[class]"),
             "<p class='xxx'>first</p>",
             "<p class='yyy'>second</p>",
             "<p class='xxx'>third</p>");
         testXml(
             xml,
-            getPathSelector("p", "class", "yyy"),
+            getCssSelector("p[class=yyy]"),
             "<p class='yyy'>second</p>");
         testXml(
             xml,
-            getPathSelector("p", "class", "xxx"),
+            getCssSelector("p[class=xxx]"),
             "<p class='xxx'>first</p>",
             "<p class='xxx'>third</p>");
 
@@ -168,7 +157,7 @@ public class PathProcessorTest extends AbstractPathProcessorTest {
             + "</html>";
         testXml(
             xml,
-            getPathSelector(null, "class"),
+            getCssSelector("[class]"),
             "<p class='xxx'>first</p>",
             "<p class='yyy'>blah-blah <a class='xxx'>ref</a> blah-blah</p>",
             "<a class='xxx'>ref</a>",

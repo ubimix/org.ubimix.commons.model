@@ -12,7 +12,7 @@ import org.ubimix.model.selector.INodeProvider;
 import org.ubimix.model.selector.IPathNodeCollector;
 import org.ubimix.model.selector.IPathSelector;
 import org.ubimix.model.selector.PathProcessor;
-import org.ubimix.model.selector.utils.CssPathSelectorBuilder;
+import org.ubimix.model.selector.utils.HtmlCssPathSelectorBuilder;
 
 /**
  * @author kotelnikov
@@ -40,7 +40,7 @@ public class XmlPathProcessor extends PathProcessor {
     }
 
     public XmlPathProcessor(String cssSelector) {
-        this(CssPathSelectorBuilder.INSTANCE.build(cssSelector));
+        this(HtmlCssPathSelectorBuilder.INSTANCE.build(cssSelector));
     }
 
     public IXmlElement select(IXmlElement element) {

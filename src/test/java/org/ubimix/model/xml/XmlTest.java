@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.ubimix.model;
+package org.ubimix.model.xml;
 
 import java.util.Iterator;
 import java.util.List;
@@ -11,12 +11,6 @@ import junit.framework.TestCase;
 import org.ubimix.commons.parser.xml.IXmlParser;
 import org.ubimix.commons.parser.xml.XmlParser;
 import org.ubimix.commons.parser.xml.utils.XmlSerializer;
-import org.ubimix.model.xml.IXmlElement;
-import org.ubimix.model.xml.IXmlFactory;
-import org.ubimix.model.xml.IXmlNode;
-import org.ubimix.model.xml.IXmlText;
-import org.ubimix.model.xml.XmlFactory;
-import org.ubimix.model.xml.XmlUtils;
 
 /**
  * @author kotelnikov
@@ -39,6 +33,78 @@ public class XmlTest extends TestCase {
         return new XmlParser();
     }
 
+    public void test() throws Exception {
+        IXmlFactory f = XmlFactory.getInstance();
+        IXmlElement div = f.newElement("div");
+        assertEquals("div", div.getName());
+
+        IXmlElement a = f.newElement("a");
+        assertEquals("a", a.getName());
+        div.addChild(a);
+
+        test(div, a);
+
+        IXmlText txt = f.newText("hello");
+        assertEquals("hello", txt.getContent());
+        div.addChild(txt);
+
+        test(div, a, txt);
+
+        IXmlElement b = f.newElement("b");
+        assertEquals("b", b.getName());
+        div.addChild(b);
+
+        test(div, a, txt, b);
+        test(a);
+
+        // Move the text node in the a
+        a.addChild(txt);
+        test(div, a, b);
+        test(a, txt);
+
+        IXmlElement xx = f.newElement("xx");
+        IXmlElement yy = f.newElement("yy");
+        a.addChild(xx, 0);
+        a.addChild(yy);
+        test(a, xx, txt, yy);
+        a.flatten();
+        test(a);
+        test(div, xx, txt, yy, b);
+    }
+
+    private void test(IXmlElement div, IXmlNode... children) {
+        assertEquals(children.length, div.getChildCount());
+        for (int i = 0; i < children.length; i++) {
+            IXmlNode child = children[i];
+            IXmlNode test = div.getChild(i);
+            assertEquals(child, test);
+            assertTrue(child.sameAs(test));
+        }
+
+        IXmlNode test = div.getChild(0);
+        if (children.length == 0) {
+            assertNull(test);
+        } else {
+            for (int i = 0; i < children.length; i++) {
+                IXmlNode child = children[i];
+                assertNotNull(test);
+                assertEquals(child, test);
+                assertTrue(child.sameAs(test));
+                test = test.getNextSibling();
+            }
+        }
+
+        Iterator<IXmlNode> iterator = div.iterator();
+        for (int i = 0; i < children.length; i++) {
+            IXmlNode child = children[i];
+            assertTrue(iterator.hasNext());
+            test = iterator.next();
+            assertEquals(child, test);
+            assertTrue(child.sameAs(test));
+        }
+
+    }
+
     public void testElement() throws Exception {
         IXmlFactory doc = newXmlFactory();
         IXmlElement e;
@@ -46,10 +112,6 @@ public class XmlTest extends TestCase {
         e = doc.newElement("div");
         assertEquals("div", e.getName());
         assertEquals("<div></div>", e.toString());
-
-        e = doc.newElement((String) null);
-        assertEquals("umx:object", e.getName());
-        assertEquals("<umx:object></umx:object>", e.toString());
     }
 
     public void testElementAttributes() {

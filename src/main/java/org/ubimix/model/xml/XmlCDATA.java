@@ -34,9 +34,4 @@ public class XmlCDATA extends XmlText implements IXmlCDATA {
         visitor.visit(this);
     }
 
-    @Override
-    protected String unwrapContent(String str) {
-        return unwrapCDATA(str);
-    }
-
 }

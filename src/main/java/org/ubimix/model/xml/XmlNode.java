@@ -61,16 +61,17 @@ public abstract class XmlNode implements IXmlNode {
 
     }
 
-    private Object fObject;
+    protected IXmlNode fNextSibling = this;
 
     private IXmlElement fParent;
 
+    protected IXmlNode fPrevSibling = this;
+
     private IXmlFactory fXmlFactory;
 
-    protected XmlNode(IXmlFactory factory, IXmlElement parent, Object object) {
+    protected XmlNode(IXmlFactory factory, IXmlElement parent) {
         fXmlFactory = factory;
         fParent = parent;
-        fObject = object;
     }
 
     @Override
@@ -81,8 +82,7 @@ public abstract class XmlNode implements IXmlNode {
         if (!(obj instanceof XmlNode)) {
             return false;
         }
-        XmlNode o = (XmlNode) obj;
-        return equals(fObject, o.fObject);
+        return false;
     }
 
     protected boolean equals(Object first, Object second) {
@@ -97,6 +97,15 @@ public abstract class XmlNode implements IXmlNode {
         return fXmlFactory;
     }
 
+    private IXmlNode getFirstNode() {
+        IXmlNode result = null;
+        XmlElement parent = getParent();
+        if (parent != null) {
+            result = parent.fFirstChild;
+        }
+        return result;
+    }
+
     /**
      * @see org.ubimix.model.xml.IXmlNode#getNextSibling()
      */
@@ -105,26 +114,17 @@ public abstract class XmlNode implements IXmlNode {
         if (fParent == null) {
             return null;
         }
-        int parentSize = fParent.getChildCount();
-        int pos = fParent.getChildPosition(this);
-        return pos >= 0 && pos < parentSize - 1
-            ? fParent.getChild(pos + 1)
+        return !same(fNextSibling, this) && !same(fNextSibling, getFirstNode())
+            ? fNextSibling
             : null;
-    }
-
-    protected Object getObject() {
-        if (fObject == null) {
-            fObject = newObject();
-        }
-        return fObject;
     }
 
     /**
      * @see org.ubimix.model.xml.IXmlNode#getParent()
      */
     @Override
-    public IXmlElement getParent() {
-        return fParent;
+    public XmlElement getParent() {
+        return (XmlElement) fParent;
     }
 
     /**
@@ -135,42 +135,60 @@ public abstract class XmlNode implements IXmlNode {
         if (fParent == null) {
             return null;
         }
-        int parentSize = fParent.getChildCount();
-        int pos = fParent.getChildPosition(this);
-        return pos > 0 && pos < parentSize ? fParent.getChild(pos - 1) : null;
+        return !same(fPrevSibling, this) && !same(getFirstNode(), this)
+            ? fPrevSibling
+            : null;
     }
 
     @Override
     public int hashCode() {
-        return fObject.hashCode();
+        return super.hashCode();
     }
 
-    protected abstract Object newObject();
+    public void insertBefore(IXmlNode nextNode) {
+        insertBefore(nextNode, true);
+    }
+
+    protected void insertBefore(IXmlNode nextNode, boolean resetFirstParentNode) {
+        XmlNode n = (XmlNode) nextNode;
+        XmlElement parent = n.getParent();
+        boolean first = false;
+        if (n.sameAs(parent.fFirstChild)) {
+            first = true;
+        }
+        XmlNode prev = (XmlNode) n.fPrevSibling;
+        remove();
+        n.fPrevSibling = this;
+        prev.fNextSibling = this;
+        fPrevSibling = prev;
+        fNextSibling = n;
+        if (first && resetFirstParentNode) {
+            parent.fFirstChild = this;
+        }
+        fParent = parent;
+    }
 
     /**
      * @see org.ubimix.model.xml.IXmlNode#remove()
      */
     @Override
     public void remove() {
-        IXmlElement parent = getParent();
+        XmlElement parent = getParent();
         if (parent != null) {
             parent.removeChild(this);
+        } else {
+            unlink();
         }
+        fParent = null;
     }
 
-    protected void removeFromParent() {
-        if (fParent != null) {
-            int parentSize = fParent.getChildCount();
-            int pos = fParent.getChildPosition(this);
-            if (pos >= 0 && pos < parentSize) {
-                fParent.removeChild(pos);
-            }
-            fParent = null;
-        }
+    protected boolean same(IXmlNode node, IXmlNode child) {
+        return child == node;
     }
 
-    protected void setObject(Object object) {
-        fObject = object;
+    @Override
+    public boolean sameAs(IXmlNode node) {
+        return same(node, this);
     }
 
     protected void setParent(IXmlElement parent) {
@@ -183,6 +201,16 @@ public abstract class XmlNode implements IXmlNode {
     @Override
     public String toString() {
         return XmlUtils.toStringRecursively(this, false);
+    }
+
+    protected void unlink() {
+        XmlNode prev = (XmlNode) fPrevSibling;
+        XmlNode next = (XmlNode) fNextSibling;
+        prev.fNextSibling = next;
+        next.fPrevSibling = prev;
+        fPrevSibling = this;
+        fNextSibling = this;
+        fParent = null;
     }
 
 }

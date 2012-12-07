@@ -15,6 +15,10 @@ public interface IXmlNode {
 
     IXmlNode getPreviousSibling();
 
+    void insertBefore(IXmlNode nextNode);
+
     void remove();
+
+    boolean sameAs(IXmlNode node);
 
 }

@@ -70,6 +70,9 @@ public class XmlFactory implements IXmlFactory {
      */
     @Override
     public IXmlText newText(String string) {
+        if (string == null) {
+            throw new IllegalStateException();
+        }
         return new XmlText(this, string);
     }
 

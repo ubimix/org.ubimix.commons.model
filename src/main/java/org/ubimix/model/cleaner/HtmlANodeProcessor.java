@@ -33,7 +33,7 @@ public class HtmlANodeProcessor extends AbstractTagProcessor {
                 if (child instanceof IXmlElement) {
                     IXmlElement e = (IXmlElement) child;
                     if (startPos < 0) {
-                        if (element.getMap() == e.getMap()) {
+                        if (element.sameAs(e)) {
                             startPos = i;
                         }
                     } else {

@@ -11,7 +11,7 @@ import org.ubimix.model.conversion.Converter;
 /**
  * @author kotelnikov
  */
-public interface IXmlElement extends IXmlNode, Iterable<IXmlNode>, IHasValueMap {
+public interface IXmlElement extends IXmlNode, Iterable<IXmlNode> {
 
     /**
      * Creates and returns {@link IXmlElement} instance wrapping the specified
@@ -28,14 +28,9 @@ public interface IXmlElement extends IXmlNode, Iterable<IXmlNode>, IHasValueMap 
                 if (object instanceof IHasValueMap) {
                     IHasValueMap m = (IHasValueMap) object;
                     result = Converter.convertJsonToXml(m, fXmlFactory);
-                } else if (object instanceof Map<?, ?>) {
-                    // FIXME : remove this code
-                    Map<Object, Object> map = (Map<Object, Object>) object;
-                    result = new XmlElement(fXmlFactory, null, map);
                 } else {
                     result = Converter.convertJavaToXml(object, fXmlFactory);
                 }
-
             } else {
                 result = (IXmlElement) object;
             }
@@ -54,6 +49,8 @@ public interface IXmlElement extends IXmlNode, Iterable<IXmlNode>, IHasValueMap 
     void addChildren(Iterable<? extends IXmlNode> children);
 
     IXmlElement addText(String str);
+
+    void flatten();
 
     String getAttribute(String key);
 

@@ -3,60 +3,35 @@
  */
 package org.ubimix.model.xml;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.ubimix.model.IHasValueMap;
-import org.ubimix.model.IValueFactory;
-import org.ubimix.model.TreePresenter;
-
 /**
  * @author kotelnikov
  */
-public class XmlElement extends XmlNode
-    implements
-    IHasValueMap,
-    IXmlElement,
-    IXmlJson {
-
-    public static TreePresenter TREE_ACCESSOR = new TreePresenter(KEY_CHILDREN);
+public class XmlElement extends XmlNode implements IXmlElement {
 
     @SuppressWarnings("unchecked")
     protected static <T> T cast(Object value) {
         return (T) value;
     }
 
-    private static boolean isExcludedAttributeName(String key) {
-        boolean excluded = KEY_NAME.equals(key)
-            || KEY_CHILDREN.equals(key)
-            || NS.equals(key);
-        if (!excluded) {
-            excluded = key.startsWith(NS_PREFIX);
-        }
-        return excluded;
-    }
+    private Map<String, String> fAttributes = new LinkedHashMap<String, String>();
 
-    private static boolean isExcludedAttributeValue(Object value) {
-        return (value instanceof Map<?, ?>) || (value instanceof List<?>);
-    }
+    protected IXmlNode fFirstChild;
 
-    protected XmlElement(
-        IXmlFactory factory,
-        IXmlElement parent,
-        Map<Object, Object> map) {
-        super(factory, parent, map);
-    }
+    private String fName;
+
+    private Map<String, String> fNamespaces;
 
     protected XmlElement(IXmlFactory xmlFactory, String name) {
-        super(xmlFactory, null, null);
-        if (!"umx:object".equals(name)) {
-            setName(name);
-        }
+        super(xmlFactory, null);
+        setName(name);
     }
 
     /**
@@ -72,8 +47,14 @@ public class XmlElement extends XmlNode
      */
     @Override
     public void addChild(IXmlNode node) {
-        int len = getChildCount();
-        addChild(node, len);
+        node.remove();
+        XmlNode n = (XmlNode) node;
+        if (fFirstChild == null) {
+            fFirstChild = n;
+            n.setParent(this);
+        } else {
+            n.insertBefore(fFirstChild, false);
+        }
     }
 
     /**
@@ -81,16 +62,14 @@ public class XmlElement extends XmlNode
      */
     @Override
     public boolean addChild(IXmlNode node, int pos) {
-        boolean result = addChildObject(getNodeObject(node), pos);
-        if (result) {
-            ((XmlNode) node).setParent(this);
+        XmlNode n = (XmlNode) node;
+        IXmlNode nextNode = getChild(pos);
+        if (nextNode != null) {
+            n.insertBefore(nextNode, true);
+        } else if (fFirstChild != null) {
+            n.insertBefore(fFirstChild);
         }
-        return result;
-    }
-
-    private boolean addChildObject(Object object, int pos) {
-        boolean result = TREE_ACCESSOR.addChild(getMap(), pos, object);
-        return result;
+        return true;
     }
 
     /**
@@ -98,9 +77,15 @@ public class XmlElement extends XmlNode
      */
     @Override
     public void addChildren(Iterable<? extends IXmlNode> children) {
-        for (IXmlNode child : children) {
-            if (child != null) {
-                addChild(child);
+        if (children instanceof IXmlElement) {
+            IXmlElement e = (IXmlElement) children;
+            children = e.getChildren();
+        }
+        if (children != null) {
+            for (IXmlNode child : children) {
+                if (child != null) {
+                    addChild(child);
+                }
             }
         }
     }
@@ -115,17 +100,39 @@ public class XmlElement extends XmlNode
         return this;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (!(obj instanceof XmlElement)) {
+            return false;
+        }
+        XmlElement e = (XmlElement) obj;
+        return equals(fName, e.fName)
+            && equals(fAttributes, e.fAttributes)
+            && equals(fName, e.fNamespaces);
+    }
+
+    @Override
+    public void flatten() {
+        XmlElement parent = getParent();
+        if (parent != null) {
+            List<IXmlNode> children = getChildren();
+            for (IXmlNode node : children) {
+                XmlNode n = (XmlNode) node;
+                n.insertBefore(this, true);
+            }
+            remove();
+        }
+    }
+
     /**
      * @see org.ubimix.model.xml.IXmlElement#getAttribute(java.lang.String)
      */
     @Override
     public String getAttribute(String key) {
-        Map<Object, Object> map = getMap();
-        Object value = map.get(key);
-        if (value instanceof Map<?, ?> || value instanceof List<?>) {
-            return null;
-        }
-        return TreePresenter.toString(value);
+        return fAttributes.get(key);
     }
 
     /**
@@ -133,7 +140,7 @@ public class XmlElement extends XmlNode
      */
     @Override
     public Set<String> getAttributeNames() {
-        return getAttributes().keySet();
+        return fAttributes.keySet();
     }
 
     /**
@@ -141,19 +148,8 @@ public class XmlElement extends XmlNode
      */
     @Override
     public Map<String, String> getAttributes() {
-        Map<String, String> result = new LinkedHashMap<String, String>();
-        Map<Object, Object> map = getMap();
-        for (Map.Entry<Object, Object> entry : map.entrySet()) {
-            Object attr = entry.getKey();
-            String key = TreePresenter.toString(attr);
-            if (!isExcludedAttributeName(key)) {
-                Object value = entry.getValue();
-                if (!isExcludedAttributeValue(value)) {
-                    String str = TreePresenter.toString(value);
-                    result.put(key, str);
-                }
-            }
-        }
+        Map<String, String> result = new LinkedHashMap<String, String>(
+            fAttributes);
         return result;
     }
 
@@ -162,12 +158,14 @@ public class XmlElement extends XmlNode
      */
     @Override
     public IXmlNode getChild(int pos) {
-        IXmlNode result = null;
-        Object object = getChildObject(pos);
-        if (object != null) {
-            result = newChild(object);
+        if (pos < 0) {
+            return null;
         }
-        return result;
+        IXmlNode child = fFirstChild;
+        for (int i = 0; child != null && i < pos; i++) {
+            child = child.getNextSibling();
+        }
+        return child;
     }
 
     /**
@@ -175,11 +173,12 @@ public class XmlElement extends XmlNode
      */
     @Override
     public int getChildCount() {
-        return TREE_ACCESSOR.getChildCount(getMap());
-    }
-
-    protected Object getChildObject(int pos) {
-        return TREE_ACCESSOR.getChildObject(getMap(), pos);
+        int result;
+        IXmlNode child = fFirstChild;
+        for (result = 0; child != null; result++) {
+            child = child.getNextSibling();
+        }
+        return result;
     }
 
     /**
@@ -187,7 +186,16 @@ public class XmlElement extends XmlNode
      */
     @Override
     public int getChildPosition(IXmlNode node) {
-        return TREE_ACCESSOR.getChildPosition(getMap(), getNodeObject(node));
+        int result = -1;
+        IXmlNode child = fFirstChild;
+        for (int i = 0; child != null; i++) {
+            if (same(node, child)) {
+                result = i;
+                break;
+            }
+            child = child.getNextSibling();
+        }
+        return result;
     }
 
     /**
@@ -195,7 +203,13 @@ public class XmlElement extends XmlNode
      */
     @Override
     public List<IXmlNode> getChildren() {
-        return TREE_ACCESSOR.getChildren(getMap(), getNodeFactory());
+        List<IXmlNode> result = new ArrayList<IXmlNode>();
+        IXmlNode child = fFirstChild;
+        while (child != null) {
+            result.add(child);
+            child = child.getNextSibling();
+        }
+        return result;
     }
 
     /**
@@ -203,38 +217,11 @@ public class XmlElement extends XmlNode
      */
     @Override
     public Map<String, String> getDeclaredNamespaces() {
-        Map<String, String> result = null;
-        Map<Object, Object> map = getMap();
-        Set<Object> attrs = map.keySet();
-        for (Object attr : attrs) {
-            String str = TreePresenter.toString(attr);
-            String prefix = null;
-            if (str.startsWith(NS_PREFIX)) {
-                prefix = str.substring(NS_PREFIX.length());
-            } else if (str.equals(NS)) {
-                prefix = "";
-            }
-            if (prefix != null) {
-                if (result == null) {
-                    result = new LinkedHashMap<String, String>();
-                }
-                Object value = map.get(attr);
-                String ns = TreePresenter.toString(value);
-                result.put(prefix, ns);
-            }
-        }
-        if (result == null) {
-            result = Collections.emptyMap();
+        Map<String, String> result = new LinkedHashMap<String, String>();
+        if (fNamespaces != null) {
+            result.putAll(fNamespaces);
         }
         return result;
-    }
-
-    /**
-     * @see org.ubimix.model.xml.IXmlElement#getMap()
-     */
-    @Override
-    public Map<Object, Object> getMap() {
-        return cast(getObject());
     }
 
     /**
@@ -242,28 +229,15 @@ public class XmlElement extends XmlNode
      */
     @Override
     public String getName() {
-        Map<Object, Object> map = getMap();
-        Object value = map.get(KEY_NAME);
-        String name = value != null && !"".equals(value) ? TreePresenter
-            .toString(value) : "umx:object";
-        return name;
+        return fName != null ? fName : "umx:object";
     }
 
-    public IValueFactory<IXmlNode> getNodeFactory() {
-        return new IValueFactory<IXmlNode>() {
-            @Override
-            public IXmlNode newValue(Object object) {
-                return newChild(object);
-            }
-        };
-    }
-
-    public Object getNodeObject(IXmlNode child) {
-        return ((XmlNode) child).getObject();
-    }
-
-    private boolean isEmpty(Object container) {
-        return container == null || "".equals(container);
+    @Override
+    public int hashCode() {
+        int a = getName().hashCode();
+        int b = fAttributes.hashCode();
+        int c = fNamespaces != null ? fNamespaces.hashCode() : 0;
+        return a ^ b ^ c;
     }
 
     /**
@@ -271,57 +245,44 @@ public class XmlElement extends XmlNode
      */
     @Override
     public Iterator<IXmlNode> iterator() {
-        List<IXmlNode> list = getChildren();
-        return list.iterator();
-    }
+        Iterator<IXmlNode> result = new Iterator<IXmlNode>() {
 
-    private IXmlCDATA newCDATA(String object) {
-        IXmlFactory factory = getFactory();
-        IXmlCDATA cdata = factory.newCDATA(object);
-        setParent(cdata);
-        return cdata;
-    }
+            private IXmlNode fNode;
 
-    private IXmlNode newChild(Object o) {
-        IXmlNode result = null;
-        if (o instanceof List<?>) {
-            IXmlElement e = newElement(newObject());
-            e.setName("umx:list");
-            ((XmlElement) e).addChildObject(o, 0);
-            result = e;
-        } else if (o instanceof Map<?, ?>) {
-            Map<Object, Object> map = cast(o);
-            result = newElement(map);
-        } else if (!isEmpty(o)) {
-            String str = TreePresenter.toString(o);
-            if (XmlCDATA.isCDATA(str)) {
-                result = newCDATA(str);
-            } else {
-                result = newText(str);
+            private boolean fStarted;
+
+            @Override
+            public boolean hasNext() {
+                if (!fStarted) {
+                    return fFirstChild != null;
+                } else {
+                    return fNode != null && fNode.getNextSibling() != null;
+                }
             }
-        }
+
+            @Override
+            public IXmlNode next() {
+                if (!fStarted) {
+                    fNode = fFirstChild;
+                    fStarted = true;
+                } else if (fNode != null) {
+                    fNode = fNode.getNextSibling();
+                }
+                return fNode;
+            }
+
+            @Override
+            public void remove() {
+                if (!fStarted) {
+                    throw new IllegalStateException();
+                } else if (fNode != null) {
+                    IXmlNode next = fNode.getNextSibling();
+                    fNode.remove();
+                    fNode = next;
+                }
+            }
+        };
         return result;
-    }
-
-    private IXmlElement newElement(Map<Object, Object> obj) {
-        if (obj == null) {
-            obj = newObject();
-        }
-        IXmlElement result = FACTORY.newValue(obj);
-        setParent(result);
-        return result;
-    }
-
-    @Override
-    protected Map<Object, Object> newObject() {
-        return new LinkedHashMap<Object, Object>();
-    }
-
-    private IXmlText newText(String content) {
-        IXmlFactory factory = getFactory();
-        IXmlText text = factory.newText(content);
-        setParent(text);
-        return text;
     }
 
     /**
@@ -329,11 +290,7 @@ public class XmlElement extends XmlNode
      */
     @Override
     public IXmlElement removeAttribute(String key) {
-        if (isExcludedAttributeName(key)) {
-            throw new IllegalArgumentException();
-        }
-        Map<Object, Object> map = getMap();
-        map.remove(key);
+        fAttributes.remove(key);
         return this;
     }
 
@@ -342,7 +299,13 @@ public class XmlElement extends XmlNode
      */
     @Override
     public boolean removeChild(int pos) {
-        return TREE_ACCESSOR.removeChild(getMap(), pos);
+        boolean result = false;
+        IXmlNode child = getChild(pos);
+        if (child != null) {
+            child.remove();
+            result = true;
+        }
+        return result;
     }
 
     /**
@@ -350,7 +313,19 @@ public class XmlElement extends XmlNode
      */
     @Override
     public boolean removeChild(IXmlNode child) {
-        return TREE_ACCESSOR.removeChild(getMap(), getNodeObject(child));
+        if (!sameAs(child.getParent())) {
+            return false;
+        }
+
+        if (same(fFirstChild, child)) {
+            fFirstChild = child.getNextSibling();
+            if (same(fFirstChild, child)) {
+                fFirstChild = null;
+            }
+        }
+        XmlNode n = (XmlNode) child;
+        n.unlink();
+        return true;
     }
 
     /**
@@ -358,7 +333,13 @@ public class XmlElement extends XmlNode
      */
     @Override
     public void removeChildren() {
-        TREE_ACCESSOR.removeChildren(getMap());
+        IXmlNode child = fFirstChild;
+        while (child != null) {
+            IXmlNode next = child.getNextSibling();
+            ((XmlNode) child).unlink();
+            child = next;
+        }
+        fFirstChild = null;
     }
 
     /**
@@ -367,11 +348,7 @@ public class XmlElement extends XmlNode
      */
     @Override
     public IXmlElement setAttribute(String key, String value) {
-        if (isExcludedAttributeName(key)) {
-            throw new IllegalArgumentException();
-        }
-        Map<Object, Object> map = getMap();
-        map.put(key, value);
+        fAttributes.put(key, value);
         return this;
     }
 
@@ -380,7 +357,8 @@ public class XmlElement extends XmlNode
      */
     @Override
     public IXmlElement setAttributes(Map<String, String> attributes) {
-        setValues(attributes, null);
+        fAttributes.clear();
+        fAttributes.putAll(attributes);
         return this;
     }
 
@@ -407,20 +385,16 @@ public class XmlElement extends XmlNode
      */
     @Override
     public IXmlElement setName(String tagName) {
-        Map<Object, Object> map = getMap();
-        if (tagName != null) {
-            map.put(KEY_NAME, tagName);
-        } else {
-            map.remove(KEY_NAME);
-        }
+        fName = !"umx:object".equals(tagName) ? tagName : null;
         return this;
     }
 
     @Override
     public IXmlElement setNamespace(String nsPrefix, String nsUrl) {
-        String key = "".equals(nsPrefix) ? "xmlns" : "xmlns:" + nsPrefix;
-        Map<Object, Object> map = getMap();
-        map.put(key, nsUrl);
+        if (fNamespaces == null) {
+            fNamespaces = new LinkedHashMap<String, String>();
+        }
+        fNamespaces.put(nsPrefix, nsUrl);
         return this;
     }
 
@@ -428,15 +402,14 @@ public class XmlElement extends XmlNode
      * @see org.ubimix.model.xml.IXmlElement#setNamespaces(java.util.Map)
      */
     @Override
-    public IXmlElement setNamespaces(Map<String, String> attributes) {
-        setValues(attributes, "xmlns");
-        return this;
-    }
-
-    private void setParent(IXmlNode node) {
-        if (node instanceof XmlNode) {
-            ((XmlNode) node).setParent(this);
+    public IXmlElement setNamespaces(Map<String, String> namespaces) {
+        if (fNamespaces == null) {
+            fNamespaces = new LinkedHashMap<String, String>();
+        } else {
+            fNamespaces.clear();
         }
+        fNamespaces.putAll(namespaces);
+        return this;
     }
 
     /**
@@ -444,27 +417,13 @@ public class XmlElement extends XmlNode
      */
     @Override
     public IXmlElement setText(String str) {
-        IXmlText text = getFactory().newText(str);
-        setChildren(text);
-        return this;
-    }
-
-    private void setValues(Map<String, String> attributes, String prefix) {
-        Map<Object, Object> map = getMap();
-        for (Map.Entry<String, String> attr : attributes.entrySet()) {
-            String key = attr.getKey();
-            if (prefix != null
-                && !key.startsWith(prefix)
-                && !key.equals(prefix)) {
-                if ("".equals(key)) {
-                    key = prefix;
-                } else {
-                    key = prefix + ":" + key;
-                }
-            }
-            String value = attr.getValue();
-            map.put(key, value);
+        if (str != null && "".equals(str)) {
+            IXmlText text = getFactory().newText(str);
+            setChildren(text);
+        } else {
+            removeChildren();
         }
+        return this;
     }
 
 }

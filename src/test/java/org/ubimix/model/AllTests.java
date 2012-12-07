@@ -11,6 +11,7 @@ import org.ubimix.model.html.HtmlDocumentTest;
 import org.ubimix.model.html.StructuredNodesBindingTest;
 import org.ubimix.model.html.StructuredTableTest;
 import org.ubimix.model.html.StructuredTreeTest;
+import org.ubimix.model.xml.XmlTest;
 
 public class AllTests {
 
@@ -22,7 +23,6 @@ public class AllTests {
         // $JUnit-BEGIN$
         suite.addTestSuite(CssSelectProcessorTest.class);
         suite.addTestSuite(ConverterTest.class);
-        suite.addTestSuite(MixedJsonXmlModelTest.class);
         suite.addTestSuite(ModelObjectTest.class);
         suite.addTestSuite(PathProcessorTest.class);
         suite.addTestSuite(XmlTest.class);
@@ -32,7 +32,6 @@ public class AllTests {
 
         suite.addTestSuite(HtmlArticleBuilderTest.class);
         suite.addTestSuite(HtmlDocumentTest.class);
-        suite.addTestSuite(HtmlArticleBuilderTest.class);
         suite.addTestSuite(InlineNodesBurnerTest.class);
         suite.addTestSuite(TagBurnerTest.class);
         suite.addTestSuite(StructuredTableTest.class);

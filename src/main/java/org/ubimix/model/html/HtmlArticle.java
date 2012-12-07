@@ -9,7 +9,6 @@ import org.ubimix.model.ModelObject;
 import org.ubimix.model.xml.IXmlElement;
 import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.IXmlNode;
-import org.ubimix.model.xml.IXmlText;
 import org.ubimix.model.xml.XmlUtils;
 import org.ubimix.model.xml.XmlWrapper;
 
@@ -182,9 +181,7 @@ public class HtmlArticle extends XmlWrapper {
 
     public void setTitle(String title) {
         IXmlElement e = getTitleElement();
-        IXmlFactory factory = getFactory();
-        IXmlText child = factory.newText(title);
-        e.setChildren(child);
+        e.setText(title);
     }
 
 }

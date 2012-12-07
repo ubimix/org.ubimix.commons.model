@@ -16,10 +16,10 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
     }
 
     protected IPathSelector getPathSelector(String str) {
-        return getPathSelector("!", str);
+        return getJsonSelector("!", str);
     }
 
-    protected IPathSelector getPathSelector(String nameProperty, String str) {
+    protected IPathSelector getJsonSelector(String nameProperty, String str) {
         CssPathSelectorBuilder builder = new CssPathSelectorBuilder(
             nameProperty);
         return builder.build(str);
@@ -138,27 +138,27 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
             + "}";
 
         ModelObject control = ModelObject.parse(json);
-        IPathSelector selector = getPathSelector("name", "TopLevel");
+        IPathSelector selector = getJsonSelector("name", "TopLevel");
         testJson(json, true, selector, control.toString());
 
         // The "name" field is used as a tag name as well as a property
         testJson(
             json,
             true,
-            getPathSelector("name", "TopLevel [name=X]"),
+            getJsonSelector("name", "TopLevel [name=X]"),
             json("{name:'X'}"));
-        testJson(json, true, getPathSelector("name", "X"), json("{name:'X'}"));
+        testJson(json, true, getJsonSelector("name", "X"), json("{name:'X'}"));
         testJson(
             json,
             true,
-            getPathSelector("name", "TopLevel [name~='^.*X(\\d)?$']"),
+            getJsonSelector("name", "TopLevel [name~='^.*X(\\d)?$']"),
             json("{name:'Sub-sub-item-X1'}"),
             json("{name:'Sub-sub-item-X2'}"),
             json("{name:'X'}"));
         testJson(
             json,
             true,
-            getPathSelector("name", "TopLevel SubitemA [name~='^.*X\\d$']"),
+            getJsonSelector("name", "TopLevel SubitemA [name~='^.*X\\d$']"),
             json("{name:'Sub-sub-item-X1'}"),
             json("{name:'Sub-sub-item-X2'}"));
 
@@ -181,98 +181,79 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
             + "</html>";
         testXml(
             xml,
-            getPathSelector(".xxx"),
+            ".xxx",
             "<p class='xxx'>first</p>",
             "<p class='xxx'>third</p>");
         testXml(
             xml,
-            getPathSelector(".yyy"),
+            ".yyy",
             "<p class='yyy n1'>before1 <a href='http://foo.bar1'>link1</a> after1</p>",
             "<p class='yyy n2'>before2 <a href='http://foo.bar2'>link2</a> after2</p>");
         testXml(
             xml,
-            getPathSelector(".yyy a"),
+            ".yyy a",
             "<a href='http://foo.bar1'>link1</a>",
             "<a href='http://foo.bar2'>link2</a>");
+        testXml(xml, ".yyy a[href$=2]", "<a href='http://foo.bar2'>link2</a>");
         testXml(
             xml,
-            getPathSelector(".yyy a[href$=2]"),
-            "<a href='http://foo.bar2'>link2</a>");
-        testXml(
-            xml,
-            getPathSelector("a"),
+            "a",
             "<a href='http://foo.bar1'>link1</a>",
             "<a href='http://foo.bar2'>link2</a>");
+        testXml(xml, ".n2 a", "<a href='http://foo.bar2'>link2</a>");
         testXml(
             xml,
-            getPathSelector(".n2 a"),
-            "<a href='http://foo.bar2'>link2</a>");
-        testXml(
-            xml,
-            getPathSelector("p"),
+            "p",
             "<p id='123'>before</p>",
             "<p class='xxx'>first</p>",
             "<p class='yyy n1'>before1 <a href='http://foo.bar1'>link1</a> after1</p>",
             "<p class='yyy n2'>before2 <a href='http://foo.bar2'>link2</a> after2</p>",
             "<p class='xxx'>third</p>",
             "<p id='345'>after</p>");
-        testXml(xml, getPathSelector("#123"), "<p id='123'>before</p>");
-        testXml(xml, getPathSelector("#345"), "<p id='345'>after</p>");
+        testXml(xml, "#123", "<p id='123'>before</p>");
+        testXml(xml, "#345", "<p id='345'>after</p>");
+        testXml(xml, "[id]", "<p id='123'>before</p>", "<p id='345'>after</p>");
         testXml(
             xml,
-            getPathSelector("[id]"),
-            "<p id='123'>before</p>",
-            "<p id='345'>after</p>");
-        testXml(
-            xml,
-            getPathSelector("[class]"),
+            "[class]",
             "<p class='xxx'>first</p>",
             "<p class='yyy n1'>before1 <a href='http://foo.bar1'>link1</a> after1</p>",
             "<p class='yyy n2'>before2 <a href='http://foo.bar2'>link2</a> after2</p>",
             "<p class='xxx'>third</p>");
         testXml(
             xml,
-            getPathSelector(".n1.yyy"),
+            ".n1.yyy",
             "<p class='yyy n1'>before1 <a href='http://foo.bar1'>link1</a> after1</p>");
         testXml(
             xml,
-            getPathSelector(".n2.yyy"),
+            ".n2.yyy",
             "<p class='yyy n2'>before2 <a href='http://foo.bar2'>link2</a> after2</p>");
         testXml(
             xml,
-            getPathSelector("[href='http://foo.bar1']"),
+            "[href='http://foo.bar1']",
             "<a href='http://foo.bar1'>link1</a>");
         testXml(
             xml,
-            getPathSelector(".yyy > a"),
+            ".yyy > a",
             "<a href='http://foo.bar1'>link1</a>",
             "<a href='http://foo.bar2'>link2</a>");
 
-        testXml(xml, getPathSelector("[class$=yyy] > a"));
+        testXml(xml, "[class$=yyy] > a");
+        testXml(xml, "[class $= 2] > a", "<a href='http://foo.bar2'>link2</a>");
+        testXml(xml, "[class=yyy] > a");
         testXml(
             xml,
-            getPathSelector("[class $= 2] > a"),
-            "<a href='http://foo.bar2'>link2</a>");
-        testXml(xml, getPathSelector("[class=yyy] > a"));
-        testXml(
-            xml,
-            getPathSelector("[class*=yyy] > a"),
+            "[class*=yyy] > a",
             "<a href='http://foo.bar1'>link1</a>",
             "<a href='http://foo.bar2'>link2</a>");
         testXml(
             xml,
-            getPathSelector("[class^=yyy] > a"),
+            "[class^=yyy] > a",
             "<a href='http://foo.bar1'>link1</a>",
             "<a href='http://foo.bar2'>link2</a>");
 
-        testXml(
-            xml,
-            getPathSelector(".n1 > a"),
-            "<a href='http://foo.bar1'>link1</a>");
-        testXml(
-            xml,
-            getPathSelector(".n2 > a"),
-            "<a href='http://foo.bar2'>link2</a>");
+        testXml(xml, ".n1 > a", "<a href='http://foo.bar1'>link1</a>");
+        testXml(xml, ".n2 > a", "<a href='http://foo.bar2'>link2</a>");
 
         testXml(
             ""
@@ -288,7 +269,7 @@ public class CssSelectProcessorTest extends AbstractPathProcessorTest {
                 + "<table><tr><td>Last table</td></tr></table>"
                 + "<p>mlj</p>"
                 + "</div>",
-            getPathSelector("table.props tr th"),
+            "table.props tr th",
             "<th>Property</th>",
             "<th>Value</th>");
 

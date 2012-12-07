@@ -134,14 +134,16 @@ public class JsonToXml extends JsonListener implements IXmlJson {
         if (fBuf != null) {
             String value = fBuf.toString();
             fBuf = null;
-            if (fTop.isNameProperty()) {
-                fTop.setXmlName(value);
-            } else {
-                if (fTop.isContentProperty()) {
-                    IXmlText e = fFactory.newText(value);
-                    fTop.addContent(e);
+            if (fTop != null) {
+                if (fTop.isNameProperty()) {
+                    fTop.setXmlName(value);
                 } else {
-                    fTop.addAttribute(value);
+                    if (fTop.isContentProperty()) {
+                        IXmlText e = fFactory.newText(value);
+                        fTop.addContent(e);
+                    } else {
+                        fTop.addAttribute(value);
+                    }
                 }
             }
         }
