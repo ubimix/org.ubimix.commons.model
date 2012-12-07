@@ -94,7 +94,10 @@ public class StructuredTreeTest extends TestCase {
         checkTree(subtree, "Second", "A", "B", "C");
 
         StructuredTree first = tree.getSubtree(0);
+        checkTree(first, "First");
+
         StructuredTree third = tree.getSubtree(2);
+        checkTree(third, "Third");
 
         // --------------------------------------------------------------------
         tree = getTree(""
