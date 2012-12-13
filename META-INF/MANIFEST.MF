@@ -28,6 +28,5 @@ Import-Package: javax.xml.parsers;resolution:=optional,
  org.ubimix.commons.parser.text;version="1.0.0",
  org.ubimix.commons.parser.xml;version="1.0.0",
  org.ubimix.commons.parser.xml.utils;version="1.0.0",
- org.ubimix.commons.xml;version="1.2.1",
  org.xml.sax;resolution:=optional,
  org.xml.sax.helpers;resolution:=optional
