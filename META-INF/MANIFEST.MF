@@ -9,7 +9,9 @@ Bundle-Description: Data Model
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0
 Export-Package: org.ubimix.model;version="0.1.4",
  org.ubimix.model.cleaner;version="0.1.4",
+ org.ubimix.model.conversion;version="0.1.4",
  org.ubimix.model.html;version="0.1.4",
+ org.ubimix.model.html.export;version="0.1.4",
  org.ubimix.model.selector;version="0.1.4",
  org.ubimix.model.selector.utils;version="0.1.4",
  org.ubimix.model.xml;version="0.1.4",
