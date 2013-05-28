@@ -52,6 +52,14 @@ public class HtmlArticleBuilderTest extends TestCase {
             + "}");
     }
 
+    public void testEmptyArticle() {
+        String xml = "<html><body></body></html>";
+        HtmlArticleBuilder builder = new HtmlArticleBuilder();
+        IXmlElement w = HtmlDocument.parseFragment(xml);
+        assertNotNull(w);
+
+    }
+
     public void testHierarchyBuilder() throws IOException {
         testHierarchyBuilder(""
             + "<div>"
@@ -586,6 +594,18 @@ public class HtmlArticleBuilderTest extends TestCase {
         assertEquals(controlJson + "", o + "");
         // ModelObject x = ModelObject.from(article);
         // System.out.println(x);
+    }
+
+    public void testTitle() {
+        String xml = "<html><body><p>a paragraph</p></body></html>";
+        HtmlArticleBuilder builder = new HtmlArticleBuilder();
+        IXmlElement w = HtmlDocument.parseFragment(xml);
+        HtmlArticle article = builder.buildArticle(w);
+        String aTitle = "Title A";
+        article.setTitle(aTitle);
+        ModelObject o = toModelObject(article);
+        assertEquals(o.getString("title"), aTitle);
+
     }
 
     private void toModel(ModelObject obj, HtmlArticle article) {
