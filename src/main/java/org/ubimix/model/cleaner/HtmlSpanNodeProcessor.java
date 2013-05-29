@@ -14,9 +14,6 @@ import org.ubimix.model.xml.IXmlNode;
  */
 public class HtmlSpanNodeProcessor extends AbstractTagProcessor {
 
-    /**
-     * 
-     */
     public HtmlSpanNodeProcessor() {
     }
 

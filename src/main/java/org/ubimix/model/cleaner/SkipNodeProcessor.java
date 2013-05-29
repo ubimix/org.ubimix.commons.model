@@ -13,9 +13,6 @@ import org.ubimix.model.xml.IXmlNode;
  */
 public class SkipNodeProcessor extends AbstractTagProcessor {
 
-    /**
-     * 
-     */
     public SkipNodeProcessor() {
     }
 

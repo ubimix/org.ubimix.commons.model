@@ -13,11 +13,8 @@ import org.ubimix.model.xml.IXmlNode;
 /**
  * @author kotelnikov
  */
-public class HtmlANodeProcessor extends AbstractTagProcessor {
+public class HtmlANodeProcessor extends GenericTagProcessor {
 
-    /**
-     * 
-     */
     public HtmlANodeProcessor() {
     }
 
@@ -59,6 +56,10 @@ public class HtmlANodeProcessor extends AbstractTagProcessor {
 
     @Override
     public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
+        List<IXmlNode> list = super.handle(element, keepSpaces);
+        if (!list.isEmpty()) {
+            element = (IXmlElement) list.get(0);
+        }
         String href = element.getAttribute("href");
         List<IXmlNode> result = null;
         if (href == null || "".equals(href) || "#".equals(href)) {

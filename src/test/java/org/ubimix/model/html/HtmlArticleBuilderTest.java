@@ -12,6 +12,7 @@ import junit.framework.TestCase;
 
 import org.ubimix.model.ModelObject;
 import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlFactory;
 import org.ubimix.model.xml.XmlUtils;
 
 /**
@@ -50,6 +51,19 @@ public class HtmlArticleBuilderTest extends TestCase {
             + "    }\n"
             + "  ]\n"
             + "}");
+    }
+
+    public void testArticle() {
+        String content = "hello world";
+        HtmlArticleBuilder builder = new HtmlArticleBuilder();
+        IXmlElement doc = HtmlDocument.parse(content);
+        IXmlFactory factory = doc.getFactory();
+        HtmlArticle article = new HtmlArticle(factory);
+        builder.buildArticle(doc, article);
+        ModelObject o = toModelObject(article);
+        String control = o.getString("content");
+        assertEquals(content, control);
+
     }
 
     public void testEmptyArticle() {

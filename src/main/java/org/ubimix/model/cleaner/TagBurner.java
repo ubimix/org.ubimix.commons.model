@@ -1,6 +1,11 @@
 package org.ubimix.model.cleaner;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.ubimix.commons.parser.html.HtmlTagDictionary;
+import org.ubimix.model.xml.IXmlElement;
+import org.ubimix.model.xml.IXmlNode;
 
 /**
  * @author kotelnikov
@@ -33,6 +38,15 @@ public class TagBurner extends CompositeTagProcessor {
 
         DispatchingTagProcessor preprocessor = new DispatchingTagProcessor()
             .setDefaultProcessor(cleaner)
+            .register(new AbstractTagProcessor() {
+                public List<IXmlNode> handle(
+                    IXmlElement element,
+                    boolean keepSpaces) {
+                    return Arrays.asList();
+                }
+            },
+                HtmlTagDictionary.SCRIPT,
+                HtmlTagDictionary.STYLE)
             .register(HtmlTagDictionary.A, new HtmlANodeProcessor())
             .register(
                 HtmlTagDictionary.PRE,

@@ -21,7 +21,7 @@ public class XmlElement extends XmlNode implements IXmlElement {
         return (T) value;
     }
 
-    private Map<String, String> fAttributes = new LinkedHashMap<String, String>();
+    private final Map<String, String> fAttributes = new LinkedHashMap<String, String>();
 
     protected IXmlNode fFirstChild;
 
@@ -417,7 +417,7 @@ public class XmlElement extends XmlNode implements IXmlElement {
      */
     @Override
     public IXmlElement setText(String str) {
-        if (str != null && "".equals(str)) {
+        if (str != null && !"".equals(str)) {
             IXmlText text = getFactory().newText(str);
             setChildren(text);
         } else {
