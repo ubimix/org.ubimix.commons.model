@@ -56,7 +56,13 @@ public class TagBurner extends CompositeTagProcessor {
         DispatchingTagProcessor postprocessor = new DispatchingTagProcessor()
             .setDefaultProcessor(new NullProcessor())
             .register(HtmlTagDictionary.SPAN, new HtmlSpanNodeProcessor())
-            .register(HtmlTagDictionary.DIV, new HtmlDivNodeProcessor())
+            .register(
+                new HtmlDivNodeProcessor(),
+                HtmlTagDictionary.DIV,
+                HtmlTagDictionary.ARTICLE,
+                HtmlTagDictionary.SECTION,
+                HtmlTagDictionary.FIGURE,
+                HtmlTagDictionary.FIGCAPTION)
             .register(
                 new HtmlListNodeProcessor(),
                 HtmlTagDictionary.UL,

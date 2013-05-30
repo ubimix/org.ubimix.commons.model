@@ -23,6 +23,7 @@ public class HtmlDivNodeProcessor extends AbstractTagProcessor {
 
     @Override
     public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
+        element.setName(HtmlTagDictionary.DIV);
         List<IXmlNode> children = element.getChildren();
         int len = children.size();
         List<IXmlNode> result = null;

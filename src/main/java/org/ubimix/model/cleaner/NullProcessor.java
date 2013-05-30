@@ -6,6 +6,7 @@ package org.ubimix.model.cleaner;
 import java.util.Arrays;
 import java.util.List;
 
+import org.ubimix.commons.parser.html.HtmlTagDictionary;
 import org.ubimix.model.xml.IXmlElement;
 import org.ubimix.model.xml.IXmlNode;
 
@@ -23,12 +24,18 @@ public class NullProcessor extends AbstractTagProcessor
     }
 
     /**
-     * @see org.ubimix.model.cleaner.ITagProcessor#handle(IXmlElement,
-     *      boolean)
+     * @see org.ubimix.model.cleaner.ITagProcessor#handle(IXmlElement, boolean)
      */
     @Override
     public List<IXmlNode> handle(IXmlElement element, boolean keepSpaces) {
-        return Arrays.<IXmlNode> asList(element);
+        List<IXmlNode> result;
+        if (element.getChildCount() == 0
+            && !HtmlTagDictionary.isEmptyElement(element.getName())) {
+            result = Arrays.<IXmlNode> asList();
+        } else {
+            result = Arrays.<IXmlNode> asList(element);
+        }
+        return result;
     }
 
 }
