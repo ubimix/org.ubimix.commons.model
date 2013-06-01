@@ -19,7 +19,7 @@ import org.ubimix.model.xml.XmlUtils;
  */
 public class TagBurnerTest extends TestCase {
 
-    private IXmlFactory fFactory = newXmlFactory();
+    private final IXmlFactory fFactory = newXmlFactory();
 
     /**
      * @param name
@@ -30,6 +30,19 @@ public class TagBurnerTest extends TestCase {
 
     protected IXmlFactory newXmlFactory() {
         return XmlFactory.getInstance();
+    }
+
+    public void testANodeWithJavaScript() {
+        String input = "<a href=\"javascript://print();\">Imprimer</a>";
+        IXmlElement element = HtmlDocument.parseFragment(input);
+        testTagBurner(element.toString(), "<a href=''>Imprimer</a>");
+
+    }
+
+    public void testBr() {
+        String input = "<span><br>a b c</span>";
+        IXmlElement element = HtmlDocument.parseFragment(input);
+        testTagBurner(element.toString(), "<span><br/>a b c</span>");
     }
 
     public void testHtmlLists() {

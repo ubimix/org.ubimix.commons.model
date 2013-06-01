@@ -11,8 +11,10 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import org.ubimix.model.ModelObject;
+import org.ubimix.model.cleaner.TagBurner;
 import org.ubimix.model.xml.IXmlElement;
 import org.ubimix.model.xml.IXmlFactory;
+import org.ubimix.model.xml.XmlFactory;
 import org.ubimix.model.xml.XmlUtils;
 
 /**
@@ -53,6 +55,20 @@ public class HtmlArticleBuilderTest extends TestCase {
             + "}");
     }
 
+    public void testANodeWithinHeader() {
+        String input = "<h2>abc <a target=\"_blank\" onclick=\"return false;\" href=\"http://www.abc.com\">d e f </a> g h i</h2>";
+        IXmlElement element = HtmlDocument.parseFragment(input);
+        TagBurner burner = new TagBurner();
+        HtmlArticleBuilder builder = new HtmlArticleBuilder();
+        IXmlFactory factory = XmlFactory.getInstance();
+        HtmlArticle article = new HtmlArticle(factory);
+        builder.buildArticle(element, article, burner);
+        String output = article.toString();
+        int idx = output.indexOf("target=") + output.indexOf("onclick=");
+        assertFalse(idx > 0);
+
+    }
+
     public void testArticle() {
         String content = "hello world";
         HtmlArticleBuilder builder = new HtmlArticleBuilder();
@@ -68,9 +84,28 @@ public class HtmlArticleBuilderTest extends TestCase {
 
     public void testEmptyArticle() {
         String xml = "<html><body></body></html>";
-        HtmlArticleBuilder builder = new HtmlArticleBuilder();
         IXmlElement w = HtmlDocument.parseFragment(xml);
         assertNotNull(w);
+
+    }
+
+    public void testHeaderTagWithinBody() {
+        String[] headerTags = new String[] {
+            "<html>",
+            "<body>",
+            "<head>",
+            "<meta>" };
+        for (String headerTag : headerTags) {
+            String input = "<html><body><p>a b c</p>"
+                + headerTag
+                + "d e f</body></html>";
+            // TODO: SL: why does parseFragment return only the first node ?
+            IXmlElement w = HtmlDocument.parse(input);
+            assertEquals(
+                "<html><body><p>a b c</p>d e f</body></html>",
+                w.toString());
+
+        }
 
     }
 
