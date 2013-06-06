@@ -62,7 +62,11 @@ public class HtmlANodeProcessor extends GenericTagProcessor {
         }
         String href = element.getAttribute("href");
         List<IXmlNode> result = null;
-        if (href == null || "".equals(href) || "#".equals(href)) {
+        boolean hasReference = href != null
+            && !"".equals(href)
+            && !"#".equals(href)
+            && !href.toLowerCase().startsWith("javascript:");
+        if (!hasReference) {
             String id = element.getAttribute("id");
             if (id == null) {
                 id = element.getAttribute("name");

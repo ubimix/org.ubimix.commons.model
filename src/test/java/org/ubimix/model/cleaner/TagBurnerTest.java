@@ -40,7 +40,7 @@ public class TagBurnerTest extends TestCase {
     }
 
     public void testBr() {
-        String input = "<span><br>a b c</span>";
+        String input = "<span>a<br> b c</span>";
         IXmlElement element = HtmlDocument.parseFragment(input);
         testTagBurner(element.toString(), "<span><br/>a b c</span>");
     }
@@ -125,6 +125,12 @@ public class TagBurnerTest extends TestCase {
         testHtmlTagBurner(
             "<div><p id='1'>a<p>b</p><p>c</p></p></div>",
             "<div><p id='1'>a</p><p>b</p><p>c</p></div>");
+    }
+
+    public void testImg() {
+        String input = "<span>a<img> b c</span>";
+        IXmlElement element = HtmlDocument.parseFragment(input);
+        testTagBurner(element.toString(), "a<img></img> b c");
     }
 
     public void testLists() {

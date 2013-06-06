@@ -38,6 +38,14 @@ public class XmlWrapper extends XmlUtils {
         return fElement.equals(o.fElement);
     }
 
+    public String getAsText() {
+        return getSerializedContent(false, getElement());
+    }
+
+    public String getAsXml() {
+        return getSerializedContent(true, getElement());
+    }
+
     public IXmlElement getChildByName(String name) {
         return getChildByName(fElement, name);
     }

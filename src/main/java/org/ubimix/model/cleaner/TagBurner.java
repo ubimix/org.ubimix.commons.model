@@ -47,6 +47,7 @@ public class TagBurner extends CompositeTagProcessor {
             },
                 HtmlTagDictionary.SCRIPT,
                 HtmlTagDictionary.STYLE)
+            .register(HtmlTagDictionary.IFRAME, new HtmlIframeNodeProcessor())
             .register(HtmlTagDictionary.A, new HtmlANodeProcessor())
             .register(
                 HtmlTagDictionary.PRE,

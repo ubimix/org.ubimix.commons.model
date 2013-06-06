@@ -96,11 +96,11 @@ public class HtmlArticle extends XmlWrapper {
     }
 
     public String getContentAsHtml() {
-        return getSerializedContent(true);
+        return getSerializedContent(true, getSection());
     }
 
     public String getContentAsText() {
-        return getSerializedContent(false);
+        return getSerializedContent(false, getSection());
     }
 
     public List<String> getImageUrls() {
@@ -142,25 +142,6 @@ public class HtmlArticle extends XmlWrapper {
 
     public IXmlElement getSection() {
         return getOrCreateElement(HtmlTagDictionary.SECTION);
-    }
-
-    private String getSerializedContent(boolean html) {
-        StringBuilder buf = new StringBuilder();
-        for (IXmlNode node : getSection()) {
-            String str;
-            if (node instanceof IXmlElement) {
-                IXmlElement e = (IXmlElement) node;
-                if (html) {
-                    str = e.toString();
-                } else {
-                    str = XmlUtils.toText(e);
-                }
-            } else {
-                str = node.toString();
-            }
-            buf.append(str);
-        }
-        return buf.toString();
     }
 
     public String getTitle() {

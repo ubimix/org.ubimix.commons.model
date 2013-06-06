@@ -1,6 +1,7 @@
 package org.ubimix.model.xml;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -170,6 +171,31 @@ public class XmlUtils {
         IValueFactory<T> factory) {
         IXmlElement r = getOrCreateElement(e, name);
         return r != null ? factory.newValue(r) : null;
+    }
+
+    public static String getSerializedContent(
+        boolean asXml,
+        Iterable<IXmlNode> nodes) {
+        StringBuilder buf = new StringBuilder();
+        for (IXmlNode node : nodes) {
+            String str;
+            if (node instanceof IXmlElement) {
+                IXmlElement e = (IXmlElement) node;
+                if (asXml) {
+                    str = e.toString();
+                } else {
+                    str = XmlUtils.toText(e);
+                }
+            } else {
+                str = node.toString();
+            }
+            buf.append(str);
+        }
+        return buf.toString();
+    }
+
+    public static String getSerializedContent(boolean asXml, IXmlNode... nodes) {
+        return getSerializedContent(asXml, Arrays.asList(nodes));
     }
 
     private static <T> void loadChildrenByName(
