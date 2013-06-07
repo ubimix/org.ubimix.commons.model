@@ -11,6 +11,15 @@ import org.ubimix.model.IValueFactory;
  */
 public class XmlWrapper extends XmlUtils {
 
+    public static final IValueFactory<XmlWrapper> FACTORY = new IValueFactory<XmlWrapper>() {
+        public XmlWrapper newValue(Object object) {
+            if (!(object instanceof IXmlElement)) {
+                return null;
+            }
+            return new XmlWrapper((IXmlElement) object);
+        }
+    };
+
     protected IXmlElement fElement;
 
     public XmlWrapper(IXmlElement e) {
@@ -44,6 +53,15 @@ public class XmlWrapper extends XmlUtils {
 
     public String getAsXml() {
         return getSerializedContent(true, getElement());
+    }
+
+    public List<XmlWrapper> getByName(String tagName) {
+        return getChildrenByName(fElement, tagName, XmlWrapper.FACTORY);
+    }
+
+    public List<XmlWrapper> getByPath(String... path) {
+        return getChildrenByPath(XmlWrapper.FACTORY, path);
+
     }
 
     public IXmlElement getChildByName(String name) {

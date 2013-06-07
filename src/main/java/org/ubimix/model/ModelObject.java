@@ -335,6 +335,19 @@ public class ModelObject implements IHasValueMap {
     }
 
     /**
+     * @param name the name of the property
+     * @return a list of model objects corresponding to the specified property
+     *         key
+     */
+    public List<String> getListStrings(String name) {
+        return getList(name, new IValueFactory<String>() {
+            public String newValue(Object object) {
+                return object != null ? object.toString() : "";
+            }
+        });
+    }
+
+    /**
      * Returns the specified property as a long value.
      * 
      * @param name the name of the property

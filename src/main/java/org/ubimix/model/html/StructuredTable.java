@@ -88,6 +88,10 @@ public class StructuredTable extends StructuredNode.StructuredNodeContainer {
 
     private int fTableWidth = -1;
 
+    public StructuredTable(IXmlElement element) {
+        this(element, Value.FACTORY);
+    }
+
     public StructuredTable(
         IXmlElement element,
         IValueFactory<? extends Value> factory) {
